@@ -14,10 +14,6 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
-POItemModel _$POItemModelFromJson(Map<String, dynamic> json) {
-  return _POItemModel.fromJson(json);
-}
-
 /// @nodoc
 mixin _$POItemModel {
   @JsonKey(name: 'item_id')
@@ -27,7 +23,18 @@ mixin _$POItemModel {
   @JsonKey(name: 'pi_item_id')
   String? get piItemId => throw _privateConstructorUsedError;
   @JsonKey(name: 'product_id')
-  String? get productId => throw _privateConstructorUsedError;
+  String? get productId =>
+      throw _privateConstructorUsedError; // Variant support from inventory_get_order_detail_v2 RPC
+  @JsonKey(name: 'variant_id')
+  String? get variantId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'product_name')
+  String? get productName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'variant_name')
+  String? get variantName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'display_name')
+  String? get displayName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'has_variants')
+  bool get hasVariants => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   String? get sku => throw _privateConstructorUsedError;
   @JsonKey(name: 'hs_code')
@@ -48,9 +55,6 @@ mixin _$POItemModel {
   @JsonKey(name: 'created_at_utc')
   DateTime? get createdAtUtc => throw _privateConstructorUsedError;
 
-  /// Serializes this POItemModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
   /// Create a copy of POItemModel
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -69,6 +73,11 @@ abstract class $POItemModelCopyWith<$Res> {
       @JsonKey(name: 'po_id') String poId,
       @JsonKey(name: 'pi_item_id') String? piItemId,
       @JsonKey(name: 'product_id') String? productId,
+      @JsonKey(name: 'variant_id') String? variantId,
+      @JsonKey(name: 'product_name') String? productName,
+      @JsonKey(name: 'variant_name') String? variantName,
+      @JsonKey(name: 'display_name') String? displayName,
+      @JsonKey(name: 'has_variants') bool hasVariants,
       String description,
       String? sku,
       @JsonKey(name: 'hs_code') String? hsCode,
@@ -101,6 +110,11 @@ class _$POItemModelCopyWithImpl<$Res, $Val extends POItemModel>
     Object? poId = null,
     Object? piItemId = freezed,
     Object? productId = freezed,
+    Object? variantId = freezed,
+    Object? productName = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
     Object? description = null,
     Object? sku = freezed,
     Object? hsCode = freezed,
@@ -130,6 +144,26 @@ class _$POItemModelCopyWithImpl<$Res, $Val extends POItemModel>
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
               as String?,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      productName: freezed == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
       description: null == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -191,6 +225,11 @@ abstract class _$$POItemModelImplCopyWith<$Res>
       @JsonKey(name: 'po_id') String poId,
       @JsonKey(name: 'pi_item_id') String? piItemId,
       @JsonKey(name: 'product_id') String? productId,
+      @JsonKey(name: 'variant_id') String? variantId,
+      @JsonKey(name: 'product_name') String? productName,
+      @JsonKey(name: 'variant_name') String? variantName,
+      @JsonKey(name: 'display_name') String? displayName,
+      @JsonKey(name: 'has_variants') bool hasVariants,
       String description,
       String? sku,
       @JsonKey(name: 'hs_code') String? hsCode,
@@ -221,6 +260,11 @@ class __$$POItemModelImplCopyWithImpl<$Res>
     Object? poId = null,
     Object? piItemId = freezed,
     Object? productId = freezed,
+    Object? variantId = freezed,
+    Object? productName = freezed,
+    Object? variantName = freezed,
+    Object? displayName = freezed,
+    Object? hasVariants = null,
     Object? description = null,
     Object? sku = freezed,
     Object? hsCode = freezed,
@@ -250,6 +294,26 @@ class __$$POItemModelImplCopyWithImpl<$Res>
           ? _value.productId
           : productId // ignore: cast_nullable_to_non_nullable
               as String?,
+      variantId: freezed == variantId
+          ? _value.variantId
+          : variantId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      productName: freezed == productName
+          ? _value.productName
+          : productName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      variantName: freezed == variantName
+          ? _value.variantName
+          : variantName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      displayName: freezed == displayName
+          ? _value.displayName
+          : displayName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      hasVariants: null == hasVariants
+          ? _value.hasVariants
+          : hasVariants // ignore: cast_nullable_to_non_nullable
+              as bool,
       description: null == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -299,13 +363,18 @@ class __$$POItemModelImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$POItemModelImpl extends _POItemModel {
   const _$POItemModelImpl(
       {@JsonKey(name: 'item_id') required this.itemId,
       @JsonKey(name: 'po_id') required this.poId,
       @JsonKey(name: 'pi_item_id') this.piItemId,
       @JsonKey(name: 'product_id') this.productId,
+      @JsonKey(name: 'variant_id') this.variantId,
+      @JsonKey(name: 'product_name') this.productName,
+      @JsonKey(name: 'variant_name') this.variantName,
+      @JsonKey(name: 'display_name') this.displayName,
+      @JsonKey(name: 'has_variants') this.hasVariants = false,
       required this.description,
       this.sku,
       @JsonKey(name: 'hs_code') this.hsCode,
@@ -319,9 +388,6 @@ class _$POItemModelImpl extends _POItemModel {
       @JsonKey(name: 'created_at_utc') this.createdAtUtc})
       : super._();
 
-  factory _$POItemModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$POItemModelImplFromJson(json);
-
   @override
   @JsonKey(name: 'item_id')
   final String itemId;
@@ -334,6 +400,22 @@ class _$POItemModelImpl extends _POItemModel {
   @override
   @JsonKey(name: 'product_id')
   final String? productId;
+// Variant support from inventory_get_order_detail_v2 RPC
+  @override
+  @JsonKey(name: 'variant_id')
+  final String? variantId;
+  @override
+  @JsonKey(name: 'product_name')
+  final String? productName;
+  @override
+  @JsonKey(name: 'variant_name')
+  final String? variantName;
+  @override
+  @JsonKey(name: 'display_name')
+  final String? displayName;
+  @override
+  @JsonKey(name: 'has_variants')
+  final bool hasVariants;
   @override
   final String description;
   @override
@@ -367,7 +449,7 @@ class _$POItemModelImpl extends _POItemModel {
 
   @override
   String toString() {
-    return 'POItemModel(itemId: $itemId, poId: $poId, piItemId: $piItemId, productId: $productId, description: $description, sku: $sku, hsCode: $hsCode, quantityOrdered: $quantityOrdered, quantityShipped: $quantityShipped, unit: $unit, unitPrice: $unitPrice, totalAmount: $totalAmount, imageUrl: $imageUrl, sortOrder: $sortOrder, createdAtUtc: $createdAtUtc)';
+    return 'POItemModel(itemId: $itemId, poId: $poId, piItemId: $piItemId, productId: $productId, variantId: $variantId, productName: $productName, variantName: $variantName, displayName: $displayName, hasVariants: $hasVariants, description: $description, sku: $sku, hsCode: $hsCode, quantityOrdered: $quantityOrdered, quantityShipped: $quantityShipped, unit: $unit, unitPrice: $unitPrice, totalAmount: $totalAmount, imageUrl: $imageUrl, sortOrder: $sortOrder, createdAtUtc: $createdAtUtc)';
   }
 
   @override
@@ -381,6 +463,16 @@ class _$POItemModelImpl extends _POItemModel {
                 other.piItemId == piItemId) &&
             (identical(other.productId, productId) ||
                 other.productId == productId) &&
+            (identical(other.variantId, variantId) ||
+                other.variantId == variantId) &&
+            (identical(other.productName, productName) ||
+                other.productName == productName) &&
+            (identical(other.variantName, variantName) ||
+                other.variantName == variantName) &&
+            (identical(other.displayName, displayName) ||
+                other.displayName == displayName) &&
+            (identical(other.hasVariants, hasVariants) ||
+                other.hasVariants == hasVariants) &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.sku, sku) || other.sku == sku) &&
@@ -402,25 +494,30 @@ class _$POItemModelImpl extends _POItemModel {
                 other.createdAtUtc == createdAtUtc));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      itemId,
-      poId,
-      piItemId,
-      productId,
-      description,
-      sku,
-      hsCode,
-      quantityOrdered,
-      quantityShipped,
-      unit,
-      unitPrice,
-      totalAmount,
-      imageUrl,
-      sortOrder,
-      createdAtUtc);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        itemId,
+        poId,
+        piItemId,
+        productId,
+        variantId,
+        productName,
+        variantName,
+        displayName,
+        hasVariants,
+        description,
+        sku,
+        hsCode,
+        quantityOrdered,
+        quantityShipped,
+        unit,
+        unitPrice,
+        totalAmount,
+        imageUrl,
+        sortOrder,
+        createdAtUtc
+      ]);
 
   /// Create a copy of POItemModel
   /// with the given fields replaced by the non-null parameter values.
@@ -429,13 +526,6 @@ class _$POItemModelImpl extends _POItemModel {
   @pragma('vm:prefer-inline')
   _$$POItemModelImplCopyWith<_$POItemModelImpl> get copyWith =>
       __$$POItemModelImplCopyWithImpl<_$POItemModelImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$POItemModelImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _POItemModel extends POItemModel {
@@ -444,6 +534,11 @@ abstract class _POItemModel extends POItemModel {
       @JsonKey(name: 'po_id') required final String poId,
       @JsonKey(name: 'pi_item_id') final String? piItemId,
       @JsonKey(name: 'product_id') final String? productId,
+      @JsonKey(name: 'variant_id') final String? variantId,
+      @JsonKey(name: 'product_name') final String? productName,
+      @JsonKey(name: 'variant_name') final String? variantName,
+      @JsonKey(name: 'display_name') final String? displayName,
+      @JsonKey(name: 'has_variants') final bool hasVariants,
       required final String description,
       final String? sku,
       @JsonKey(name: 'hs_code') final String? hsCode,
@@ -458,9 +553,6 @@ abstract class _POItemModel extends POItemModel {
       final DateTime? createdAtUtc}) = _$POItemModelImpl;
   const _POItemModel._() : super._();
 
-  factory _POItemModel.fromJson(Map<String, dynamic> json) =
-      _$POItemModelImpl.fromJson;
-
   @override
   @JsonKey(name: 'item_id')
   String get itemId;
@@ -472,7 +564,23 @@ abstract class _POItemModel extends POItemModel {
   String? get piItemId;
   @override
   @JsonKey(name: 'product_id')
-  String? get productId;
+  String?
+      get productId; // Variant support from inventory_get_order_detail_v2 RPC
+  @override
+  @JsonKey(name: 'variant_id')
+  String? get variantId;
+  @override
+  @JsonKey(name: 'product_name')
+  String? get productName;
+  @override
+  @JsonKey(name: 'variant_name')
+  String? get variantName;
+  @override
+  @JsonKey(name: 'display_name')
+  String? get displayName;
+  @override
+  @JsonKey(name: 'has_variants')
+  bool get hasVariants;
   @override
   String get description;
   @override
@@ -546,7 +654,14 @@ mixin _$POModel {
   @JsonKey(name: 'buyer_po_number')
   String? get buyerPoNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'buyer_info')
-  Map<String, dynamic>? get buyerInfo => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get buyerInfo =>
+      throw _privateConstructorUsedError; // Supplier info from inventory RPC
+  @JsonKey(name: 'supplier_id')
+  String? get supplierId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'supplier_name')
+  String? get supplierName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_registered_supplier')
+  bool get isRegisteredSupplier => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_id')
   String? get currencyId => throw _privateConstructorUsedError;
   @JsonKey(name: 'currency_code')
@@ -567,7 +682,12 @@ mixin _$POModel {
   bool get partialShipmentAllowed => throw _privateConstructorUsedError;
   @JsonKey(name: 'transshipment_allowed')
   bool get transshipmentAllowed => throw _privateConstructorUsedError;
-  String get status => throw _privateConstructorUsedError;
+  String get status =>
+      throw _privateConstructorUsedError; // New status fields from RPC
+  @JsonKey(name: 'order_status')
+  String? get orderStatus => throw _privateConstructorUsedError;
+  @JsonKey(name: 'receiving_status')
+  String? get receivingStatus => throw _privateConstructorUsedError;
   int get version => throw _privateConstructorUsedError;
   @JsonKey(name: 'shipped_percent')
   double get shippedPercent => throw _privateConstructorUsedError;
@@ -578,7 +698,15 @@ mixin _$POModel {
   DateTime? get createdAtUtc => throw _privateConstructorUsedError;
   @JsonKey(name: 'updated_at_utc')
   DateTime? get updatedAtUtc => throw _privateConstructorUsedError;
-  List<POItemModel> get items => throw _privateConstructorUsedError;
+  List<POItemModel> get items =>
+      throw _privateConstructorUsedError; // Shipment info from RPC
+  @JsonKey(name: 'has_shipments')
+  bool get hasShipments => throw _privateConstructorUsedError;
+  @JsonKey(name: 'shipment_count')
+  int get shipmentCount =>
+      throw _privateConstructorUsedError; // Action flags from RPC
+  @JsonKey(name: 'can_cancel')
+  bool get canCancel => throw _privateConstructorUsedError;
 
   /// Create a copy of POModel
   /// with the given fields replaced by the non-null parameter values.
@@ -605,6 +733,9 @@ abstract class $POModelCopyWith<$Res> {
       @JsonKey(name: 'buyer_name') String? buyerName,
       @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
       @JsonKey(name: 'buyer_info') Map<String, dynamic>? buyerInfo,
+      @JsonKey(name: 'supplier_id') String? supplierId,
+      @JsonKey(name: 'supplier_name') String? supplierName,
+      @JsonKey(name: 'is_registered_supplier') bool isRegisteredSupplier,
       @JsonKey(name: 'currency_id') String? currencyId,
       @JsonKey(name: 'currency_code') String currencyCode,
       @JsonKey(name: 'total_amount') double totalAmount,
@@ -617,13 +748,18 @@ abstract class $POModelCopyWith<$Res> {
       @JsonKey(name: 'partial_shipment_allowed') bool partialShipmentAllowed,
       @JsonKey(name: 'transshipment_allowed') bool transshipmentAllowed,
       String status,
+      @JsonKey(name: 'order_status') String? orderStatus,
+      @JsonKey(name: 'receiving_status') String? receivingStatus,
       int version,
       @JsonKey(name: 'shipped_percent') double shippedPercent,
       String? notes,
       @JsonKey(name: 'created_by') String? createdBy,
       @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc,
       @JsonKey(name: 'updated_at_utc') DateTime? updatedAtUtc,
-      List<POItemModel> items});
+      List<POItemModel> items,
+      @JsonKey(name: 'has_shipments') bool hasShipments,
+      @JsonKey(name: 'shipment_count') int shipmentCount,
+      @JsonKey(name: 'can_cancel') bool canCancel});
 }
 
 /// @nodoc
@@ -654,6 +790,9 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
     Object? buyerInfo = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
+    Object? isRegisteredSupplier = null,
     Object? currencyId = freezed,
     Object? currencyCode = null,
     Object? totalAmount = null,
@@ -665,6 +804,8 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
     Object? partialShipmentAllowed = null,
     Object? transshipmentAllowed = null,
     Object? status = null,
+    Object? orderStatus = freezed,
+    Object? receivingStatus = freezed,
     Object? version = null,
     Object? shippedPercent = null,
     Object? notes = freezed,
@@ -672,6 +813,9 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
     Object? createdAtUtc = freezed,
     Object? updatedAtUtc = freezed,
     Object? items = null,
+    Object? hasShipments = null,
+    Object? shipmentCount = null,
+    Object? canCancel = null,
   }) {
     return _then(_value.copyWith(
       poId: null == poId
@@ -726,6 +870,18 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
           ? _value.buyerInfo
           : buyerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isRegisteredSupplier: null == isRegisteredSupplier
+          ? _value.isRegisteredSupplier
+          : isRegisteredSupplier // ignore: cast_nullable_to_non_nullable
+              as bool,
       currencyId: freezed == currencyId
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
@@ -770,6 +926,14 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      orderStatus: freezed == orderStatus
+          ? _value.orderStatus
+          : orderStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      receivingStatus: freezed == receivingStatus
+          ? _value.receivingStatus
+          : receivingStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
       version: null == version
           ? _value.version
           : version // ignore: cast_nullable_to_non_nullable
@@ -798,6 +962,18 @@ class _$POModelCopyWithImpl<$Res, $Val extends POModel>
           ? _value.items
           : items // ignore: cast_nullable_to_non_nullable
               as List<POItemModel>,
+      hasShipments: null == hasShipments
+          ? _value.hasShipments
+          : hasShipments // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shipmentCount: null == shipmentCount
+          ? _value.shipmentCount
+          : shipmentCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      canCancel: null == canCancel
+          ? _value.canCancel
+          : canCancel // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -823,6 +999,9 @@ abstract class _$$POModelImplCopyWith<$Res> implements $POModelCopyWith<$Res> {
       @JsonKey(name: 'buyer_name') String? buyerName,
       @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
       @JsonKey(name: 'buyer_info') Map<String, dynamic>? buyerInfo,
+      @JsonKey(name: 'supplier_id') String? supplierId,
+      @JsonKey(name: 'supplier_name') String? supplierName,
+      @JsonKey(name: 'is_registered_supplier') bool isRegisteredSupplier,
       @JsonKey(name: 'currency_id') String? currencyId,
       @JsonKey(name: 'currency_code') String currencyCode,
       @JsonKey(name: 'total_amount') double totalAmount,
@@ -835,13 +1014,18 @@ abstract class _$$POModelImplCopyWith<$Res> implements $POModelCopyWith<$Res> {
       @JsonKey(name: 'partial_shipment_allowed') bool partialShipmentAllowed,
       @JsonKey(name: 'transshipment_allowed') bool transshipmentAllowed,
       String status,
+      @JsonKey(name: 'order_status') String? orderStatus,
+      @JsonKey(name: 'receiving_status') String? receivingStatus,
       int version,
       @JsonKey(name: 'shipped_percent') double shippedPercent,
       String? notes,
       @JsonKey(name: 'created_by') String? createdBy,
       @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc,
       @JsonKey(name: 'updated_at_utc') DateTime? updatedAtUtc,
-      List<POItemModel> items});
+      List<POItemModel> items,
+      @JsonKey(name: 'has_shipments') bool hasShipments,
+      @JsonKey(name: 'shipment_count') int shipmentCount,
+      @JsonKey(name: 'can_cancel') bool canCancel});
 }
 
 /// @nodoc
@@ -870,6 +1054,9 @@ class __$$POModelImplCopyWithImpl<$Res>
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
     Object? buyerInfo = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
+    Object? isRegisteredSupplier = null,
     Object? currencyId = freezed,
     Object? currencyCode = null,
     Object? totalAmount = null,
@@ -881,6 +1068,8 @@ class __$$POModelImplCopyWithImpl<$Res>
     Object? partialShipmentAllowed = null,
     Object? transshipmentAllowed = null,
     Object? status = null,
+    Object? orderStatus = freezed,
+    Object? receivingStatus = freezed,
     Object? version = null,
     Object? shippedPercent = null,
     Object? notes = freezed,
@@ -888,6 +1077,9 @@ class __$$POModelImplCopyWithImpl<$Res>
     Object? createdAtUtc = freezed,
     Object? updatedAtUtc = freezed,
     Object? items = null,
+    Object? hasShipments = null,
+    Object? shipmentCount = null,
+    Object? canCancel = null,
   }) {
     return _then(_$POModelImpl(
       poId: null == poId
@@ -942,6 +1134,18 @@ class __$$POModelImplCopyWithImpl<$Res>
           ? _value._buyerInfo
           : buyerInfo // ignore: cast_nullable_to_non_nullable
               as Map<String, dynamic>?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isRegisteredSupplier: null == isRegisteredSupplier
+          ? _value.isRegisteredSupplier
+          : isRegisteredSupplier // ignore: cast_nullable_to_non_nullable
+              as bool,
       currencyId: freezed == currencyId
           ? _value.currencyId
           : currencyId // ignore: cast_nullable_to_non_nullable
@@ -986,6 +1190,14 @@ class __$$POModelImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      orderStatus: freezed == orderStatus
+          ? _value.orderStatus
+          : orderStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
+      receivingStatus: freezed == receivingStatus
+          ? _value.receivingStatus
+          : receivingStatus // ignore: cast_nullable_to_non_nullable
+              as String?,
       version: null == version
           ? _value.version
           : version // ignore: cast_nullable_to_non_nullable
@@ -1014,6 +1226,18 @@ class __$$POModelImplCopyWithImpl<$Res>
           ? _value._items
           : items // ignore: cast_nullable_to_non_nullable
               as List<POItemModel>,
+      hasShipments: null == hasShipments
+          ? _value.hasShipments
+          : hasShipments // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shipmentCount: null == shipmentCount
+          ? _value.shipmentCount
+          : shipmentCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      canCancel: null == canCancel
+          ? _value.canCancel
+          : canCancel // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -1037,6 +1261,10 @@ class _$POModelImpl extends _POModel {
       @JsonKey(name: 'buyer_name') this.buyerName,
       @JsonKey(name: 'buyer_po_number') this.buyerPoNumber,
       @JsonKey(name: 'buyer_info') final Map<String, dynamic>? buyerInfo,
+      @JsonKey(name: 'supplier_id') this.supplierId,
+      @JsonKey(name: 'supplier_name') this.supplierName,
+      @JsonKey(name: 'is_registered_supplier')
+      this.isRegisteredSupplier = false,
       @JsonKey(name: 'currency_id') this.currencyId,
       @JsonKey(name: 'currency_code') this.currencyCode = 'USD',
       @JsonKey(name: 'total_amount') this.totalAmount = 0,
@@ -1049,13 +1277,18 @@ class _$POModelImpl extends _POModel {
       this.partialShipmentAllowed = true,
       @JsonKey(name: 'transshipment_allowed') this.transshipmentAllowed = true,
       this.status = 'draft',
+      @JsonKey(name: 'order_status') this.orderStatus,
+      @JsonKey(name: 'receiving_status') this.receivingStatus,
       this.version = 1,
       @JsonKey(name: 'shipped_percent') this.shippedPercent = 0,
       this.notes,
       @JsonKey(name: 'created_by') this.createdBy,
       @JsonKey(name: 'created_at_utc') this.createdAtUtc,
       @JsonKey(name: 'updated_at_utc') this.updatedAtUtc,
-      final List<POItemModel> items = const []})
+      final List<POItemModel> items = const [],
+      @JsonKey(name: 'has_shipments') this.hasShipments = false,
+      @JsonKey(name: 'shipment_count') this.shipmentCount = 0,
+      @JsonKey(name: 'can_cancel') this.canCancel = false})
       : _sellerInfo = sellerInfo,
         _bankingInfo = bankingInfo,
         _bankAccountIds = bankAccountIds,
@@ -1142,6 +1375,16 @@ class _$POModelImpl extends _POModel {
     return EqualUnmodifiableMapView(value);
   }
 
+// Supplier info from inventory RPC
+  @override
+  @JsonKey(name: 'supplier_id')
+  final String? supplierId;
+  @override
+  @JsonKey(name: 'supplier_name')
+  final String? supplierName;
+  @override
+  @JsonKey(name: 'is_registered_supplier')
+  final bool isRegisteredSupplier;
   @override
   @JsonKey(name: 'currency_id')
   final String? currencyId;
@@ -1175,6 +1418,13 @@ class _$POModelImpl extends _POModel {
   @override
   @JsonKey()
   final String status;
+// New status fields from RPC
+  @override
+  @JsonKey(name: 'order_status')
+  final String? orderStatus;
+  @override
+  @JsonKey(name: 'receiving_status')
+  final String? receivingStatus;
   @override
   @JsonKey()
   final int version;
@@ -1201,9 +1451,21 @@ class _$POModelImpl extends _POModel {
     return EqualUnmodifiableListView(_items);
   }
 
+// Shipment info from RPC
+  @override
+  @JsonKey(name: 'has_shipments')
+  final bool hasShipments;
+  @override
+  @JsonKey(name: 'shipment_count')
+  final int shipmentCount;
+// Action flags from RPC
+  @override
+  @JsonKey(name: 'can_cancel')
+  final bool canCancel;
+
   @override
   String toString() {
-    return 'POModel(poId: $poId, poNumber: $poNumber, companyId: $companyId, storeId: $storeId, piId: $piId, piNumber: $piNumber, sellerInfo: $sellerInfo, bankingInfo: $bankingInfo, bankAccountIds: $bankAccountIds, buyerId: $buyerId, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, buyerInfo: $buyerInfo, currencyId: $currencyId, currencyCode: $currencyCode, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, paymentTermsCode: $paymentTermsCode, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, status: $status, version: $version, shippedPercent: $shippedPercent, notes: $notes, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items)';
+    return 'POModel(poId: $poId, poNumber: $poNumber, companyId: $companyId, storeId: $storeId, piId: $piId, piNumber: $piNumber, sellerInfo: $sellerInfo, bankingInfo: $bankingInfo, bankAccountIds: $bankAccountIds, buyerId: $buyerId, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, buyerInfo: $buyerInfo, supplierId: $supplierId, supplierName: $supplierName, isRegisteredSupplier: $isRegisteredSupplier, currencyId: $currencyId, currencyCode: $currencyCode, totalAmount: $totalAmount, incotermsCode: $incotermsCode, incotermsPlace: $incotermsPlace, paymentTermsCode: $paymentTermsCode, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, partialShipmentAllowed: $partialShipmentAllowed, transshipmentAllowed: $transshipmentAllowed, status: $status, orderStatus: $orderStatus, receivingStatus: $receivingStatus, version: $version, shippedPercent: $shippedPercent, notes: $notes, createdBy: $createdBy, createdAtUtc: $createdAtUtc, updatedAtUtc: $updatedAtUtc, items: $items, hasShipments: $hasShipments, shipmentCount: $shipmentCount, canCancel: $canCancel)';
   }
 
   @override
@@ -1233,6 +1495,12 @@ class _$POModelImpl extends _POModel {
                 other.buyerPoNumber == buyerPoNumber) &&
             const DeepCollectionEquality()
                 .equals(other._buyerInfo, _buyerInfo) &&
+            (identical(other.supplierId, supplierId) ||
+                other.supplierId == supplierId) &&
+            (identical(other.supplierName, supplierName) ||
+                other.supplierName == supplierName) &&
+            (identical(other.isRegisteredSupplier, isRegisteredSupplier) ||
+                other.isRegisteredSupplier == isRegisteredSupplier) &&
             (identical(other.currencyId, currencyId) ||
                 other.currencyId == currencyId) &&
             (identical(other.currencyCode, currencyCode) ||
@@ -1255,6 +1523,10 @@ class _$POModelImpl extends _POModel {
             (identical(other.transshipmentAllowed, transshipmentAllowed) ||
                 other.transshipmentAllowed == transshipmentAllowed) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.orderStatus, orderStatus) ||
+                other.orderStatus == orderStatus) &&
+            (identical(other.receivingStatus, receivingStatus) ||
+                other.receivingStatus == receivingStatus) &&
             (identical(other.version, version) || other.version == version) &&
             (identical(other.shippedPercent, shippedPercent) ||
                 other.shippedPercent == shippedPercent) &&
@@ -1265,7 +1537,13 @@ class _$POModelImpl extends _POModel {
                 other.createdAtUtc == createdAtUtc) &&
             (identical(other.updatedAtUtc, updatedAtUtc) ||
                 other.updatedAtUtc == updatedAtUtc) &&
-            const DeepCollectionEquality().equals(other._items, _items));
+            const DeepCollectionEquality().equals(other._items, _items) &&
+            (identical(other.hasShipments, hasShipments) ||
+                other.hasShipments == hasShipments) &&
+            (identical(other.shipmentCount, shipmentCount) ||
+                other.shipmentCount == shipmentCount) &&
+            (identical(other.canCancel, canCancel) ||
+                other.canCancel == canCancel));
   }
 
   @override
@@ -1284,6 +1562,9 @@ class _$POModelImpl extends _POModel {
         buyerName,
         buyerPoNumber,
         const DeepCollectionEquality().hash(_buyerInfo),
+        supplierId,
+        supplierName,
+        isRegisteredSupplier,
         currencyId,
         currencyCode,
         totalAmount,
@@ -1295,13 +1576,18 @@ class _$POModelImpl extends _POModel {
         partialShipmentAllowed,
         transshipmentAllowed,
         status,
+        orderStatus,
+        receivingStatus,
         version,
         shippedPercent,
         notes,
         createdBy,
         createdAtUtc,
         updatedAtUtc,
-        const DeepCollectionEquality().hash(_items)
+        const DeepCollectionEquality().hash(_items),
+        hasShipments,
+        shipmentCount,
+        canCancel
       ]);
 
   /// Create a copy of POModel
@@ -1329,6 +1615,9 @@ abstract class _POModel extends POModel {
       @JsonKey(name: 'buyer_name') final String? buyerName,
       @JsonKey(name: 'buyer_po_number') final String? buyerPoNumber,
       @JsonKey(name: 'buyer_info') final Map<String, dynamic>? buyerInfo,
+      @JsonKey(name: 'supplier_id') final String? supplierId,
+      @JsonKey(name: 'supplier_name') final String? supplierName,
+      @JsonKey(name: 'is_registered_supplier') final bool isRegisteredSupplier,
       @JsonKey(name: 'currency_id') final String? currencyId,
       @JsonKey(name: 'currency_code') final String currencyCode,
       @JsonKey(name: 'total_amount') final double totalAmount,
@@ -1342,13 +1631,18 @@ abstract class _POModel extends POModel {
       final bool partialShipmentAllowed,
       @JsonKey(name: 'transshipment_allowed') final bool transshipmentAllowed,
       final String status,
+      @JsonKey(name: 'order_status') final String? orderStatus,
+      @JsonKey(name: 'receiving_status') final String? receivingStatus,
       final int version,
       @JsonKey(name: 'shipped_percent') final double shippedPercent,
       final String? notes,
       @JsonKey(name: 'created_by') final String? createdBy,
       @JsonKey(name: 'created_at_utc') final DateTime? createdAtUtc,
       @JsonKey(name: 'updated_at_utc') final DateTime? updatedAtUtc,
-      final List<POItemModel> items}) = _$POModelImpl;
+      final List<POItemModel> items,
+      @JsonKey(name: 'has_shipments') final bool hasShipments,
+      @JsonKey(name: 'shipment_count') final int shipmentCount,
+      @JsonKey(name: 'can_cancel') final bool canCancel}) = _$POModelImpl;
   const _POModel._() : super._();
 
   @override
@@ -1395,7 +1689,16 @@ abstract class _POModel extends POModel {
   String? get buyerPoNumber;
   @override
   @JsonKey(name: 'buyer_info')
-  Map<String, dynamic>? get buyerInfo;
+  Map<String, dynamic>? get buyerInfo; // Supplier info from inventory RPC
+  @override
+  @JsonKey(name: 'supplier_id')
+  String? get supplierId;
+  @override
+  @JsonKey(name: 'supplier_name')
+  String? get supplierName;
+  @override
+  @JsonKey(name: 'is_registered_supplier')
+  bool get isRegisteredSupplier;
   @override
   @JsonKey(name: 'currency_id')
   String? get currencyId;
@@ -1427,7 +1730,13 @@ abstract class _POModel extends POModel {
   @JsonKey(name: 'transshipment_allowed')
   bool get transshipmentAllowed;
   @override
-  String get status;
+  String get status; // New status fields from RPC
+  @override
+  @JsonKey(name: 'order_status')
+  String? get orderStatus;
+  @override
+  @JsonKey(name: 'receiving_status')
+  String? get receivingStatus;
   @override
   int get version;
   @override
@@ -1445,7 +1754,16 @@ abstract class _POModel extends POModel {
   @JsonKey(name: 'updated_at_utc')
   DateTime? get updatedAtUtc;
   @override
-  List<POItemModel> get items;
+  List<POItemModel> get items; // Shipment info from RPC
+  @override
+  @JsonKey(name: 'has_shipments')
+  bool get hasShipments;
+  @override
+  @JsonKey(name: 'shipment_count')
+  int get shipmentCount; // Action flags from RPC
+  @override
+  @JsonKey(name: 'can_cancel')
+  bool get canCancel;
 
   /// Create a copy of POModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1455,18 +1773,22 @@ abstract class _POModel extends POModel {
       throw _privateConstructorUsedError;
 }
 
-POListItemModel _$POListItemModelFromJson(Map<String, dynamic> json) {
-  return _POListItemModel.fromJson(json);
-}
-
 /// @nodoc
 mixin _$POListItemModel {
-  @JsonKey(name: 'po_id')
-  String get poId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'po_number')
+// RPC returns order_id, we map to poId for UI compatibility
+  @JsonKey(name: 'order_id')
+  String get poId =>
+      throw _privateConstructorUsedError; // RPC returns order_number, we map to poNumber for UI compatibility
+  @JsonKey(name: 'order_number')
   String get poNumber => throw _privateConstructorUsedError;
   @JsonKey(name: 'pi_number')
-  String? get piNumber => throw _privateConstructorUsedError;
+  String? get piNumber =>
+      throw _privateConstructorUsedError; // Supplier info from RPC (inventory orders to suppliers)
+  @JsonKey(name: 'supplier_id')
+  String? get supplierId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'supplier_name')
+  String? get supplierName =>
+      throw _privateConstructorUsedError; // Legacy buyer fields - mapped from supplier for UI compatibility
   @JsonKey(name: 'buyer_name')
   String? get buyerName => throw _privateConstructorUsedError;
   @JsonKey(name: 'buyer_po_number')
@@ -1474,11 +1796,20 @@ mixin _$POListItemModel {
   @JsonKey(name: 'currency_code')
   String get currencyCode => throw _privateConstructorUsedError;
   @JsonKey(name: 'total_amount')
-  double get totalAmount => throw _privateConstructorUsedError;
+  double get totalAmount =>
+      throw _privateConstructorUsedError; // New status fields from RPC
+  @JsonKey(name: 'order_status')
+  String get orderStatus => throw _privateConstructorUsedError;
+  @JsonKey(name: 'receiving_status')
+  String get receivingStatus =>
+      throw _privateConstructorUsedError; // Fulfilled percentage from RPC
+  @JsonKey(name: 'fulfilled_percentage')
+  double get fulfilledPercentage =>
+      throw _privateConstructorUsedError; // Legacy status field for compatibility
   String get status => throw _privateConstructorUsedError;
   @JsonKey(name: 'shipped_percent')
   double get shippedPercent => throw _privateConstructorUsedError;
-  @JsonKey(name: 'order_date_utc')
+  @JsonKey(name: 'order_date')
   DateTime? get orderDateUtc => throw _privateConstructorUsedError;
   @JsonKey(name: 'required_shipment_date_utc')
   DateTime? get requiredShipmentDateUtc => throw _privateConstructorUsedError;
@@ -1486,9 +1817,6 @@ mixin _$POListItemModel {
   DateTime? get createdAtUtc => throw _privateConstructorUsedError;
   @JsonKey(name: 'item_count')
   int get itemCount => throw _privateConstructorUsedError;
-
-  /// Serializes this POListItemModel to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
   /// Create a copy of POListItemModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1504,16 +1832,21 @@ abstract class $POListItemModelCopyWith<$Res> {
       _$POListItemModelCopyWithImpl<$Res, POListItemModel>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'po_id') String poId,
-      @JsonKey(name: 'po_number') String poNumber,
+      {@JsonKey(name: 'order_id') String poId,
+      @JsonKey(name: 'order_number') String poNumber,
       @JsonKey(name: 'pi_number') String? piNumber,
+      @JsonKey(name: 'supplier_id') String? supplierId,
+      @JsonKey(name: 'supplier_name') String? supplierName,
       @JsonKey(name: 'buyer_name') String? buyerName,
       @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
       @JsonKey(name: 'currency_code') String currencyCode,
       @JsonKey(name: 'total_amount') double totalAmount,
+      @JsonKey(name: 'order_status') String orderStatus,
+      @JsonKey(name: 'receiving_status') String receivingStatus,
+      @JsonKey(name: 'fulfilled_percentage') double fulfilledPercentage,
       String status,
       @JsonKey(name: 'shipped_percent') double shippedPercent,
-      @JsonKey(name: 'order_date_utc') DateTime? orderDateUtc,
+      @JsonKey(name: 'order_date') DateTime? orderDateUtc,
       @JsonKey(name: 'required_shipment_date_utc')
       DateTime? requiredShipmentDateUtc,
       @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc,
@@ -1538,10 +1871,15 @@ class _$POListItemModelCopyWithImpl<$Res, $Val extends POListItemModel>
     Object? poId = null,
     Object? poNumber = null,
     Object? piNumber = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
     Object? currencyCode = null,
     Object? totalAmount = null,
+    Object? orderStatus = null,
+    Object? receivingStatus = null,
+    Object? fulfilledPercentage = null,
     Object? status = null,
     Object? shippedPercent = null,
     Object? orderDateUtc = freezed,
@@ -1562,6 +1900,14 @@ class _$POListItemModelCopyWithImpl<$Res, $Val extends POListItemModel>
           ? _value.piNumber
           : piNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
+              as String?,
       buyerName: freezed == buyerName
           ? _value.buyerName
           : buyerName // ignore: cast_nullable_to_non_nullable
@@ -1577,6 +1923,18 @@ class _$POListItemModelCopyWithImpl<$Res, $Val extends POListItemModel>
       totalAmount: null == totalAmount
           ? _value.totalAmount
           : totalAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      orderStatus: null == orderStatus
+          ? _value.orderStatus
+          : orderStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      receivingStatus: null == receivingStatus
+          ? _value.receivingStatus
+          : receivingStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      fulfilledPercentage: null == fulfilledPercentage
+          ? _value.fulfilledPercentage
+          : fulfilledPercentage // ignore: cast_nullable_to_non_nullable
               as double,
       status: null == status
           ? _value.status
@@ -1615,16 +1973,21 @@ abstract class _$$POListItemModelImplCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'po_id') String poId,
-      @JsonKey(name: 'po_number') String poNumber,
+      {@JsonKey(name: 'order_id') String poId,
+      @JsonKey(name: 'order_number') String poNumber,
       @JsonKey(name: 'pi_number') String? piNumber,
+      @JsonKey(name: 'supplier_id') String? supplierId,
+      @JsonKey(name: 'supplier_name') String? supplierName,
       @JsonKey(name: 'buyer_name') String? buyerName,
       @JsonKey(name: 'buyer_po_number') String? buyerPoNumber,
       @JsonKey(name: 'currency_code') String currencyCode,
       @JsonKey(name: 'total_amount') double totalAmount,
+      @JsonKey(name: 'order_status') String orderStatus,
+      @JsonKey(name: 'receiving_status') String receivingStatus,
+      @JsonKey(name: 'fulfilled_percentage') double fulfilledPercentage,
       String status,
       @JsonKey(name: 'shipped_percent') double shippedPercent,
-      @JsonKey(name: 'order_date_utc') DateTime? orderDateUtc,
+      @JsonKey(name: 'order_date') DateTime? orderDateUtc,
       @JsonKey(name: 'required_shipment_date_utc')
       DateTime? requiredShipmentDateUtc,
       @JsonKey(name: 'created_at_utc') DateTime? createdAtUtc,
@@ -1647,10 +2010,15 @@ class __$$POListItemModelImplCopyWithImpl<$Res>
     Object? poId = null,
     Object? poNumber = null,
     Object? piNumber = freezed,
+    Object? supplierId = freezed,
+    Object? supplierName = freezed,
     Object? buyerName = freezed,
     Object? buyerPoNumber = freezed,
     Object? currencyCode = null,
     Object? totalAmount = null,
+    Object? orderStatus = null,
+    Object? receivingStatus = null,
+    Object? fulfilledPercentage = null,
     Object? status = null,
     Object? shippedPercent = null,
     Object? orderDateUtc = freezed,
@@ -1671,6 +2039,14 @@ class __$$POListItemModelImplCopyWithImpl<$Res>
           ? _value.piNumber
           : piNumber // ignore: cast_nullable_to_non_nullable
               as String?,
+      supplierId: freezed == supplierId
+          ? _value.supplierId
+          : supplierId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      supplierName: freezed == supplierName
+          ? _value.supplierName
+          : supplierName // ignore: cast_nullable_to_non_nullable
+              as String?,
       buyerName: freezed == buyerName
           ? _value.buyerName
           : buyerName // ignore: cast_nullable_to_non_nullable
@@ -1686,6 +2062,18 @@ class __$$POListItemModelImplCopyWithImpl<$Res>
       totalAmount: null == totalAmount
           ? _value.totalAmount
           : totalAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      orderStatus: null == orderStatus
+          ? _value.orderStatus
+          : orderStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      receivingStatus: null == receivingStatus
+          ? _value.receivingStatus
+          : receivingStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      fulfilledPercentage: null == fulfilledPercentage
+          ? _value.fulfilledPercentage
+          : fulfilledPercentage // ignore: cast_nullable_to_non_nullable
               as double,
       status: null == status
           ? _value.status
@@ -1716,36 +2104,48 @@ class __$$POListItemModelImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-@JsonSerializable()
+
 class _$POListItemModelImpl extends _POListItemModel {
   const _$POListItemModelImpl(
-      {@JsonKey(name: 'po_id') required this.poId,
-      @JsonKey(name: 'po_number') required this.poNumber,
+      {@JsonKey(name: 'order_id') required this.poId,
+      @JsonKey(name: 'order_number') required this.poNumber,
       @JsonKey(name: 'pi_number') this.piNumber,
+      @JsonKey(name: 'supplier_id') this.supplierId,
+      @JsonKey(name: 'supplier_name') this.supplierName,
       @JsonKey(name: 'buyer_name') this.buyerName,
       @JsonKey(name: 'buyer_po_number') this.buyerPoNumber,
       @JsonKey(name: 'currency_code') this.currencyCode = 'USD',
       @JsonKey(name: 'total_amount') this.totalAmount = 0,
+      @JsonKey(name: 'order_status') this.orderStatus = 'draft',
+      @JsonKey(name: 'receiving_status') this.receivingStatus = 'pending',
+      @JsonKey(name: 'fulfilled_percentage') this.fulfilledPercentage = 0,
       this.status = 'draft',
       @JsonKey(name: 'shipped_percent') this.shippedPercent = 0,
-      @JsonKey(name: 'order_date_utc') this.orderDateUtc,
+      @JsonKey(name: 'order_date') this.orderDateUtc,
       @JsonKey(name: 'required_shipment_date_utc') this.requiredShipmentDateUtc,
       @JsonKey(name: 'created_at_utc') this.createdAtUtc,
       @JsonKey(name: 'item_count') this.itemCount = 0})
       : super._();
 
-  factory _$POListItemModelImpl.fromJson(Map<String, dynamic> json) =>
-      _$$POListItemModelImplFromJson(json);
-
+// RPC returns order_id, we map to poId for UI compatibility
   @override
-  @JsonKey(name: 'po_id')
+  @JsonKey(name: 'order_id')
   final String poId;
+// RPC returns order_number, we map to poNumber for UI compatibility
   @override
-  @JsonKey(name: 'po_number')
+  @JsonKey(name: 'order_number')
   final String poNumber;
   @override
   @JsonKey(name: 'pi_number')
   final String? piNumber;
+// Supplier info from RPC (inventory orders to suppliers)
+  @override
+  @JsonKey(name: 'supplier_id')
+  final String? supplierId;
+  @override
+  @JsonKey(name: 'supplier_name')
+  final String? supplierName;
+// Legacy buyer fields - mapped from supplier for UI compatibility
   @override
   @JsonKey(name: 'buyer_name')
   final String? buyerName;
@@ -1758,6 +2158,18 @@ class _$POListItemModelImpl extends _POListItemModel {
   @override
   @JsonKey(name: 'total_amount')
   final double totalAmount;
+// New status fields from RPC
+  @override
+  @JsonKey(name: 'order_status')
+  final String orderStatus;
+  @override
+  @JsonKey(name: 'receiving_status')
+  final String receivingStatus;
+// Fulfilled percentage from RPC
+  @override
+  @JsonKey(name: 'fulfilled_percentage')
+  final double fulfilledPercentage;
+// Legacy status field for compatibility
   @override
   @JsonKey()
   final String status;
@@ -1765,7 +2177,7 @@ class _$POListItemModelImpl extends _POListItemModel {
   @JsonKey(name: 'shipped_percent')
   final double shippedPercent;
   @override
-  @JsonKey(name: 'order_date_utc')
+  @JsonKey(name: 'order_date')
   final DateTime? orderDateUtc;
   @override
   @JsonKey(name: 'required_shipment_date_utc')
@@ -1779,7 +2191,7 @@ class _$POListItemModelImpl extends _POListItemModel {
 
   @override
   String toString() {
-    return 'POListItemModel(poId: $poId, poNumber: $poNumber, piNumber: $piNumber, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, currencyCode: $currencyCode, totalAmount: $totalAmount, status: $status, shippedPercent: $shippedPercent, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, createdAtUtc: $createdAtUtc, itemCount: $itemCount)';
+    return 'POListItemModel(poId: $poId, poNumber: $poNumber, piNumber: $piNumber, supplierId: $supplierId, supplierName: $supplierName, buyerName: $buyerName, buyerPoNumber: $buyerPoNumber, currencyCode: $currencyCode, totalAmount: $totalAmount, orderStatus: $orderStatus, receivingStatus: $receivingStatus, fulfilledPercentage: $fulfilledPercentage, status: $status, shippedPercent: $shippedPercent, orderDateUtc: $orderDateUtc, requiredShipmentDateUtc: $requiredShipmentDateUtc, createdAtUtc: $createdAtUtc, itemCount: $itemCount)';
   }
 
   @override
@@ -1792,6 +2204,10 @@ class _$POListItemModelImpl extends _POListItemModel {
                 other.poNumber == poNumber) &&
             (identical(other.piNumber, piNumber) ||
                 other.piNumber == piNumber) &&
+            (identical(other.supplierId, supplierId) ||
+                other.supplierId == supplierId) &&
+            (identical(other.supplierName, supplierName) ||
+                other.supplierName == supplierName) &&
             (identical(other.buyerName, buyerName) ||
                 other.buyerName == buyerName) &&
             (identical(other.buyerPoNumber, buyerPoNumber) ||
@@ -1800,6 +2216,12 @@ class _$POListItemModelImpl extends _POListItemModel {
                 other.currencyCode == currencyCode) &&
             (identical(other.totalAmount, totalAmount) ||
                 other.totalAmount == totalAmount) &&
+            (identical(other.orderStatus, orderStatus) ||
+                other.orderStatus == orderStatus) &&
+            (identical(other.receivingStatus, receivingStatus) ||
+                other.receivingStatus == receivingStatus) &&
+            (identical(other.fulfilledPercentage, fulfilledPercentage) ||
+                other.fulfilledPercentage == fulfilledPercentage) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.shippedPercent, shippedPercent) ||
                 other.shippedPercent == shippedPercent) &&
@@ -1814,17 +2236,21 @@ class _$POListItemModelImpl extends _POListItemModel {
                 other.itemCount == itemCount));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
       poId,
       poNumber,
       piNumber,
+      supplierId,
+      supplierName,
       buyerName,
       buyerPoNumber,
       currencyCode,
       totalAmount,
+      orderStatus,
+      receivingStatus,
+      fulfilledPercentage,
       status,
       shippedPercent,
       orderDateUtc,
@@ -1840,46 +2266,51 @@ class _$POListItemModelImpl extends _POListItemModel {
   _$$POListItemModelImplCopyWith<_$POListItemModelImpl> get copyWith =>
       __$$POListItemModelImplCopyWithImpl<_$POListItemModelImpl>(
           this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$POListItemModelImplToJson(
-      this,
-    );
-  }
 }
 
 abstract class _POListItemModel extends POListItemModel {
   const factory _POListItemModel(
-          {@JsonKey(name: 'po_id') required final String poId,
-          @JsonKey(name: 'po_number') required final String poNumber,
-          @JsonKey(name: 'pi_number') final String? piNumber,
-          @JsonKey(name: 'buyer_name') final String? buyerName,
-          @JsonKey(name: 'buyer_po_number') final String? buyerPoNumber,
-          @JsonKey(name: 'currency_code') final String currencyCode,
-          @JsonKey(name: 'total_amount') final double totalAmount,
-          final String status,
-          @JsonKey(name: 'shipped_percent') final double shippedPercent,
-          @JsonKey(name: 'order_date_utc') final DateTime? orderDateUtc,
-          @JsonKey(name: 'required_shipment_date_utc')
-          final DateTime? requiredShipmentDateUtc,
-          @JsonKey(name: 'created_at_utc') final DateTime? createdAtUtc,
-          @JsonKey(name: 'item_count') final int itemCount}) =
-      _$POListItemModelImpl;
+      {@JsonKey(name: 'order_id') required final String poId,
+      @JsonKey(name: 'order_number') required final String poNumber,
+      @JsonKey(name: 'pi_number') final String? piNumber,
+      @JsonKey(name: 'supplier_id') final String? supplierId,
+      @JsonKey(name: 'supplier_name') final String? supplierName,
+      @JsonKey(name: 'buyer_name') final String? buyerName,
+      @JsonKey(name: 'buyer_po_number') final String? buyerPoNumber,
+      @JsonKey(name: 'currency_code') final String currencyCode,
+      @JsonKey(name: 'total_amount') final double totalAmount,
+      @JsonKey(name: 'order_status') final String orderStatus,
+      @JsonKey(name: 'receiving_status') final String receivingStatus,
+      @JsonKey(name: 'fulfilled_percentage') final double fulfilledPercentage,
+      final String status,
+      @JsonKey(name: 'shipped_percent') final double shippedPercent,
+      @JsonKey(name: 'order_date') final DateTime? orderDateUtc,
+      @JsonKey(name: 'required_shipment_date_utc')
+      final DateTime? requiredShipmentDateUtc,
+      @JsonKey(name: 'created_at_utc') final DateTime? createdAtUtc,
+      @JsonKey(name: 'item_count')
+      final int itemCount}) = _$POListItemModelImpl;
   const _POListItemModel._() : super._();
 
-  factory _POListItemModel.fromJson(Map<String, dynamic> json) =
-      _$POListItemModelImpl.fromJson;
-
+// RPC returns order_id, we map to poId for UI compatibility
   @override
-  @JsonKey(name: 'po_id')
-  String get poId;
+  @JsonKey(name: 'order_id')
+  String
+      get poId; // RPC returns order_number, we map to poNumber for UI compatibility
   @override
-  @JsonKey(name: 'po_number')
+  @JsonKey(name: 'order_number')
   String get poNumber;
   @override
   @JsonKey(name: 'pi_number')
-  String? get piNumber;
+  String?
+      get piNumber; // Supplier info from RPC (inventory orders to suppliers)
+  @override
+  @JsonKey(name: 'supplier_id')
+  String? get supplierId;
+  @override
+  @JsonKey(name: 'supplier_name')
+  String?
+      get supplierName; // Legacy buyer fields - mapped from supplier for UI compatibility
   @override
   @JsonKey(name: 'buyer_name')
   String? get buyerName;
@@ -1891,14 +2322,23 @@ abstract class _POListItemModel extends POListItemModel {
   String get currencyCode;
   @override
   @JsonKey(name: 'total_amount')
-  double get totalAmount;
+  double get totalAmount; // New status fields from RPC
+  @override
+  @JsonKey(name: 'order_status')
+  String get orderStatus;
+  @override
+  @JsonKey(name: 'receiving_status')
+  String get receivingStatus; // Fulfilled percentage from RPC
+  @override
+  @JsonKey(name: 'fulfilled_percentage')
+  double get fulfilledPercentage; // Legacy status field for compatibility
   @override
   String get status;
   @override
   @JsonKey(name: 'shipped_percent')
   double get shippedPercent;
   @override
-  @JsonKey(name: 'order_date_utc')
+  @JsonKey(name: 'order_date')
   DateTime? get orderDateUtc;
   @override
   @JsonKey(name: 'required_shipment_date_utc')

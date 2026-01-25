@@ -30,41 +30,21 @@ class POFilterChips extends StatelessWidget {
           ),
           const SizedBox(width: TossSpacing.space2),
           _FilterChip(
-            label: 'Draft',
-            isSelected: selectedStatuses?.contains(POStatus.draft) ?? false,
-            onTap: () => _toggleStatus(POStatus.draft),
+            label: 'Pending',
+            isSelected: selectedStatuses?.contains(POStatus.pending) ?? false,
+            onTap: () => _toggleStatus(POStatus.pending),
           ),
           const SizedBox(width: TossSpacing.space2),
           _FilterChip(
-            label: 'Confirmed',
-            isSelected: selectedStatuses?.contains(POStatus.confirmed) ?? false,
-            onTap: () => _toggleStatus(POStatus.confirmed),
+            label: 'Process',
+            isSelected: selectedStatuses?.contains(POStatus.process) ?? false,
+            onTap: () => _toggleStatus(POStatus.process),
           ),
           const SizedBox(width: TossSpacing.space2),
           _FilterChip(
-            label: 'In Production',
-            isSelected:
-                selectedStatuses?.contains(POStatus.inProduction) ?? false,
-            onTap: () => _toggleStatus(POStatus.inProduction),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          _FilterChip(
-            label: 'Ready',
-            isSelected:
-                selectedStatuses?.contains(POStatus.readyToShip) ?? false,
-            onTap: () => _toggleStatus(POStatus.readyToShip),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          _FilterChip(
-            label: 'Shipped',
-            isSelected: selectedStatuses?.contains(POStatus.shipped) ?? false,
-            onTap: () => _toggleStatus(POStatus.shipped),
-          ),
-          const SizedBox(width: TossSpacing.space2),
-          _FilterChip(
-            label: 'Completed',
-            isSelected: selectedStatuses?.contains(POStatus.completed) ?? false,
-            onTap: () => _toggleStatus(POStatus.completed),
+            label: 'Complete',
+            isSelected: selectedStatuses?.contains(POStatus.complete) ?? false,
+            onTap: () => _toggleStatus(POStatus.complete),
           ),
           const SizedBox(width: TossSpacing.space2),
           _FilterChip(

@@ -585,9 +585,10 @@ class _InventoryManagementPageState
             fromStoreId: fromStore.id,
             toStoreId: toStore.id,
             productId: product.id,
+            variantId: product.variantId,
             quantity: quantity,
             updatedBy: appState.userId,
-            notes: 'Move ${product.sku}',
+            notes: 'Move ${product.displaySku ?? product.sku}',
           );
 
           if (result != null && mounted) {

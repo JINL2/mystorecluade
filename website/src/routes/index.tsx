@@ -13,23 +13,30 @@ import { LoginPage } from '@/features/auth/presentation/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/presentation/pages/RegisterPage';
 import { AuthCallbackPage } from '@/features/auth/presentation/pages/AuthCallbackPage';
 import { DashboardPage } from '@/features/dashboard/presentation/pages/DashboardPage';
-import { AccountMappingPage } from '@/features/account-mapping/presentation/pages/AccountMappingPage';
-import { BalanceSheetPage } from '@/features/balance-sheet/presentation/pages/BalanceSheetPage';
-import { CashEndingPage } from '@/features/cash-ending/presentation/pages/CashEndingPage';
+import { AccountMappingPage } from '@/features/account_mapping/presentation/pages/AccountMappingPage';
+import { BalanceSheetPage } from '@/features/balance_sheet/presentation/pages/BalanceSheetPage';
+import { CashEndingPage } from '@/features/cash_ending/presentation/pages/CashEndingPage';
 import { CounterpartyPage } from '@/features/counterparty/presentation/pages/CounterpartyPage';
 import { CurrencyPage } from '@/features/currency/presentation/pages/CurrencyPage';
-import { SalaryPage } from '@/features/employee-salary/presentation/pages/SalaryPage';
-import { SchedulePage } from '@/features/employee-schedule/presentation/pages/SchedulePage';
-import { EmployeeSettingPage } from '@/features/employee-setting/presentation/pages/EmployeeSettingPage';
-import { IncomeStatementPage } from '@/features/income-statement/presentation/pages/IncomeStatementPage';
-import { InventoryPage } from '@/features/inventory/presentation/pages/InventoryPage';
-import { InvoicePage } from '@/features/invoice/presentation/pages/InvoicePage';
-import { SaleProductPage } from '@/features/sale-product/presentation/pages/SaleProductPage';
-import { JournalInputPage } from '@/features/journal-input/presentation/pages/JournalInputPage';
-import { MarketingPlanPage } from '@/features/marketing-plan/presentation/pages/MarketingPlanPage';
-import { OrderPage } from '@/features/order/presentation/pages/OrderPage';
-import { OrderCreatePage } from '@/features/order/presentation/pages/OrderCreatePage';
-import { OrderDetailPage } from '@/features/order/presentation/pages/OrderDetailPage';
+import { SalaryPage } from '@/features/employee_salary/presentation/pages/SalaryPage';
+import { SchedulePage } from '@/features/employee_schedule/presentation/pages/SchedulePage';
+import { EmployeeSettingPage } from '@/features/employee_setting/presentation/pages/EmployeeSettingPage';
+import { IncomeStatementPage } from '@/features/income_statement/presentation/pages/IncomeStatementPage';
+import { InventoryPage } from '@/features/inventory_management/presentation/pages/InventoryPage';
+import { InvoicePage } from '@/features/sales_invoice/presentation/pages/InvoicePage';
+import { SaleProductPage } from '@/features/sale_product/presentation/pages/SaleProductPage';
+import { JournalInputPage } from '@/features/journal_input/presentation/pages/JournalInputPage';
+import { MarketingPlanPage } from '@/features/marketing_plan/presentation/pages/MarketingPlanPage';
+import { InventoryAnalysisPage } from '@/features/inventory_analysis/presentation/pages/InventoryAnalysisPage';
+import { SalesAnalysisPage } from '@/features/inventory_analysis/presentation/pages/SalesAnalysisPage';
+import { TopProductsPage } from '@/features/inventory_analysis/presentation/pages/TopProductsPage';
+import { CategoryAnalysisPage } from '@/features/inventory_analysis/presentation/pages/CategoryAnalysisPage';
+import { InventoryOptimizationPage } from '@/features/inventory_analysis/presentation/pages/InventoryOptimizationPage';
+import { SupplyChainPage } from '@/features/inventory_analysis/presentation/pages/SupplyChainPage';
+import { DiscrepancyPage } from '@/features/inventory_analysis/presentation/pages/DiscrepancyPage';
+import { OrderPage } from '@/features/purchase_order/presentation/pages/OrderPage';
+import { OrderCreatePage } from '@/features/purchase_order/presentation/pages/OrderCreatePage';
+import { OrderDetailPage } from '@/features/purchase_order/presentation/pages/OrderDetailPage';
 import { ProductReceivePage } from '@/features/session/presentation/pages/ProductReceivePage';
 import { ReceivingSessionPage } from '@/features/session/presentation/pages/ReceivingSessionPage';
 import { CountingSessionPage } from '@/features/session/presentation/pages/CountingSessionPage';
@@ -37,10 +44,10 @@ import { SessionHistoryDetailPage } from '@/features/session/presentation/pages/
 import { ShipmentPage } from '@/features/shipment/presentation/pages/ShipmentPage';
 import { ShipmentCreatePage } from '@/features/shipment/presentation/pages/ShipmentCreatePage';
 import { ShipmentDetailPage } from '@/features/shipment/presentation/pages/ShipmentDetailPage';
-import { StoreSettingPage } from '@/features/store-setting/presentation/pages/StoreSettingPage';
+import { StoreSettingPage } from '@/features/store_shift/presentation/pages/StoreSettingPage';
 import { TrackingPage } from '@/features/tracking/presentation/pages/TrackingPage';
-import { TransactionHistoryPage } from '@/features/transaction-history/presentation/pages/TransactionHistoryPage';
-import { CashBalancePage } from '@/features/cash-balance/presentation/pages/CashBalancePage';
+import { TransactionHistoryPage } from '@/features/transaction_history/presentation/pages/TransactionHistoryPage';
+import { CashBalancePage } from '@/features/cash_balance/presentation/pages/CashBalancePage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -281,6 +288,72 @@ export const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute requiredFeatureId="069fc24c-915b-43a0-8c27-6872badfc4a1">
             <MarketingPlanPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Protected Routes - Analysis */}
+      <Route
+        path="/analysis/inventory-analysis"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <InventoryAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/sales"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <SalesAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/sales-analysis"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <SalesAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/sales-analysis/top-products"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <TopProductsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/sales-analysis/category-analysis"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <CategoryAnalysisPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/optimization"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <InventoryOptimizationPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/supply-chain"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <SupplyChainPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analysis/inventory-analysis/discrepancy"
+        element={
+          <ProtectedRoute requiredFeatureId="98cc610a-9dff-4276-91f2-d900cdf00ba7">
+            <DiscrepancyPage />
           </ProtectedRoute>
         }
       />

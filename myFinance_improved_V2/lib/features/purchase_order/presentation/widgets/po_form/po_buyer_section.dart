@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../../app/providers/counterparty_provider.dart';
 import '../../../../../core/domain/entities/selector_entities.dart';
@@ -136,7 +137,7 @@ class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add, size: 16, color: TossColors.primary),
+              Icon(LucideIcons.plus, size: 16, color: TossColors.primary),
               SizedBox(width: TossSpacing.space1 / 2),
               Text(
                 'Add New',
@@ -168,7 +169,7 @@ class _POBuyerSectionState extends ConsumerState<POBuyerSection> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.person_add_outlined, size: 20, color: TossColors.primary),
+            Icon(LucideIcons.userPlus, size: 20, color: TossColors.primary),
             const SizedBox(width: TossSpacing.space2),
             Text(
               'Add your first buyer',

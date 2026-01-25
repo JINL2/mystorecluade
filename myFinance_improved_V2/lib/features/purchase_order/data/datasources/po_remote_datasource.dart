@@ -1,26 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/po_model.dart';
-import '../../domain/repositories/po_repository.dart';
+
 import '../../domain/entities/purchase_order.dart';
-
-/// DTO for accepted PI available for conversion to PO
-class AcceptedPIForConversion {
-  final String piId;
-  final String piNumber;
-  final String buyerName;
-  final double totalAmount;
-  final String currencyCode;
-  final String currencySymbol;
-
-  const AcceptedPIForConversion({
-    required this.piId,
-    required this.piNumber,
-    required this.buyerName,
-    required this.totalAmount,
-    required this.currencyCode,
-    required this.currencySymbol,
-  });
-}
+import '../../domain/repositories/po_repository.dart';
+import '../mappers/po_status_mapper.dart';
+import '../models/po_model.dart';
 
 /// PO Remote Datasource - handles all Supabase RPC calls
 abstract class PORemoteDatasource {
@@ -34,6 +17,40 @@ abstract class PORemoteDatasource {
   Future<String> convertFromPI(String piId, {Map<String, dynamic>? options});
   Future<String> generateNumber(String companyId);
   Future<List<AcceptedPIForConversion>> getAcceptedPIsForConversion();
+  Future<Map<String, dynamic>> closeOrder({
+    required String orderId,
+    required String userId,
+    required String companyId,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  });
+
+  /// Create order using inventory_create_order_v4 RPC
+  Future<Map<String, dynamic>> createOrderV4({
+    required String companyId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required String orderTitle,
+    String? counterpartyId,
+    Map<String, dynamic>? supplierInfo,
+    String? notes,
+    String? orderNumber,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  });
+
+  /// Get suppliers/counterparties for filter selection
+  Future<List<SupplierFilterItem>> getSuppliers(String companyId);
+
+  /// Get base currency and company currencies
+  Future<BaseCurrencyData> getBaseCurrency(String companyId);
+
+  /// Search products for order items
+  Future<ProductSearchResult> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int page = 1,
+    int limit = 20,
+  });
 }
 
 class PORemoteDatasourceImpl implements PORemoteDatasource {
@@ -43,397 +60,214 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
 
   @override
   Future<PaginatedPOResponse> getList(POListParams params) async {
-    // Build query
-    var query = _supabase
-        .from('trade_purchase_orders')
-        .select('*')
-        .eq('company_id', params.companyId);
-
-    if (params.storeId != null) {
-      query = query.or('store_id.eq.${params.storeId},store_id.is.null');
-    }
-
-    if (params.statuses != null && params.statuses!.isNotEmpty) {
-      query = query.inFilter(
-          'status', params.statuses!.map((e) => e.dbValue).toList());
-    }
-
-    if (params.counterpartyId != null) {
-      query = query.eq('buyer_id', params.counterpartyId!);
-    }
-
-    if (params.dateFrom != null) {
-      query = query.gte('order_date_utc', params.dateFrom!.toIso8601String());
-    }
-
-    if (params.dateTo != null) {
-      query = query.lte('order_date_utc', params.dateTo!.toIso8601String());
-    }
-
-    if (params.searchQuery != null && params.searchQuery!.isNotEmpty) {
-      query = query.or(
-          'po_number.ilike.%${params.searchQuery}%,buyer_po_number.ilike.%${params.searchQuery}%');
-    }
-
-    // Get total count first
-    var countQuery = _supabase
-        .from('trade_purchase_orders')
-        .select('po_id')
-        .eq('company_id', params.companyId);
-
-    if (params.storeId != null) {
-      countQuery =
-          countQuery.or('store_id.eq.${params.storeId},store_id.is.null');
-    }
-    if (params.statuses != null && params.statuses!.isNotEmpty) {
-      countQuery = countQuery.inFilter(
-          'status', params.statuses!.map((e) => e.dbValue).toList());
-    }
-    if (params.counterpartyId != null) {
-      countQuery = countQuery.eq('buyer_id', params.counterpartyId!);
-    }
-    if (params.dateFrom != null) {
-      countQuery =
-          countQuery.gte('order_date_utc', params.dateFrom!.toIso8601String());
-    }
-    if (params.dateTo != null) {
-      countQuery =
-          countQuery.lte('order_date_utc', params.dateTo!.toIso8601String());
-    }
-    if (params.searchQuery != null && params.searchQuery!.isNotEmpty) {
-      countQuery = countQuery.or(
-          'po_number.ilike.%${params.searchQuery}%,buyer_po_number.ilike.%${params.searchQuery}%');
-    }
-
-    final countResponse = await countQuery;
-    final totalCount = (countResponse as List).length;
-
-    // Get paginated data
+    // Calculate offset for pagination
     final offset = (params.page - 1) * params.pageSize;
-    final response = await query
-        .order('created_at_utc', ascending: false)
-        .range(offset, offset + params.pageSize - 1);
 
-    final data = response as List;
+    // Convert legacy POStatus to OrderStatus for RPC
+    String? orderStatusFilter;
+    String? receivingStatusFilter;
 
-    // Get all unique currency IDs to fetch currency codes
-    final currencyIds = data
-        .map((e) => (e as Map<String, dynamic>)['currency_id'] as String?)
-        .where((id) => id != null)
-        .toSet()
-        .toList();
-
-    // Fetch currency codes
-    Map<String, String> currencyCodeMap = {};
-    if (currencyIds.isNotEmpty) {
-      final currencyResponse = await _supabase
-          .from('currency_types')
-          .select('currency_id, currency_code')
-          .inFilter('currency_id', currencyIds);
-      for (final c in currencyResponse as List) {
-        currencyCodeMap[c['currency_id'] as String] =
-            c['currency_code'] as String;
-      }
-    }
-
-    // Get all unique buyer IDs to fetch names
-    final buyerIds = data
-        .map((e) => (e as Map<String, dynamic>)['buyer_id'] as String?)
-        .where((id) => id != null)
-        .toSet()
-        .toList();
-
-    // Fetch buyer names
-    Map<String, String> buyerNameMap = {};
-    if (buyerIds.isNotEmpty) {
-      final buyerResponse = await _supabase
-          .from('counterparties')
-          .select('counterparty_id, name')
-          .inFilter('counterparty_id', buyerIds);
-      for (final b in buyerResponse as List) {
-        buyerNameMap[b['counterparty_id'] as String] = b['name'] as String;
-      }
-    }
-
-    // Get PI numbers for linked PIs
-    final piIds = data
-        .map((e) => (e as Map<String, dynamic>)['pi_id'] as String?)
-        .where((id) => id != null)
-        .toSet()
-        .toList();
-
-    Map<String, String> piNumberMap = {};
-    if (piIds.isNotEmpty) {
-      final piResponse = await _supabase
-          .from('trade_proforma_invoices')
-          .select('pi_id, pi_number')
-          .inFilter('pi_id', piIds);
-      for (final p in piResponse as List) {
-        piNumberMap[p['pi_id'] as String] = p['pi_number'] as String;
-      }
-    }
-
-    final items = data.map((e) {
-      final map = e as Map<String, dynamic>;
-
-      // Get buyer name from buyer_info JSONB or counterparties table
-      final buyerInfo = map['buyer_info'] as Map<String, dynamic>?;
-      String? buyerName = buyerInfo?['name'] as String?;
-      if (buyerName == null) {
-        final buyerId = map['buyer_id'] as String?;
-        if (buyerId != null && buyerNameMap.containsKey(buyerId)) {
-          buyerName = buyerNameMap[buyerId];
+    if (params.orderStatuses != null && params.orderStatuses!.isNotEmpty) {
+      orderStatusFilter = params.orderStatuses!.map((e) => e.dbValue).join(',');
+    } else if (params.statuses != null && params.statuses!.isNotEmpty) {
+      // Convert POStatus to order_status filter (direct mapping)
+      final orderStatuses = <String>[];
+      for (final status in params.statuses!) {
+        switch (status) {
+          case POStatus.pending:
+            orderStatuses.add('pending');
+            break;
+          case POStatus.process:
+            orderStatuses.add('process');
+            break;
+          case POStatus.complete:
+            orderStatuses.add('complete');
+            break;
+          case POStatus.cancelled:
+            orderStatuses.add('cancelled');
+            break;
         }
       }
-      map['buyer_name'] = buyerName;
-
-      // Get currency code
-      final currencyId = map['currency_id'] as String?;
-      if (currencyId != null && currencyCodeMap.containsKey(currencyId)) {
-        map['currency_code'] = currencyCodeMap[currencyId];
+      if (orderStatuses.isNotEmpty) {
+        orderStatusFilter = orderStatuses.toSet().join(',');
       }
+    }
 
-      // Get PI number
-      final piId = map['pi_id'] as String?;
-      if (piId != null && piNumberMap.containsKey(piId)) {
-        map['pi_number'] = piNumberMap[piId];
-      }
+    if (params.receivingStatuses != null &&
+        params.receivingStatuses!.isNotEmpty) {
+      receivingStatusFilter =
+          params.receivingStatuses!.map((e) => e.dbValue).join(',');
+    }
 
+    // Build RPC parameters
+    final rpcParams = <String, dynamic>{
+      'p_company_id': params.companyId,
+      'p_limit': params.pageSize,
+      'p_offset': offset,
+    };
+
+    // Add optional filters
+    if (params.searchQuery != null && params.searchQuery!.isNotEmpty) {
+      rpcParams['p_search'] = params.searchQuery;
+    }
+    if (orderStatusFilter != null) {
+      rpcParams['p_order_status'] = orderStatusFilter;
+    }
+    if (receivingStatusFilter != null) {
+      rpcParams['p_receiving_status'] = receivingStatusFilter;
+    }
+    if (params.effectiveSupplierId != null) {
+      rpcParams['p_supplier_id'] = params.effectiveSupplierId;
+    }
+    if (params.dateFrom != null) {
+      rpcParams['p_start_date'] = params.dateFrom!.toIso8601String();
+    }
+    if (params.dateTo != null) {
+      rpcParams['p_end_date'] = params.dateTo!.toIso8601String();
+    }
+    if (params.timezone != null) {
+      rpcParams['p_timezone'] = params.timezone;
+    }
+
+    // Call RPC - returns jsonb object with success, data, total_count
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'inventory_get_order_list',
+      params: rpcParams,
+    );
+
+    // Check for RPC error
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to load orders');
+    }
+
+    // Extract data array from response
+    final dataList = response['data'] as List<dynamic>? ?? [];
+    final totalCount = response['total_count'] as int? ?? 0;
+
+    // Parse response into models
+    final items = dataList.map((e) {
+      final map = e as Map<String, dynamic>;
       return POListItemModel.fromJson(map);
     }).toList();
+
+    // Calculate hasMore based on total count
+    final hasMore = (offset + items.length) < totalCount;
 
     return PaginatedPOResponse(
       data: items.map((e) => e.toEntity()).toList(),
       totalCount: totalCount,
       page: params.page,
       pageSize: params.pageSize,
-      hasMore: offset + items.length < totalCount,
+      hasMore: hasMore,
     );
   }
 
   @override
   Future<POModel> getById(String poId) async {
-    // Get PO data
-    final poResponse = await _supabase
-        .from('trade_purchase_orders')
-        .select('*')
-        .eq('po_id', poId)
-        .single();
+    // Get company_id from appState (passed through provider)
+    // For now, we'll get it from the order itself first
+    final orderCheck = await _supabase
+        .from('inventory_purchase_orders')
+        .select('company_id')
+        .eq('order_id', poId)
+        .maybeSingle();
 
-    final poMap = poResponse;
-
-    // Get buyer name from buyer_info JSONB
-    final buyerInfo = poMap['buyer_info'] as Map<String, dynamic>?;
-    String? buyerName = buyerInfo?['name'] as String?;
-
-    // If name not in buyer_info, fetch from counterparties table
-    final buyerId = poMap['buyer_id'] as String?;
-    if (buyerName == null && buyerId != null) {
-      final buyerResponse = await _supabase
-          .from('counterparties')
-          .select('name, address, city, country, phone, email')
-          .eq('counterparty_id', buyerId)
-          .maybeSingle();
-      if (buyerResponse != null) {
-        buyerName = buyerResponse['name'] as String?;
-        // Update buyer_info with full details if not present
-        if (buyerInfo == null || buyerInfo.isEmpty) {
-          poMap['buyer_info'] = {
-            'name': buyerResponse['name'],
-            'address': buyerResponse['address'],
-            'city': buyerResponse['city'],
-            'country': buyerResponse['country'],
-            'phone': buyerResponse['phone'],
-            'email': buyerResponse['email'],
-          };
-        }
-      }
-    }
-    poMap['buyer_name'] = buyerName;
-
-    // Build seller_info from company name + store contact details
-    final companyId = poMap['company_id'] as String?;
-    final storeId = poMap['store_id'] as String?;
-    Map<String, dynamic> sellerInfo = {};
-
-    // Get company name
-    if (companyId != null) {
-      final companyResponse = await _supabase
-          .from('companies')
-          .select('company_name')
-          .eq('company_id', companyId)
-          .maybeSingle();
-      if (companyResponse != null) {
-        sellerInfo['name'] = companyResponse['company_name'] as String?;
-      }
+    if (orderCheck == null) {
+      throw Exception('Order not found');
     }
 
-    // Get store contact details (address, phone, email)
-    if (storeId != null) {
-      final storeResponse = await _supabase
-          .from('stores')
-          .select('store_address, store_phone, store_email')
-          .eq('store_id', storeId)
-          .maybeSingle();
-      if (storeResponse != null) {
-        if (storeResponse['store_address'] != null) {
-          sellerInfo['address'] = storeResponse['store_address'] as String?;
-        }
-        if (storeResponse['store_phone'] != null) {
-          sellerInfo['phone'] = storeResponse['store_phone'] as String?;
-        }
-        if (storeResponse['store_email'] != null) {
-          sellerInfo['email'] = storeResponse['store_email'] as String?;
-        }
-      }
+    final companyId = orderCheck['company_id'] as String;
+
+    // Call inventory_get_order_detail_v2 RPC
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'inventory_get_order_detail_v2',
+      params: {
+        'p_order_id': poId,
+        'p_company_id': companyId,
+        'p_timezone': 'UTC',
+      },
+    );
+
+    // Check for RPC error
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to load order detail');
     }
 
-    poMap['seller_info'] = sellerInfo;
+    // Extract data from response
+    final data = response['data'] as Map<String, dynamic>? ?? {};
 
-    // Get banking info from cash_locations (bank type accounts for trade)
-    if (companyId != null) {
-      // If bank_account_ids is specified, filter by those IDs; otherwise get all bank accounts
-      final bankAccountIds = (poMap['bank_account_ids'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList();
+    // Map RPC response to POModel format
+    final poMap = <String, dynamic>{
+      // Map order_id to po_id for compatibility
+      'po_id': data['order_id'],
+      'po_number': data['order_number'],
+      'company_id': companyId,
+      'store_id': data['store_id'],
+      // Currency
+      'currency_code': data['currency_code'] ?? 'USD',
+      'total_amount': data['total_amount'] ?? 0,
+      // Dates
+      'order_date_utc': data['order_date'],
+      'created_at_utc': data['created_at'],
+      // Status - map from new format
+      'status': data['order_status'] ?? 'draft',
+      'order_status': data['order_status'] ?? 'draft',
+      'receiving_status': data['receiving_status'] ?? 'pending',
+      // Progress
+      'shipped_percent': data['fulfilled_percentage'] ?? 0,
+      // Notes
+      'notes': data['notes'],
+      // Actions
+      'can_cancel': data['can_cancel'] ?? false,
+    };
 
-      dynamic bankingResponse;
-      if (bankAccountIds != null && bankAccountIds.isNotEmpty) {
-        // Filter by selected bank account IDs
-        bankingResponse = await _supabase
-            .from('cash_locations')
-            .select('''
-              cash_location_id,
-              location_name,
-              currency_code,
-              bank_name,
-              bank_account,
-              beneficiary_name,
-              bank_address,
-              swift_code,
-              bank_branch,
-              account_type
-            ''')
-            .eq('company_id', companyId)
-            .inFilter('cash_location_id', bankAccountIds)
-            .eq('is_deleted', false);
-      } else {
-        // Get all bank accounts for this company
-        bankingResponse = await _supabase
-            .from('cash_locations')
-            .select('''
-              cash_location_id,
-              location_name,
-              currency_code,
-              bank_name,
-              bank_account,
-              beneficiary_name,
-              bank_address,
-              swift_code,
-              bank_branch,
-              account_type
-            ''')
-            .eq('company_id', companyId)
-            .eq('location_type', 'bank')
-            .eq('is_deleted', false);
-      }
+    // Map supplier info to buyer info for UI compatibility
+    // (In inventory system, we order FROM suppliers, so supplier = counterparty)
+    final supplierInfo = <String, dynamic>{
+      'name': data['supplier_name'],
+      'phone': data['supplier_phone'],
+      'email': data['supplier_email'],
+      'address': data['supplier_address'],
+    };
+    poMap['buyer_id'] = data['supplier_id'];
+    poMap['buyer_name'] = data['supplier_name'];
+    poMap['buyer_info'] = supplierInfo;
+    poMap['supplier_id'] = data['supplier_id'];
+    poMap['supplier_name'] = data['supplier_name'];
+    poMap['is_registered_supplier'] = data['is_registered_supplier'] ?? false;
 
-      if (bankingResponse != null && (bankingResponse as List).isNotEmpty) {
-        poMap['banking_info'] = bankingResponse.map((bank) {
-          return {
-            'cash_location_id': bank['cash_location_id'],
-            'location_name': bank['location_name'],
-            'currency_code': bank['currency_code'],
-            'bank_name': bank['bank_name'],
-            'bank_account': bank['bank_account'],
-            'beneficiary_name': bank['beneficiary_name'],
-            'bank_address': bank['bank_address'],
-            'swift_code': bank['swift_code'],
-            'bank_branch': bank['bank_branch'],
-            'account_type': bank['account_type'],
-          };
-        }).toList();
-      }
-    }
-
-    // Get currency code
-    final currencyId = poMap['currency_id'] as String?;
-    if (currencyId != null) {
-      final currencyResponse = await _supabase
-          .from('currency_types')
-          .select('currency_code')
-          .eq('currency_id', currencyId)
-          .maybeSingle();
-      if (currencyResponse != null) {
-        poMap['currency_code'] = currencyResponse['currency_code'];
-      }
-    }
-
-    // Get PI number if linked
-    final piId = poMap['pi_id'] as String?;
-    if (piId != null) {
-      final piResponse = await _supabase
-          .from('trade_proforma_invoices')
-          .select('pi_number')
-          .eq('pi_id', piId)
-          .maybeSingle();
-      if (piResponse != null) {
-        poMap['pi_number'] = piResponse['pi_number'];
-      }
-    }
-
-    // Get items from trade_po_items table
-    final itemsResponse = await _supabase
-        .from('trade_po_items')
-        .select('*')
-        .eq('po_id', poId)
-        .order('sort_order', ascending: true);
-
-    final itemsList = itemsResponse as List;
-
-    // Get product image URLs for items that have product_id
-    final productIds = itemsList
-        .map((e) => (e as Map<String, dynamic>)['product_id'] as String?)
-        .where((id) => id != null)
-        .toSet()
-        .toList();
-
-    Map<String, String?> productImageMap = {};
-    if (productIds.isNotEmpty) {
-      final productsResponse = await _supabase
-          .from('inventory_products')
-          .select('product_id, image_urls')
-          .inFilter('product_id', productIds);
-
-      for (final p in productsResponse as List) {
-        final productId = p['product_id'] as String;
-        final imageUrls = p['image_urls'];
-        String? firstImageUrl;
-        if (imageUrls != null) {
-          if (imageUrls is List && imageUrls.isNotEmpty) {
-            firstImageUrl = imageUrls[0] as String?;
-          } else if (imageUrls is Map && imageUrls['urls'] is List) {
-            final urls = imageUrls['urls'] as List;
-            if (urls.isNotEmpty) {
-              firstImageUrl = urls[0] as String?;
-            }
-          }
-        }
-        productImageMap[productId] = firstImageUrl;
-      }
-    }
-
-    // Add image_url to each item
-    final itemsWithImages = itemsList.map((e) {
-      final item = Map<String, dynamic>.from(e as Map<String, dynamic>);
-      final productId = item['product_id'] as String?;
-      if (productId != null && productImageMap.containsKey(productId)) {
-        item['image_url'] = productImageMap[productId];
-      }
-      return item;
+    // Map items with variant support
+    final itemsData = data['items'] as List<dynamic>? ?? [];
+    final items = itemsData.map((item) {
+      final itemMap = item as Map<String, dynamic>;
+      return {
+        'item_id': itemMap['item_id'],
+        'po_id': poId,
+        'product_id': itemMap['product_id'],
+        'variant_id': itemMap['variant_id'],
+        // Use display_name which combines product + variant names
+        'description': itemMap['display_name'] ?? itemMap['product_name'] ?? '',
+        'product_name': itemMap['product_name'],
+        'variant_name': itemMap['variant_name'],
+        'has_variants': itemMap['has_variants'] ?? false,
+        'sku': itemMap['sku'],
+        'quantity_ordered': itemMap['quantity_ordered'] ?? 0,
+        'quantity_shipped': itemMap['quantity_fulfilled'] ?? 0,
+        'unit': itemMap['unit'] ?? 'PCS',
+        'unit_price': itemMap['unit_price'] ?? 0,
+        'total_amount': itemMap['total_amount'] ?? 0,
+        'image_url': itemMap['image_url'],
+        'sort_order': itemMap['sort_order'] ?? 0,
+      };
     }).toList();
+    poMap['items'] = items;
 
-    poMap['items'] = itemsWithImages;
+    // Map shipments if available
+    if (data['has_shipments'] == true) {
+      poMap['has_shipments'] = true;
+      poMap['shipment_count'] = data['shipment_count'] ?? 0;
+      poMap['shipments'] = data['shipments'] ?? <dynamic>[];
+    }
 
     return POModel.fromJson(poMap);
   }
@@ -816,5 +650,198 @@ class PORemoteDatasourceImpl implements PORemoteDatasource {
     }
 
     return items;
+  }
+
+  @override
+  Future<Map<String, dynamic>> closeOrder({
+    required String orderId,
+    required String userId,
+    required String companyId,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'inventory_close_order',
+      params: {
+        'p_order_id': orderId,
+        'p_user_id': userId,
+        'p_company_id': companyId,
+        'p_timezone': timezone,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to close order');
+    }
+
+    return response;
+  }
+
+  @override
+  Future<Map<String, dynamic>> createOrderV4({
+    required String companyId,
+    required String userId,
+    required List<Map<String, dynamic>> items,
+    required String orderTitle,
+    String? counterpartyId,
+    Map<String, dynamic>? supplierInfo,
+    String? notes,
+    String? orderNumber,
+    String timezone = 'Asia/Ho_Chi_Minh',
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'inventory_create_order_v4',
+      params: {
+        'p_company_id': companyId,
+        'p_user_id': userId,
+        'p_items': items,
+        'p_time': DateTime.now().toIso8601String(),
+        'p_timezone': timezone,
+        'p_counterparty_id': counterpartyId,
+        'p_supplier_info': supplierInfo,
+        'p_notes': notes ?? orderTitle,
+        'p_order_number': orderNumber,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to create order');
+    }
+
+    return response;
+  }
+
+  @override
+  Future<List<SupplierFilterItem>> getSuppliers(String companyId) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'get_counterparty_info',
+      params: {'p_company_id': companyId},
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to load suppliers');
+    }
+
+    final data = response['data'] as List<dynamic>? ?? [];
+    return data.map((e) {
+      final map = e as Map<String, dynamic>;
+      return SupplierFilterItem(
+        counterpartyId: map['counterparty_id'] as String? ?? '',
+        name: map['name'] as String? ?? 'Unknown',
+        type: map['type'] as String?,
+        email: map['email'] as String?,
+        phone: map['phone'] as String?,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<BaseCurrencyData> getBaseCurrency(String companyId) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'get_base_currency',
+      params: {'p_company_id': companyId},
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to load currency');
+    }
+
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+
+    // Parse base currency
+    final baseCurrency = CurrencyInfo(
+      currencyId: data['base_currency_id'] as String? ?? '',
+      currencyCode: data['base_currency_code'] as String? ?? 'VND',
+      currencyName: data['base_currency_name'] as String? ?? 'Vietnamese Dong',
+      symbol: data['base_currency_symbol'] as String? ?? '₫',
+      flagEmoji: data['base_currency_flag'] as String?,
+      exchangeRateToBase: 1.0,
+    );
+
+    // Parse company currencies
+    final currenciesData = data['currencies'] as List<dynamic>? ?? [];
+    final companyCurrencies = currenciesData.map((e) {
+      final map = e as Map<String, dynamic>;
+      return CurrencyInfo(
+        currencyId: map['currency_id'] as String? ?? '',
+        currencyCode: map['currency_code'] as String? ?? '',
+        currencyName: map['currency_name'] as String? ?? '',
+        symbol: map['symbol'] as String? ?? '',
+        flagEmoji: map['flag_emoji'] as String?,
+        exchangeRateToBase: (map['exchange_rate'] as num?)?.toDouble() ?? 1.0,
+        rateDate: map['rate_date'] != null
+            ? DateTime.tryParse(map['rate_date'] as String)
+            : null,
+      );
+    }).toList();
+
+    return BaseCurrencyData(
+      baseCurrency: baseCurrency,
+      companyCurrencies: companyCurrencies,
+    );
+  }
+
+  @override
+  Future<ProductSearchResult> searchProducts({
+    required String companyId,
+    required String storeId,
+    required String query,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'get_inventory_page_v6',
+      params: {
+        'p_company_id': companyId,
+        'p_store_id': storeId,
+        'p_search': query,
+        'p_page': page,
+        'p_limit': limit,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to search products');
+    }
+
+    final data = response['data'] as Map<String, dynamic>;
+    final items = data['items'] as List<dynamic>? ?? [];
+    final totalCount = data['total_count'] as int? ?? 0;
+
+    final productItems = items.map((e) {
+      final map = e as Map<String, dynamic>;
+      final imageUrls = <String>[];
+      if (map['image_urls'] != null) {
+        imageUrls.addAll((map['image_urls'] as List).cast<String>());
+      } else if (map['image_url'] != null) {
+        imageUrls.add(map['image_url'] as String);
+      }
+
+      return ProductItem(
+        productId: map['product_id'] as String? ?? '',
+        productName: map['product_name'] as String? ?? '',
+        productSku: map['product_sku'] as String?,
+        productBarcode: map['product_barcode'] as String?,
+        variantId: map['variant_id'] as String?,
+        variantName: map['variant_name'] as String?,
+        variantSku: map['variant_sku'] as String?,
+        displayName: map['display_name'] as String? ?? map['product_name'] as String? ?? '',
+        displaySku: map['display_sku'] as String? ?? map['product_sku'] as String?,
+        unit: map['unit'] as String? ?? 'PCS',
+        costPrice: (map['cost_price'] as num?)?.toDouble() ?? 0,
+        sellingPrice: (map['selling_price'] as num?)?.toDouble() ?? 0,
+        quantityOnHand: (map['quantity_on_hand'] as num?)?.toDouble() ?? 0,
+        imageUrls: imageUrls,
+        hasVariants: map['has_variants'] as bool? ?? false,
+      );
+    }).toList();
+
+    final hasMore = (page * limit) < totalCount;
+
+    return ProductSearchResult(
+      items: productItems,
+      totalCount: totalCount,
+      page: page,
+      hasMore: hasMore,
+    );
   }
 }

@@ -1,27 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
-import '../../../../app/providers/app_state_provider.dart';
+import '../../../../app/providers/counterparty_provider.dart';
 import '../../../../core/domain/entities/selector_entities.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_text_styles.dart';
-import '../../../register_denomination/domain/entities/currency.dart';
-import '../../../trade_shared/domain/entities/trade_item.dart';
-import '../../../trade_shared/presentation/pages/trade_item_picker_page.dart';
-import '../../../trade_shared/presentation/providers/trade_shared_providers.dart';
-import '../../domain/entities/purchase_order.dart';
-import '../../domain/repositories/po_repository.dart';
 import '../providers/po_providers.dart';
-import '../widgets/po_form/po_form_widgets.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
-import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
 class POFormPage extends ConsumerStatefulWidget {
-  final String? poId; // null for create, non-null for edit
+  final String? poId;
 
   const POFormPage({super.key, this.poId});
 
@@ -31,37 +26,32 @@ class POFormPage extends ConsumerStatefulWidget {
 
 class _POFormPageState extends ConsumerState<POFormPage> {
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = true;
 
   // Form controllers
-  final _buyerPoNumberController = TextEditingController();
-  final _incotermsPlaceController = TextEditingController();
+  final _orderTitleController = TextEditingController();
   final _notesController = TextEditingController();
+  final _productSearchController = TextEditingController();
+
+  // Supplier - One-time supplier fields
+  final _supplierNameController = TextEditingController();
+  final _supplierPhoneController = TextEditingController();
+  final _supplierEmailController = TextEditingController();
+  final _supplierAddressController = TextEditingController();
+
+  // Search debounce timer
+  Timer? _searchDebounce;
 
   // Form values
-  String? _buyerId;
-  CounterpartyData? _selectedBuyer;
-  String? _currencyId;
-  // ignore: unused_field - kept for potential future use
-  Currency? _selectedCurrency;
-  String _currencyCode = 'USD';
-  String? _incotermsCode;
-  String? _paymentTermsCode;
-  DateTime? _orderDate;
-  DateTime? _requiredShipmentDate;
-  bool _partialShipmentAllowed = true;
-  bool _transshipmentAllowed = true;
-
-  // Bank accounts for PDF
-  List<String> _selectedBankAccountIds = [];
+  bool _isExistingSupplier = true;
+  String? _selectedSupplierId;
+  CounterpartyData? _selectedSupplier;
 
   // Items
-  List<POItemFormData> _items = [];
+  List<OrderItemData> _items = [];
 
   // Validation errors
-  String? _buyerError;
-  String? _currencyError;
-  String? _itemsError;
+  String? _orderTitleError;
+  String? _supplierError;
 
   bool get isEditMode => widget.poId != null;
 
@@ -74,389 +64,645 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   }
 
   Future<void> _initializeForm() async {
-    final appState = ref.read(appStateProvider);
-    debugPrint('🚀 [POFormPage] _initializeForm called');
-    debugPrint('🚀 [POFormPage] companyId: ${appState.companyChoosen}');
-    debugPrint('🚀 [POFormPage] storeId: ${appState.storeChoosen}');
-
-    // Load dropdown data
-    debugPrint('🚀 [POFormPage] Loading masterDataProvider...');
-    ref.read(masterDataProvider.notifier).loadAllMasterData();
-
-    if (isEditMode) {
-      // Load existing PO for editing
-      await ref.read(poDetailProvider.notifier).load(widget.poId!);
-      if (!mounted) return;
-      final po = ref.read(poDetailProvider).po;
-      if (po != null) {
-        _populateForm(po);
-      }
-    } else {
-      // Generate new PO number
+    // Generate PO number for new orders
+    if (!isEditMode) {
       ref.read(poFormProvider.notifier).generateNumber();
-      // Set default order date to today
-      _orderDate = DateTime.now();
     }
-
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
-  }
-
-  void _populateForm(PurchaseOrder po) {
-    _buyerId = po.buyerId;
-    _buyerPoNumberController.text = po.buyerPoNumber ?? '';
-    _currencyId = po.currencyId;
-    _currencyCode = po.currencyCode;
-    _incotermsCode = po.incotermsCode;
-    _incotermsPlaceController.text = po.incotermsPlace ?? '';
-    _paymentTermsCode = po.paymentTermsCode;
-    _orderDate = po.orderDateUtc;
-    _requiredShipmentDate = po.requiredShipmentDateUtc;
-    _partialShipmentAllowed = po.partialShipmentAllowed;
-    _transshipmentAllowed = po.transshipmentAllowed;
-    _notesController.text = po.notes ?? '';
-    _selectedBankAccountIds = List<String>.from(po.bankAccountIds);
-
-    _items = po.items
-        .map((item) => POItemFormData(
-              productId: item.productId,
-              description: item.description,
-              sku: item.sku,
-              hsCode: item.hsCode,
-              quantity: item.quantity,
-              unit: item.unit ?? 'PCS',
-              unitPrice: item.unitPrice,
-            ))
-        .toList();
   }
 
   @override
   void dispose() {
-    _buyerPoNumberController.dispose();
-    _incotermsPlaceController.dispose();
+    _orderTitleController.dispose();
     _notesController.dispose();
+    _productSearchController.dispose();
+    _supplierNameController.dispose();
+    _supplierPhoneController.dispose();
+    _supplierEmailController.dispose();
+    _supplierAddressController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final formState = ref.watch(poFormProvider);
-    ref.watch(appStateProvider);
 
     return TossScaffold(
-      appBar: AppBar(
-        title: Text(isEditMode ? 'Edit PO' : 'New PO'),
-        actions: [
-          TossButton.textButton(
-            text: 'Save',
-            isLoading: formState.isSaving,
-            onPressed: formState.isSaving ? null : _handleSave,
-          ),
-        ],
+      appBar: TossAppBar(
+        title: isEditMode ? 'Edit Order' : 'New Order',
+        leading: TossIconButton.ghost(
+          icon: LucideIcons.x,
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go('/purchase-order');
+            }
+          },
+        ),
       ),
-      body: _isLoading
-          ? const TossLoadingView()
-          : Form(
+      body: Column(
+        children: [
+          Expanded(
+            child: Form(
               key: _formKey,
               child: ListView(
                 padding: const EdgeInsets.all(TossSpacing.space4),
                 children: [
-                  // PO Number (read-only)
-                  _buildPONumberSection(),
+                  // 1. Order Title (Required)
+                  _buildOrderTitleSection(),
                   const SizedBox(height: TossSpacing.space5),
 
-                  // Buyer Section
-                  _buildSectionTitle('Buyer Information'),
-                  const SizedBox(height: TossSpacing.space2),
-                  POBuyerSection(
-                    buyerId: _buyerId,
-                    errorText: _buyerError,
-                    onBuyerChanged: (buyer) {
-                      setState(() {
-                        _buyerId = buyer?.id;
-                        _selectedBuyer = buyer;
-                        _buyerError = null;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  _buildTextField(
-                    controller: _buyerPoNumberController,
-                    label: 'Buyer\'s PO Number (Optional)',
-                  ),
+                  // 2. Order Items
+                  _buildOrderItemsSection(),
                   const SizedBox(height: TossSpacing.space5),
 
-                  // Currency Section
-                  _buildSectionTitle('Currency'),
-                  const SizedBox(height: TossSpacing.space2),
-                  POCurrencySection(
-                    currencyId: _currencyId,
-                    errorText: _currencyError,
-                    onCurrencyChanged: (currency) {
-                      setState(() {
-                        _currencyId = currency?.id;
-                        _selectedCurrency = currency;
-                        _currencyCode = currency?.code ?? 'USD';
-                        _currencyError = null;
-                      });
-                    },
-                  ),
+                  // 3. Supplier Information
+                  _buildSupplierSection(),
                   const SizedBox(height: TossSpacing.space5),
 
-                  // Dates Section
-                  _buildSectionTitle('Dates'),
-                  const SizedBox(height: TossSpacing.space2),
-                  _buildDateField(
-                    label: 'Order Date',
-                    value: _orderDate,
-                    onChanged: (d) => setState(() => _orderDate = d),
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  _buildDateField(
-                    label: 'Required Shipment Date',
-                    value: _requiredShipmentDate,
-                    onChanged: (d) => setState(() => _requiredShipmentDate = d),
-                  ),
-                  const SizedBox(height: TossSpacing.space5),
+                  // 4. Notes (Optional)
+                  _buildNotesSection(),
 
-                  // Trade Terms Section
-                  _buildSectionTitle('Trade Terms'),
-                  const SizedBox(height: TossSpacing.space2),
-                  POShippingTermsSection(
-                    incotermsCode: _incotermsCode,
-                    incotermsPlaceController: _incotermsPlaceController,
-                    paymentTermsCode: _paymentTermsCode,
-                    onIncotermsChanged: (v) => setState(() => _incotermsCode = v),
-                    onPaymentTermsChanged: (v) => setState(() => _paymentTermsCode = v),
-                  ),
-                  const SizedBox(height: TossSpacing.space3),
-                  POShipmentOptionsSection(
-                    partialShipmentAllowed: _partialShipmentAllowed,
-                    transshipmentAllowed: _transshipmentAllowed,
-                    onPartialShipmentChanged: (v) => setState(() => _partialShipmentAllowed = v),
-                    onTransshipmentChanged: (v) => setState(() => _transshipmentAllowed = v),
-                  ),
-                  const SizedBox(height: TossSpacing.space5),
-
-                  // Bank Account Selection
-                  _buildSectionTitle('Banking Information'),
-                  const SizedBox(height: TossSpacing.space2),
-                  POBankAccountSection(
-                    selectedBankAccountIds: _selectedBankAccountIds,
-                    onBankAccountsChanged: (ids) {
-                      setState(() => _selectedBankAccountIds = ids);
-                    },
-                  ),
-                  const SizedBox(height: TossSpacing.space5),
-
-                  // Items Section
-                  POItemsSection(
-                    items: _items,
-                    currencyCode: _currencyCode,
-                    errorText: _itemsError,
-                    onAddItem: _addItem,
-                    onEditItem: _editItem,
-                    onDeleteItem: _deleteItem,
-                  ),
-                  const SizedBox(height: TossSpacing.space5),
-
-                  // Notes Section
-                  _buildSectionTitle('Notes'),
-                  const SizedBox(height: TossSpacing.space2),
-                  _buildTextField(
-                    controller: _notesController,
-                    label: 'Notes',
-                    maxLines: 3,
-                  ),
-
-                  const SizedBox(height: TossSpacing.space8),
+                  const SizedBox(height: TossSpacing.space4),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildPONumberSection() {
-    final formState = ref.watch(poFormProvider);
-    return Container(
-      padding: const EdgeInsets.all(TossSpacing.space3),
-      decoration: BoxDecoration(
-        color: TossColors.gray50,
-        borderRadius: BorderRadius.circular(TossBorderRadius.md),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'PO Number',
-            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray600),
           ),
-          Text(
-            formState.generatedNumber ?? 'Generating...',
-            style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+          // Bottom Save Button
+          Container(
+            padding: EdgeInsets.only(
+              left: TossSpacing.space4,
+              right: TossSpacing.space4,
+              top: TossSpacing.space3,
+              bottom: MediaQuery.of(context).padding.bottom + TossSpacing.space3,
+            ),
+            decoration: const BoxDecoration(
+              color: TossColors.white,
+              border: Border(
+                top: BorderSide(color: TossColors.gray200, width: 1),
+              ),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: TossButton.primary(
+                text: isEditMode ? 'Update Order' : 'Create Order',
+                isLoading: formState.isSaving,
+                onPressed: formState.isSaving ? null : _handleSave,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: TossTextStyles.h4.copyWith(color: TossColors.gray900),
+  Widget _buildOrderTitleSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Order Title', isRequired: true),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _orderTitleController,
+          hintText: 'Enter order title',
+          errorText: _orderTitleError,
+          onChanged: (_) {
+            if (_orderTitleError != null) {
+              setState(() => _orderTitleError = null);
+            }
+          },
+        ),
+      ],
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    int maxLines = 1,
-  }) {
-    return TossTextField.filled(
-      controller: controller,
-      inlineLabel: label,
-      hintText: '',
-      maxLines: maxLines,
+  Widget _buildOrderItemsSection() {
+    final searchState = ref.watch(productSearchProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Order Items', isRequired: true),
+        const SizedBox(height: TossSpacing.space2),
+
+        // Search bar
+        TossTextField.filled(
+          controller: _productSearchController,
+          hintText: 'Search products by name, SKU, or barcode',
+          prefixIcon: const Icon(LucideIcons.search, color: TossColors.gray400),
+          suffixIcon: _productSearchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(LucideIcons.x, color: TossColors.gray400),
+                  onPressed: () {
+                    _productSearchController.clear();
+                    ref.read(productSearchProvider.notifier).clear();
+                  },
+                )
+              : null,
+          onChanged: _onSearchChanged,
+        ),
+
+        // Search results
+        if (searchState.isLoading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: TossSpacing.space4),
+            child: Center(child: TossLoadingView()),
+          )
+        else if (searchState.searchQuery.isNotEmpty && searchState.items.isNotEmpty)
+          _buildSearchResults(searchState.items)
+        else if (searchState.searchQuery.isNotEmpty && searchState.items.isEmpty)
+          _buildNoSearchResults(),
+
+        const SizedBox(height: TossSpacing.space4),
+
+        // Added items list
+        if (_items.isNotEmpty) ...[
+          Text(
+            'Added Items (${_items.length})',
+            style: TossTextStyles.bodyMedium.copyWith(
+              fontWeight: FontWeight.w600,
+              color: TossColors.gray700,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          ..._items.asMap().entries.map(
+                (entry) => _buildItemCard(entry.key, entry.value),
+              ),
+        ] else
+          _buildEmptyItemsPlaceholder(),
+      ],
     );
   }
 
-  Widget _buildDateField({
-    required String label,
-    DateTime? value,
-    required void Function(DateTime?) onChanged,
-    bool isRequired = false,
-    String? errorText,
-  }) {
-    return GestureDetector(
-      onTap: () => _selectDate(
-        initialDate: value,
-        onSelected: onChanged,
+  void _onSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      ref.read(productSearchProvider.notifier).search(value);
+    });
+  }
+
+  Widget _buildSearchResults(List<InventoryProductItem> items) {
+    return Container(
+      margin: const EdgeInsets.only(top: TossSpacing.space2),
+      constraints: const BoxConstraints(maxHeight: 250),
+      decoration: BoxDecoration(
+        color: TossColors.white,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(color: TossColors.gray200),
+        boxShadow: [
+          BoxShadow(
+            color: TossColors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Container(
-        padding: const EdgeInsets.all(TossSpacing.space3),
-        decoration: BoxDecoration(
-          color: TossColors.gray50,
-          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-          border: Border.all(
-            color: errorText != null ? TossColors.error : TossColors.gray200,
+      child: RawScrollbar(
+        thumbColor: TossColors.gray300,
+        radius: const Radius.circular(4),
+        thickness: 4,
+        child: ListView.separated(
+          padding: EdgeInsets.zero,
+          itemCount: items.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          final isAlreadyAdded = _items.any((i) => i.productId == item.uniqueKey);
+
+          return ListTile(
+            dense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space1,
+            ),
+            title: Text(
+              item.displayName,
+              style: TossTextStyles.bodyMedium.copyWith(
+                fontWeight: FontWeight.w500,
+                color: isAlreadyAdded ? TossColors.gray400 : TossColors.gray900,
+              ),
+            ),
+            subtitle: Text(
+              '${item.displaySku ?? ''} • Stock: ${item.quantityOnHand.toInt()} ${item.unit}',
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+            ),
+            trailing: isAlreadyAdded
+                ? TossBadge(label: 'Added')
+                : Text(
+                    _formatPrice(item.costPrice),
+                    style: TossTextStyles.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.primary,
+                    ),
+                  ),
+            onTap: isAlreadyAdded ? null : () => _addProductItem(item),
+          );
+        },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoSearchResults() {
+    return Padding(
+      padding: const EdgeInsets.only(top: TossSpacing.space2),
+      child: TossCard(
+        backgroundColor: TossColors.gray50,
+        child: Center(
+          child: Text(
+            'No products found',
+            style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
           ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      ),
+    );
+  }
+
+  Widget _buildEmptyItemsPlaceholder() {
+    return TossCard(
+      backgroundColor: TossColors.gray50,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      label,
-                      style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
-                    ),
-                    if (isRequired)
-                      Text(
-                        ' *',
-                        style: TossTextStyles.caption.copyWith(color: TossColors.error),
-                      ),
-                  ],
-                ),
-                SizedBox(height: TossSpacing.space1),
-                Text(
-                  value != null ? DateFormat('yyyy-MM-dd').format(value) : 'Select date',
-                  style: TossTextStyles.bodyMedium.copyWith(
-                    color: value != null ? TossColors.gray900 : TossColors.gray400,
-                  ),
-                ),
-              ],
+            const Icon(
+              LucideIcons.shoppingCart,
+              size: TossSpacing.icon3XL,
+              color: TossColors.gray400,
             ),
-            Icon(Icons.calendar_today, size: TossSpacing.iconMD, color: TossColors.gray400),
+            const SizedBox(height: TossSpacing.space3),
+            Text(
+              'No items added yet',
+              style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+            ),
+            const SizedBox(height: TossSpacing.space1),
+            Text(
+              'Search and select products above',
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray400),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _selectDate({
-    DateTime? initialDate,
-    required void Function(DateTime?) onSelected,
-    String title = 'Select date',
-  }) async {
-    final picked = await showTossDatePicker(
-      context: context,
-      initialDate: initialDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-      title: title,
-    );
-    if (picked != null) {
-      onSelected(picked);
-    }
-  }
+  Widget _buildItemCard(int index, OrderItemData item) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space2),
+      child: TossCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name and delete button
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                  ),
+              ),
+              IconButton(
+                icon: const Icon(LucideIcons.trash2, size: 20),
+                color: TossColors.gray400,
+                onPressed: () => _deleteItem(index),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          if (item.sku != null) ...[
+            const SizedBox(height: TossSpacing.space1),
+            Text(
+              'SKU: ${item.sku}',
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+            ),
+          ],
+          const SizedBox(height: TossSpacing.space3),
 
-  void _addItem() async {
-    final result = await Navigator.push<List<TradeItem>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const TradeItemPickerPage(),
-      ),
-    );
+          // Quantity and price row
+          Row(
+            children: [
+              // Quantity controls using design system component
+              TossQuantityInput(
+                value: item.quantity.toInt(),
+                minValue: 1,
+                onChanged: (value) => _updateQuantity(index, value.toDouble()),
+              ),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                item.unit,
+                style: TossTextStyles.bodySmall.copyWith(color: TossColors.gray500),
+              ),
+              const Spacer(),
 
-    if (result != null && result.isNotEmpty && mounted) {
-      setState(() {
-        for (final item in result) {
-          _items.add(POItemFormData(
-            productId: item.productId,
-            description: item.description,
-            sku: item.sku,
-            hsCode: item.hsCode,
-            quantity: item.quantity,
-            unit: item.unit,
-            unitPrice: item.unitPrice,
-          ));
-        }
-        _itemsError = null;
-      });
-    }
-  }
-
-  void _editItem(int index) async {
-    final item = _items[index];
-    final initialTradeItem = TradeItem(
-      productId: item.productId,
-      description: item.description,
-      sku: item.sku,
-      hsCode: item.hsCode,
-      countryOfOrigin: null,
-      quantity: item.quantity,
-      unit: item.unit,
-      unitPrice: item.unitPrice,
-      discountPercent: 0,
-    );
-
-    final result = await Navigator.push<List<TradeItem>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TradeItemPickerPage(
-          initialItems: [initialTradeItem],
+              // Price and total
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '${_formatPrice(item.unitPrice)} × ${item.quantity.toInt()}',
+                    style: TossTextStyles.caption.copyWith(color: TossColors.gray500),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _formatPrice(item.total),
+                    style: TossTextStyles.bodyMedium.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: TossColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
         ),
       ),
     );
+  }
 
-    if (result != null && result.isNotEmpty && mounted) {
-      final editedItem = result.first;
-      setState(() {
-        _items[index] = POItemFormData(
-          productId: editedItem.productId,
-          description: editedItem.description,
-          sku: editedItem.sku,
-          hsCode: editedItem.hsCode,
-          quantity: editedItem.quantity,
-          unit: editedItem.unit,
-          unitPrice: editedItem.unitPrice,
+  String _formatPrice(double price) {
+    return NumberFormat('#,##0').format(price);
+  }
+
+  void _addProductItem(InventoryProductItem product) {
+    setState(() {
+      _items.add(OrderItemData(
+        productId: product.uniqueKey,
+        name: product.displayName,
+        sku: product.displaySku,
+        quantity: 1,
+        unit: product.unit,
+        unitPrice: product.costPrice,
+        variantId: product.variantId,
+      ));
+    });
+
+    // Clear search
+    _productSearchController.clear();
+    ref.read(productSearchProvider.notifier).clear();
+  }
+
+  void _updateQuantity(int index, double newQuantity) {
+    if (newQuantity < 1) return;
+    setState(() {
+      final item = _items[index];
+      _items[index] = OrderItemData(
+        productId: item.productId,
+        name: item.name,
+        sku: item.sku,
+        quantity: newQuantity,
+        unit: item.unit,
+        unitPrice: item.unitPrice,
+        variantId: item.variantId,
+      );
+    });
+  }
+
+  Widget _buildSupplierSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Supplier Information', isRequired: true),
+        const SizedBox(height: TossSpacing.space3),
+
+        // Toggle: Existing vs One-time supplier
+        _buildSupplierTypeToggle(),
+        const SizedBox(height: TossSpacing.space4),
+
+        // Supplier form based on type
+        if (_isExistingSupplier)
+          _buildExistingSupplierSelector()
+        else
+          _buildOneTimeSupplierForm(),
+      ],
+    );
+  }
+
+  Widget _buildSupplierTypeToggle() {
+    return ToggleButtonGroup(
+      items: const [
+        ToggleButtonItem(
+          id: 'existing',
+          label: 'Existing Supplier',
+          icon: LucideIcons.building2,
+        ),
+        ToggleButtonItem(
+          id: 'onetime',
+          label: 'One-time Supplier',
+          icon: LucideIcons.userPlus,
+        ),
+      ],
+      selectedId: _isExistingSupplier ? 'existing' : 'onetime',
+      onToggle: (id) {
+        setState(() {
+          _isExistingSupplier = id == 'existing';
+          _supplierError = null;
+        });
+      },
+      layout: ToggleButtonLayout.expanded,
+    );
+  }
+
+  Widget _buildExistingSupplierSelector() {
+    final counterpartyAsync = ref.watch(currentCounterpartiesProvider);
+
+    return counterpartyAsync.when(
+      loading: () => const Center(child: TossLoadingView()),
+      error: (error, _) => Container(
+        padding: const EdgeInsets.all(TossSpacing.space4),
+        decoration: BoxDecoration(
+          color: TossColors.errorLight,
+          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        ),
+        child: Text(
+          'Failed to load suppliers',
+          style: TossTextStyles.bodyMedium.copyWith(color: TossColors.error),
+        ),
+      ),
+      data: (counterparties) {
+        if (counterparties.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.all(TossSpacing.space4),
+            decoration: BoxDecoration(
+              color: TossColors.gray50,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Column(
+              children: [
+                Icon(LucideIcons.userPlus, size: TossSpacing.iconXL, color: TossColors.gray400),
+                const SizedBox(height: TossSpacing.space2),
+                Text(
+                  'No suppliers found',
+                  style: TossTextStyles.bodyMedium.copyWith(color: TossColors.gray500),
+                ),
+                const SizedBox(height: TossSpacing.space1),
+                Text(
+                  'Add a supplier in Counterparty settings or use one-time supplier',
+                  textAlign: TextAlign.center,
+                  style: TossTextStyles.caption.copyWith(color: TossColors.gray400),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TossDropdown<String>(
+              label: 'Select Supplier',
+              value: _selectedSupplierId,
+              hint: 'Choose a supplier',
+              isRequired: true,
+              errorText: _supplierError,
+              items: counterparties
+                  .map((c) => TossDropdownItem<String>(
+                        value: c.id,
+                        label: c.name,
+                        subtitle: c.type.toUpperCase(),
+                      ))
+                  .toList(),
+              onChanged: (v) {
+                if (v == null) return;
+                final selected = counterparties.firstWhere((c) => c.id == v);
+                setState(() {
+                  _selectedSupplierId = v;
+                  _selectedSupplier = selected;
+                  _supplierError = null;
+                });
+              },
+            ),
+            if (_selectedSupplier != null) ...[
+              const SizedBox(height: TossSpacing.space3),
+              _buildSelectedSupplierInfo(_selectedSupplier!),
+            ],
+          ],
         );
-      });
-    }
+      },
+    );
+  }
+
+  Widget _buildSelectedSupplierInfo(CounterpartyData supplier) {
+    return Container(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      decoration: BoxDecoration(
+        color: TossColors.primarySurface,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(LucideIcons.checkCircle, size: 16, color: TossColors.primary),
+              const SizedBox(width: TossSpacing.space2),
+              Text(
+                'Selected Supplier',
+                style: TossTextStyles.caption.copyWith(
+                  color: TossColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: TossSpacing.space2),
+          Text(
+            supplier.name,
+            style: TossTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+          ),
+          if (supplier.phone != null && supplier.phone!.isNotEmpty) ...[
+            const SizedBox(height: TossSpacing.space1),
+            Text(
+              supplier.phone!,
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+            ),
+          ],
+          if (supplier.email != null && supplier.email!.isNotEmpty) ...[
+            const SizedBox(height: TossSpacing.space1),
+            Text(
+              supplier.email!,
+              style: TossTextStyles.caption.copyWith(color: TossColors.gray600),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOneTimeSupplierForm() {
+    return Column(
+      children: [
+        TossTextField.filled(
+          controller: _supplierNameController,
+          inlineLabel: 'Supplier Name',
+          hintText: 'Enter supplier name',
+          isRequired: true,
+          errorText: _supplierError,
+          onChanged: (_) {
+            if (_supplierError != null) {
+              setState(() => _supplierError = null);
+            }
+          },
+        ),
+        const SizedBox(height: TossSpacing.space3),
+        TossTextField.filled(
+          controller: _supplierPhoneController,
+          inlineLabel: 'Phone (Optional)',
+          hintText: 'Enter phone number',
+          keyboardType: TextInputType.phone,
+        ),
+        const SizedBox(height: TossSpacing.space3),
+        TossTextField.filled(
+          controller: _supplierEmailController,
+          inlineLabel: 'Email (Optional)',
+          hintText: 'Enter email address',
+          keyboardType: TextInputType.emailAddress,
+        ),
+        const SizedBox(height: TossSpacing.space3),
+        TossTextField.filled(
+          controller: _supplierAddressController,
+          inlineLabel: 'Address (Optional)',
+          hintText: 'Enter address',
+          maxLines: 2,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('Notes', isRequired: false),
+        const SizedBox(height: TossSpacing.space2),
+        TossTextField.filled(
+          controller: _notesController,
+          hintText: 'Add any notes for this order (optional)',
+          maxLines: 3,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, {bool isRequired = false}) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: TossTextStyles.h4.copyWith(color: TossColors.gray900),
+        ),
+        if (isRequired) ...[
+          const SizedBox(width: TossSpacing.space1),
+          Text(
+            '*',
+            style: TossTextStyles.h4.copyWith(color: TossColors.error),
+          ),
+        ],
+      ],
+    );
   }
 
   void _deleteItem(int index) {
@@ -464,150 +710,135 @@ class _POFormPageState extends ConsumerState<POFormPage> {
   }
 
   bool _validateForm() {
-    debugPrint('🔍 [POFormPage] _validateForm starting...');
-    debugPrint('🔍 [POFormPage]   - buyerId: $_buyerId');
-    debugPrint('🔍 [POFormPage]   - currencyId: $_currencyId');
-    debugPrint('🔍 [POFormPage]   - items count: ${_items.length}');
-
     bool isValid = true;
 
-    // Validate Buyer
-    if (_buyerId == null || _buyerId!.isEmpty) {
-      _buyerError = 'Please select a buyer';
+    // Validate Order Title
+    if (_orderTitleController.text.trim().isEmpty) {
+      _orderTitleError = 'Order title is required';
       isValid = false;
-      debugPrint('🔴 [POFormPage] Buyer validation FAILED');
     } else {
-      _buyerError = null;
-      debugPrint('✅ [POFormPage] Buyer validation OK');
-    }
-
-    // Validate Currency
-    if (_currencyId == null || _currencyId!.isEmpty) {
-      _currencyError = 'Please select a currency';
-      isValid = false;
-      debugPrint('🔴 [POFormPage] Currency validation FAILED');
-    } else {
-      _currencyError = null;
-      debugPrint('✅ [POFormPage] Currency validation OK');
+      _orderTitleError = null;
     }
 
     // Validate Items
     if (_items.isEmpty) {
-      _itemsError = 'Please add at least one item';
       isValid = false;
-      debugPrint('🔴 [POFormPage] Items validation FAILED');
-    } else {
-      _itemsError = null;
-      debugPrint('✅ [POFormPage] Items validation OK');
+      TossToast.error(context, 'Please add at least one item');
+      return false;
     }
 
-    debugPrint('🔍 [POFormPage] _validateForm result: $isValid');
+    // Validate Supplier
+    if (_isExistingSupplier) {
+      if (_selectedSupplierId == null) {
+        _supplierError = 'Please select a supplier';
+        isValid = false;
+      } else {
+        _supplierError = null;
+      }
+    } else {
+      if (_supplierNameController.text.trim().isEmpty) {
+        _supplierError = 'Supplier name is required';
+        isValid = false;
+      } else {
+        _supplierError = null;
+      }
+    }
+
     return isValid;
   }
 
   Future<void> _handleSave() async {
-    debugPrint('🟢 [POFormPage] _handleSave called!');
-    debugPrint('🟢 [POFormPage] Form validate result: ${_formKey.currentState!.validate()}');
-
-    if (!_formKey.currentState!.validate()) {
-      debugPrint('🔴 [POFormPage] Form validation failed - returning');
-      return;
-    }
-
-    debugPrint('🟡 [POFormPage] Calling _validateForm...');
-    final isValid = _validateForm();
-    debugPrint('🟡 [POFormPage] _validateForm result: $isValid');
-    if (!isValid) {
+    if (!_validateForm()) {
       setState(() {});
-      TossToast.error(context, 'Please fill in all required fields');
       return;
     }
 
-    final appState = ref.read(appStateProvider);
-    debugPrint('🟢 [POFormPage] Creating POCreateParams...');
+    // Build items array for RPC
+    final itemsJson = _items.map((item) => {
+      'sku': item.sku,
+      'variant_id': item.variantId,
+      'quantity': item.quantity,
+      'unit_price': item.unitPrice,
+    }).toList();
 
-    final params = POCreateParams(
-      companyId: appState.companyChoosen,
-      storeId: appState.storeChoosen.isNotEmpty ? appState.storeChoosen : null,
-      counterpartyId: _buyerId,
-      buyerPoNumber:
-          _buyerPoNumberController.text.isNotEmpty ? _buyerPoNumberController.text : null,
-      buyerInfo: _selectedBuyer != null
-          ? {
-              'name': _selectedBuyer!.name,
-              'address': _selectedBuyer!.additionalData?['address'],
-              'city': _selectedBuyer!.additionalData?['city'],
-              'country': _selectedBuyer!.additionalData?['country'],
-              'phone': _selectedBuyer!.phone,
-              'email': _selectedBuyer!.email,
-            }
-          : null,
-      currencyId: _currencyId,
-      incotermsCode: _incotermsCode,
-      incotermsPlace:
-          _incotermsPlaceController.text.isNotEmpty ? _incotermsPlaceController.text : null,
-      paymentTermsCode: _paymentTermsCode,
-      orderDateUtc: _orderDate,
-      requiredShipmentDateUtc: _requiredShipmentDate,
-      partialShipmentAllowed: _partialShipmentAllowed,
-      transshipmentAllowed: _transshipmentAllowed,
-      notes: _notesController.text.isNotEmpty ? _notesController.text : null,
-      bankAccountIds: _selectedBankAccountIds,
-      items: _items
-          .map((item) => POItemCreateParams(
-                productId: item.productId,
-                description: item.description,
-                sku: item.sku,
-                hsCode: item.hsCode,
-                quantity: item.quantity,
-                unit: item.unit,
-                unitPrice: item.unitPrice,
-              ))
-          .toList(),
-    );
+    // Build supplier_info for one-time supplier
+    Map<String, dynamic>? supplierInfo;
+    if (!_isExistingSupplier) {
+      supplierInfo = {
+        'name': _supplierNameController.text.trim(),
+        if (_supplierPhoneController.text.trim().isNotEmpty)
+          'phone': _supplierPhoneController.text.trim(),
+        if (_supplierEmailController.text.trim().isNotEmpty)
+          'email': _supplierEmailController.text.trim(),
+        if (_supplierAddressController.text.trim().isNotEmpty)
+          'address': _supplierAddressController.text.trim(),
+      };
+    }
 
-    debugPrint('🚀 [POFormPage] Calling ${isEditMode ? 'update' : 'create'}...');
-    final notifier = ref.read(poFormProvider.notifier);
+    // Build notes with order title
+    final notes = _notesController.text.trim().isNotEmpty
+        ? '${_orderTitleController.text.trim()}\n${_notesController.text.trim()}'
+        : _orderTitleController.text.trim();
+
     try {
-      final po = isEditMode
-          ? await notifier.update(widget.poId!, 1, {
-              'buyer_id': _buyerId,
-              'buyer_po_number':
-                  _buyerPoNumberController.text.isNotEmpty ? _buyerPoNumberController.text : null,
-              'currency_id': _currencyId,
-              'incoterms_code': _incotermsCode,
-              'incoterms_place':
-                  _incotermsPlaceController.text.isNotEmpty ? _incotermsPlaceController.text : null,
-              'payment_terms_code': _paymentTermsCode,
-              'order_date_utc': _orderDate?.toIso8601String(),
-              'required_shipment_date_utc': _requiredShipmentDate?.toIso8601String(),
-              'partial_shipment_allowed': _partialShipmentAllowed,
-              'transshipment_allowed': _transshipmentAllowed,
-              'notes': _notesController.text.isNotEmpty ? _notesController.text : null,
-              'bank_account_ids': _selectedBankAccountIds,
-            })
-          : await notifier.create(params);
+      final response = await ref.read(poFormProvider.notifier).createOrder(
+        items: itemsJson,
+        orderTitle: _orderTitleController.text.trim(),
+        counterpartyId: _isExistingSupplier ? _selectedSupplierId : null,
+        supplierInfo: supplierInfo,
+        notes: notes,
+      );
 
-      if (po != null && mounted) {
-        debugPrint(
-            '✅ [POFormPage] PO ${isEditMode ? 'updated' : 'created'} successfully! ID: ${po.id}');
-        ref.read(poListProvider.notifier).refresh();
-        context.go('/purchase-order/${po.id}');
-      } else {
-        final formState = ref.read(poFormProvider);
-        final errorMessage = formState.error ?? 'Unknown error occurred';
-        debugPrint('🔴 [POFormPage] PO ${isEditMode ? 'update' : 'create'} returned null');
-        debugPrint('🔴 [POFormPage] Error from state: $errorMessage');
+      if (response != null && mounted) {
+        final message = response['message'] as String? ?? 'Order created successfully!';
+
+        // Show success dialog
+        await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Order Created',
+            message: message,
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () {
+              Navigator.of(context).pop(true);
+            },
+          ),
+        );
+
+        // Refresh list and navigate back
         if (mounted) {
-          TossToast.error(context, 'Failed to save PO: $errorMessage');
+          ref.read(poListProvider.notifier).refresh();
+          context.go('/purchase-order');
         }
       }
-    } catch (e, stackTrace) {
-      debugPrint('🔴 [POFormPage] Error saving PO: $e');
-      debugPrint('🔴 [POFormPage] StackTrace: $stackTrace');
+    } catch (e) {
       if (mounted) {
-        TossToast.error(context, 'Error: $e');
+        TossToast.error(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
+}
+
+/// Data class for order items
+class OrderItemData {
+  final String productId;
+  final String name;
+  final String? sku;
+  final String? variantId;
+  final double quantity;
+  final String unit;
+  final double unitPrice;
+
+  OrderItemData({
+    required this.productId,
+    required this.name,
+    this.sku,
+    this.variantId,
+    required this.quantity,
+    required this.unit,
+    required this.unitPrice,
+  });
+
+  double get total => quantity * unitPrice;
 }

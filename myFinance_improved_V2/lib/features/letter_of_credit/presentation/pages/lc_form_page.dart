@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../shared/themes/toss_spacing.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../app/providers/app_state_provider.dart';
-import '../../../purchase_order/presentation/providers/po_providers.dart';
+// TODO: Re-enable when purchase_order is rebuilt with inventory_get_order_list RPC
+// import '../../../purchase_order/presentation/providers/po_providers.dart';
 import '../../domain/entities/letter_of_credit.dart';
 import '../../domain/repositories/lc_repository.dart';
 import '../providers/lc_providers.dart';
@@ -115,57 +116,25 @@ class _LCFormPageState extends ConsumerState<LCFormPage> {
     }
   }
 
+  // TODO: Re-enable when purchase_order is rebuilt with inventory_get_order_list RPC
   Future<void> _loadFromPO() async {
     if (widget.poId == null) return;
 
-    setState(() => _isLoading = true);
-    try {
-      final poRepository = ref.read(poRepositoryProvider);
-      final po = await poRepository.getById(widget.poId!);
+    // Temporarily disabled - PO system is being rebuilt
+    setState(() {
+      _expiryDateUtc = DateTime.now().add(const Duration(days: 90));
+      _requiredDocuments = [
+        LCRequiredDocumentParams(
+            code: 'BL', name: 'Bill of Lading', copiesOriginal: 3, copiesCopy: 3),
+        LCRequiredDocumentParams(
+            code: 'CI', name: 'Commercial Invoice', copiesOriginal: 3, copiesCopy: 3),
+        LCRequiredDocumentParams(
+            code: 'PL', name: 'Packing List', copiesOriginal: 3, copiesCopy: 3),
+      ];
+    });
 
-      setState(() {
-        _applicantId = po.buyerId;
-        _applicantInfo = po.buyerInfo;
-        _currencyId = po.currencyId;
-        _currencyCode = po.currencyCode;
-        _amountController.text = po.totalAmount.toString();
-        _expiryDateUtc = DateTime.now().add(const Duration(days: 90));
-        _latestShipmentDateUtc = po.requiredShipmentDateUtc;
-        _incotermsCode = po.incotermsCode;
-        _incotermsPlaceController.text = po.incotermsPlace ?? '';
-        _paymentTermsCode = po.paymentTermsCode;
-        _partialShipmentAllowed = po.partialShipmentAllowed;
-        _transshipmentAllowed = po.transshipmentAllowed;
-
-        if (po.bankAccountIds.isNotEmpty) {
-          _advisingBankId = po.bankAccountIds.first;
-          if (po.bankingInfo != null && po.bankingInfo!.isNotEmpty) {
-            _advisingBankInfo = po.bankingInfo!.first;
-          }
-        }
-
-        _piId = po.piId;
-        _poNumber = po.poNumber;
-        _piNumber = po.piNumber;
-
-        _requiredDocuments = [
-          LCRequiredDocumentParams(
-              code: 'BL', name: 'Bill of Lading', copiesOriginal: 3, copiesCopy: 3),
-          LCRequiredDocumentParams(
-              code: 'CI', name: 'Commercial Invoice', copiesOriginal: 3, copiesCopy: 3),
-          LCRequiredDocumentParams(
-              code: 'PL', name: 'Packing List', copiesOriginal: 3, copiesCopy: 3),
-        ];
-      });
-    } catch (e) {
-      if (mounted) {
-        TossToast.error(context, 'Failed to load PO data: $e');
-      }
-      setState(() {
-        _expiryDateUtc = DateTime.now().add(const Duration(days: 90));
-      });
-    } finally {
-      setState(() => _isLoading = false);
+    if (mounted) {
+      TossToast.info(context, 'PO integration temporarily unavailable');
     }
   }
 
