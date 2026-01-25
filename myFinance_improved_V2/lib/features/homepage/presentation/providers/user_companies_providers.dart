@@ -23,6 +23,7 @@ import '../../../../app/providers/auth_providers.dart';
 import '../../../../core/cache/hive_cache_service.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../core/services/revenuecat_service.dart';
+import '../../../../core/subscription/index.dart';
 import '../../../auth/presentation/providers/auth_service.dart';
 import '../../domain/entities/user_with_companies.dart';
 import '../../domain/mappers/user_entity_mapper.dart';
@@ -128,14 +129,29 @@ Future<void> _initializeAppStateFromData(
     );
 
     if (selection.hasSelection) {
+      final subscriptionMap = selection.company!.subscription?.toMap();
+
       appStateNotifier.updateBusinessContext(
         companyId: selection.company!.id,
         storeId: selection.store?.id ?? '',
         companyName: selection.company!.companyName,
         storeName: selection.store?.storeName,
-        subscription: selection.company!.subscription?.toMap(),
+        subscription: subscriptionMap,
+        storeCount: selection.company!.storeCount,
+        employeeCount: selection.company!.employeeCount ?? 0,
       );
     }
+
+    // Update usage counts from userEntity data
+    // Note: userEntity.companyCount uses ownedCompanyCount from RPC (OWNED companies only)
+    // for subscription limit checking, with fallback to companies.length
+    appStateNotifier.updateUsageCounts(
+      companyCount: userEntity.companyCount,
+      totalStoreCount: userEntity.totalStoreCount,
+      totalEmployeeCount: userEntity.totalEmployeeCount,
+      currentStoreCount: selection.company?.storeCount,
+      currentEmployeeCount: selection.company?.employeeCount,
+    );
   } else if (userEntity.companies.isNotEmpty && appState.companyChoosen.isNotEmpty) {
     // Company already selected - update subscription data
     final selectedCompany = userEntity.companies.firstWhere(
@@ -157,12 +173,26 @@ Future<void> _initializeAppStateFromData(
       }
     }
 
+    final subscriptionMap = selectedCompany.subscription?.toMap();
+
     appStateNotifier.updateBusinessContext(
       companyId: selectedCompany.id,
       storeId: appState.storeChoosen,
       companyName: selectedCompany.companyName,
       storeName: actualStoreName,
-      subscription: selectedCompany.subscription?.toMap(),
+      subscription: subscriptionMap,
+      storeCount: selectedCompany.storeCount,
+      employeeCount: selectedCompany.employeeCount ?? 0,
+    );
+
+    // Update usage counts from userEntity
+    // Note: userEntity.companyCount uses ownedCompanyCount from RPC (OWNED companies only)
+    appStateNotifier.updateUsageCounts(
+      companyCount: userEntity.companyCount,
+      totalStoreCount: userEntity.totalStoreCount,
+      totalEmployeeCount: userEntity.totalEmployeeCount,
+      currentStoreCount: selectedCompany.storeCount,
+      currentEmployeeCount: selectedCompany.employeeCount,
     );
   }
 
@@ -172,6 +202,16 @@ Future<void> _initializeAppStateFromData(
       final user = ref.read(authStateProvider).value;
       if (user != null) {
         await RevenueCatService().loginUser(user.id);
+
+        // Initialize SubscriptionStateNotifier for real-time updates
+        // This sets up RevenueCat listener + Supabase Realtime subscription
+        await ref
+            .read(subscriptionStateNotifierProvider.notifier)
+            .initialize(user.id);
+
+        if (kDebugMode) {
+          debugPrint('✅ [SubscriptionState] Initialized for user: ${user.id}');
+        }
       }
     } catch (e, stackTrace) {
       SentryConfig.captureException(
@@ -185,13 +225,17 @@ Future<void> _initializeAppStateFromData(
 
 /// Background refresh for SWR pattern
 ///
-/// Note: We capture repository BEFORE async gap to avoid ref state issues
+/// Note: We capture providers BEFORE async gap to avoid ref state issues
 void _refreshUserCompaniesInBackground(
   Ref ref,
   String userId,
 ) {
-  // Capture repository BEFORE async gap to avoid ref state issues
+  // Capture providers BEFORE async gap to avoid ref state issues
   final repository = ref.read(homepageRepositoryProvider);
+  final appStateNotifier = ref.read(appStateProvider.notifier);
+  final appState = ref.read(appStateProvider);
+  final subscriptionNotifier =
+      ref.read(subscriptionStateNotifierProvider.notifier);
 
   // Fire and forget - don't await
   Future(() async {
@@ -212,9 +256,22 @@ void _refreshUserCompaniesInBackground(
       // Save to cache
       await HiveCacheService.instance.saveUserCompanies(userId, userData);
 
+      // ✅ Update AppState with fresh data (usage counts)
+      _updateAppStateWithFreshData(
+        userEntity,
+        appStateNotifier,
+        appState,
+      );
+
       // Login to RevenueCat with fresh data
       try {
         await RevenueCatService().loginUser(userId);
+
+        // Initialize/refresh SubscriptionStateNotifier
+        await subscriptionNotifier.initialize(userId);
+        if (kDebugMode) {
+          debugPrint('✅ [SWR] SubscriptionState initialized in background');
+        }
       } catch (_) {}
 
       if (kDebugMode) {
@@ -227,6 +284,56 @@ void _refreshUserCompaniesInBackground(
       // Don't throw - background refresh failure is non-critical
     }
   });
+}
+
+/// Update AppState with fresh data from background refresh
+void _updateAppStateWithFreshData(
+  UserWithCompanies userEntity,
+  AppStateNotifier appStateNotifier,
+  AppState appState,
+) {
+  // Find current selected company to get its counts
+  int? currentStoreCount;
+  int? currentEmployeeCount;
+
+  if (appState.companyChoosen.isNotEmpty) {
+    try {
+      final selectedCompany = userEntity.companies.firstWhere(
+        (c) => c.id == appState.companyChoosen,
+      );
+      currentStoreCount = selectedCompany.storeCount;
+      currentEmployeeCount = selectedCompany.employeeCount;
+
+      // Also update subscription data if changed
+      if (selectedCompany.subscription != null) {
+        appStateNotifier.updateBusinessContext(
+          companyId: selectedCompany.id,
+          storeId: appState.storeChoosen,
+          companyName: selectedCompany.companyName,
+          storeName: appState.storeName,
+          subscription: selectedCompany.subscription!.toMap(),
+          storeCount: selectedCompany.storeCount,
+          employeeCount: selectedCompany.employeeCount ?? 0,
+        );
+      }
+    } catch (_) {
+      // Company not found - use first company if available
+      if (userEntity.companies.isNotEmpty) {
+        currentStoreCount = userEntity.companies.first.storeCount;
+        currentEmployeeCount = userEntity.companies.first.employeeCount;
+      }
+    }
+  }
+
+  // Update usage counts from userEntity
+  // Note: userEntity.companyCount uses ownedCompanyCount from RPC (OWNED companies only)
+  appStateNotifier.updateUsageCounts(
+    companyCount: userEntity.companyCount,
+    totalStoreCount: userEntity.totalStoreCount,
+    totalEmployeeCount: userEntity.totalEmployeeCount,
+    currentStoreCount: currentStoreCount,
+    currentEmployeeCount: currentEmployeeCount,
+  );
 }
 
 /// Fetch user companies from API and cache

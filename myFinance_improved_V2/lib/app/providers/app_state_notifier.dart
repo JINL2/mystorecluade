@@ -11,7 +11,9 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../../core/cache/hive_cache_service.dart';
+import '../../core/subscription/entities/subscription_state.dart';
 import 'app_state.dart';
 
 /// Global App State Notifier
@@ -87,17 +89,29 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   /// Update business context (company/store selection)
+  ///
+  /// NOTE: Subscription data is passed here for backward compatibility.
+  /// New code should watch `subscriptionStateNotifierProvider` directly.
+  /// See: lib/core/subscription/providers/subscription_state_notifier.dart
   void updateBusinessContext({
     required String companyId,
     required String storeId,
     String? companyName,
     String? storeName,
     Map<String, dynamic>? subscription,
+    int? storeCount,
+    int? employeeCount,
   }) {
     // Use plan_name instead of plan_type because:
     // - plan_type in DB is 'free' or 'paid' (billing category)
     // - plan_name is 'free', 'basic', 'pro' (actual plan tier)
     final planName = (subscription?['plan_name'] as String?) ?? state.planType;
+
+    // Handle null max values from DB (Pro plan = unlimited = -1 in app)
+    final maxCompanies = subscription?['max_companies'];
+    final maxStores = subscription?['max_stores'];
+    final maxEmployees = subscription?['max_employees'];
+    final convertedMaxEmployees = maxEmployees == null ? -1 : (maxEmployees as int);
 
     state = state.copyWith(
       companyChoosen: companyId,
@@ -106,9 +120,13 @@ class AppStateNotifier extends StateNotifier<AppState> {
       storeName: storeName ?? state.storeName,
       currentSubscription: subscription ?? state.currentSubscription,
       planType: planName,
-      maxStores: (subscription?['max_stores'] as int?) ?? state.maxStores,
-      maxEmployees: (subscription?['max_employees'] as int?) ?? state.maxEmployees,
+      maxCompanies: maxCompanies == null ? -1 : (maxCompanies as int),
+      maxStores: maxStores == null ? -1 : (maxStores as int),
+      maxEmployees: convertedMaxEmployees,
       aiDailyLimit: (subscription?['ai_daily_limit'] as int?) ?? state.aiDailyLimit,
+      // Update current usage counts
+      currentStoreCount: storeCount ?? state.currentStoreCount,
+      currentEmployeeCount: employeeCount ?? state.currentEmployeeCount,
     );
 
     // Save to cache
@@ -116,13 +134,23 @@ class AppStateNotifier extends StateNotifier<AppState> {
   }
 
   /// Update subscription context
+  ///
+  /// @deprecated Use `syncFromSubscriptionState` instead.
+  /// New code should watch `subscriptionStateNotifierProvider` directly.
   void updateSubscription(Map<String, dynamic> subscription) {
-    // ⚠️ Use plan_name instead of plan_type (see updateBusinessContext comment)
+    // Use plan_name instead of plan_type (see updateBusinessContext comment)
+    // Handle null max values from DB (Pro plan = unlimited = -1 in app)
+    final maxCompanies = subscription['max_companies'];
+    final maxStores = subscription['max_stores'];
+    final maxEmployees = subscription['max_employees'];
+    final convertedMaxEmployees = maxEmployees == null ? -1 : (maxEmployees as int);
+
     state = state.copyWith(
       currentSubscription: subscription,
       planType: (subscription['plan_name'] as String?) ?? 'free',  // ✅ Use plan_name
-      maxStores: (subscription['max_stores'] as int?) ?? 1,
-      maxEmployees: (subscription['max_employees'] as int?) ?? 5,
+      maxCompanies: maxCompanies == null ? -1 : (maxCompanies as int),
+      maxStores: maxStores == null ? -1 : (maxStores as int),
+      maxEmployees: convertedMaxEmployees,
       aiDailyLimit: (subscription['ai_daily_limit'] as int?) ?? 2,
     );
   }
@@ -148,6 +176,62 @@ class AppStateNotifier extends StateNotifier<AppState> {
     );
     // Save to cache
     _saveLastSelection();
+  }
+
+  /// Update usage counts from get_user_companies_with_subscription RPC response
+  ///
+  /// Call this after loading user companies data to update all usage counts.
+  /// The RPC now returns: company_count, total_store_count, total_employee_count
+  /// and per-company: store_count, employee_count
+  void updateUsageCounts({
+    required int companyCount,
+    required int totalStoreCount,
+    required int totalEmployeeCount,
+    int? currentStoreCount,
+    int? currentEmployeeCount,
+  }) {
+    state = state.copyWith(
+      currentCompanyCount: companyCount,
+      totalStoreCount: totalStoreCount,
+      totalEmployeeCount: totalEmployeeCount,
+      // Update current (selected company's) counts if provided
+      currentStoreCount: currentStoreCount ?? state.currentStoreCount,
+      currentEmployeeCount: currentEmployeeCount ?? state.currentEmployeeCount,
+    );
+  }
+
+  /// Update current company's usage counts (after selecting a company)
+  void updateCurrentCompanyUsage({
+    required int storeCount,
+    required int employeeCount,
+  }) {
+    state = state.copyWith(
+      currentStoreCount: storeCount,
+      currentEmployeeCount: employeeCount,
+    );
+  }
+
+  /// Increment store count (after creating a new store)
+  void incrementStoreCount() {
+    state = state.copyWith(
+      currentStoreCount: state.currentStoreCount + 1,
+      totalStoreCount: state.totalStoreCount + 1,
+    );
+  }
+
+  /// Increment employee count (after adding a new employee)
+  void incrementEmployeeCount() {
+    state = state.copyWith(
+      currentEmployeeCount: state.currentEmployeeCount + 1,
+      totalEmployeeCount: state.totalEmployeeCount + 1,
+    );
+  }
+
+  /// Increment company count (after creating a new company)
+  void incrementCompanyCount() {
+    state = state.copyWith(
+      currentCompanyCount: state.currentCompanyCount + 1,
+    );
   }
 
   /// Update category features (menu permissions)
@@ -287,6 +371,62 @@ class AppStateNotifier extends StateNotifier<AppState> {
   void signOut() {
     state = AppState.initial();
     clearLastSelection();
+  }
+
+  // ============================================================================
+  // SubscriptionState Integration (2026 Subscription Workflow)
+  // ============================================================================
+
+  /// Sync subscription data from SubscriptionStateNotifier
+  ///
+  /// Called when SubscriptionStateNotifier updates to keep AppState in sync.
+  /// This enables existing code that reads subscription from AppState to
+  /// continue working while we migrate to the new SubscriptionStateNotifier.
+  ///
+  /// ## Data Flow (2026 Architecture)
+  /// ```
+  /// RevenueCat SDK ──┐
+  ///                  ├──▶ SubscriptionStateNotifier ──▶ UI (직접 watch)
+  /// Supabase Realtime┘              │
+  ///                                 ▼
+  ///                       AppState (backward compat)
+  /// ```
+  ///
+  /// ## Value Conversion
+  /// - SubscriptionState uses NULL for unlimited
+  /// - AppState uses -1 for unlimited
+  ///
+  /// @deprecated New code should watch `subscriptionStateNotifierProvider` directly.
+  void syncFromSubscriptionState(SubscriptionState subState) {
+    // Build subscription map for backward compatibility with code that reads
+    // from AppState.currentSubscription
+    final newSubscription = {
+      'plan_id': subState.planId,
+      'plan_name': subState.planName,
+      'display_name': subState.displayName,
+      'plan_type': subState.planType,
+      'max_companies': subState.maxCompaniesForDomain,
+      'max_stores': subState.maxStoresForDomain,
+      'max_employees': subState.maxEmployeesForDomain,
+      'ai_daily_limit': subState.aiDailyLimitForDomain,
+      'features': subState.features,
+      'status': subState.status,
+    };
+
+    // NOTE: We no longer update user['companies'] here.
+    // UI components should watch subscriptionStateNotifierProvider directly
+    // for real-time subscription updates (e.g., company_store_list.dart).
+
+    state = state.copyWith(
+      planType: subState.planName,
+      // Convert null → -1 for unlimited (AppState uses -1, SubscriptionState uses null)
+      maxCompanies: subState.maxCompaniesForDomain,
+      maxStores: subState.maxStoresForDomain,
+      maxEmployees: subState.maxEmployeesForDomain,
+      aiDailyLimit: subState.aiDailyLimitForDomain,
+      // Update subscription map for backward compatibility
+      currentSubscription: newSubscription,
+    );
   }
 
   /// Sync with legacy app state provider

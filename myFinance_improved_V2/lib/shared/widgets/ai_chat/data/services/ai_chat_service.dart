@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
@@ -68,8 +70,13 @@ class AiChatService {
 
       String buffer = '';
 
-      await for (final chunk in response.stream.transform(utf8.decoder)) {
+      // Use Utf8Decoder with allowMalformed to handle partial multi-byte characters at chunk boundaries
+      await for (final chunk
+          in response.stream.transform(const Utf8Decoder(allowMalformed: true))) {
         buffer += chunk;
+
+        // Normalize CRLF and CR to LF for consistent parsing
+        buffer = buffer.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
         // Process complete SSE messages
         while (buffer.contains('\n')) {
@@ -85,7 +92,11 @@ class AiChatService {
               final data = jsonDecode(jsonStr) as Map<String, dynamic>;
               yield AiEvent.fromJson(data);
             } catch (e) {
-              // JSON parse error - skip this line
+              // JSON parse error - log and skip this line
+              debugPrint('[AiChatService] JSON parse error: $e');
+              debugPrint(
+                '[AiChatService] Line: ${jsonStr.substring(0, min(100, jsonStr.length))}...',
+              );
               continue;
             }
           }
@@ -93,14 +104,19 @@ class AiChatService {
       }
 
       // Process any remaining data in buffer
-      if (buffer.trim().startsWith('data: ')) {
-        final jsonStr = buffer.trim().substring(6).trim();
+      final trimmedBuffer = buffer.trim();
+      if (trimmedBuffer.startsWith('data: ')) {
+        final jsonStr = trimmedBuffer.substring(6).trim();
         if (jsonStr.isNotEmpty) {
           try {
             final data = jsonDecode(jsonStr) as Map<String, dynamic>;
             yield AiEvent.fromJson(data);
           } catch (e) {
-            // Ignore parse errors for trailing data
+            // Log parse errors for trailing data to help debugging
+            debugPrint('[AiChatService] Final buffer parse error: $e');
+            debugPrint(
+              '[AiChatService] Buffer: ${jsonStr.substring(0, min(100, jsonStr.length))}...',
+            );
           }
         }
       }

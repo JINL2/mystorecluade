@@ -15,6 +15,7 @@ class Company {
     this.salaryType,
     this.currencyCode,
     this.currencySymbol,
+    this.employeeCount,
   });
 
   final String id;
@@ -29,12 +30,17 @@ class Company {
   final String? currencyCode;  // USD, KRW, THB, etc.
   final String? currencySymbol;  // $, ₩, ฿, etc.
 
+  // Employee count from RPC (more accurate than computed)
+  final int? employeeCount;
+
   // ============================================================================
   // Factory Constructors
   // ============================================================================
 
   /// Create Company from Map
   factory Company.fromMap(Map<String, dynamic> map) {
+    final subscriptionData = map['subscription'];
+
     return Company(
       id: map['company_id'] as String,
       companyName: map['company_name'] as String,
@@ -43,12 +49,13 @@ class Company {
       stores: (map['stores'] as List<dynamic>)
           .map((s) => Store.fromMap(s as Map<String, dynamic>))
           .toList(),
-      subscription: map['subscription'] != null
-          ? Subscription.fromMap(map['subscription'] as Map<String, dynamic>)
+      subscription: subscriptionData != null
+          ? Subscription.fromMap(subscriptionData as Map<String, dynamic>)
           : null,
       salaryType: map['salary_type'] as String?,
       currencyCode: map['currency_code'] as String?,
       currencySymbol: map['currency_symbol'] as String?,
+      employeeCount: map['employee_count'] as int?,
     );
   }
 
@@ -184,6 +191,7 @@ class Company {
         salaryType: 'monthly',
         currencyCode: 'USD',
         currencySymbol: '\$',
+        employeeCount: 5,
       );
 
   static List<Company> mockList([int count = 2]) =>
@@ -197,6 +205,7 @@ class Company {
             salaryType: 'monthly',
             currencyCode: 'USD',
             currencySymbol: '\$',
+            employeeCount: 5,
           ));
 }
 

@@ -1,32 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
-import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
-import '../../domain/entities/business_dashboard.dart';
+import '../../../../app/providers/app_state.dart';
+import '../../../../app/providers/app_state_provider.dart';
 import '../../domain/entities/user_profile.dart';
 import 'profile_avatar_section.dart';
 
-class ProfileHeaderSection extends StatelessWidget {
+class ProfileHeaderSection extends ConsumerWidget {
   final UserProfile profile;
-  final BusinessDashboard? businessData;
   final String? temporaryImageUrl;
   final VoidCallback onAvatarTap;
 
   const ProfileHeaderSection({
     super.key,
     required this.profile,
-    this.businessData,
     this.temporaryImageUrl,
     required this.onAvatarTap,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final appState = ref.watch(appStateProvider);
+    final roleName = appState.currentCompanyRoleName;
+    final companyName = appState.companyName;
+    final storeName = appState.storeName;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
@@ -72,7 +76,7 @@ class ProfileHeaderSection extends StatelessWidget {
 
                 const SizedBox(height: TossSpacing.space1),
 
-                // Role badge
+                // Role badge - from AppState (loaded via RPC at app start)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: TossSpacing.space2,
@@ -83,7 +87,7 @@ class ProfileHeaderSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(TossBorderRadius.sm),
                   ),
                   child: Text(
-                    businessData?.userRole ?? profile.displayRole,
+                    roleName,
                     style: TossTextStyles.caption.copyWith(
                       color: TossColors.primary,
                       fontWeight: TossFontWeight.semibold,
@@ -91,11 +95,11 @@ class ProfileHeaderSection extends StatelessWidget {
                   ),
                 ),
 
-                // Company info
-                if (businessData?.companyName.isNotEmpty == true) ...[
+                // Company info - from AppState
+                if (companyName.isNotEmpty) ...[
                   const SizedBox(height: TossSpacing.space2),
                   Text(
-                    businessData!.companyName,
+                    companyName,
                     style: TossTextStyles.body.copyWith(
                       color: TossColors.gray700,
                       fontWeight: TossFontWeight.medium,
@@ -105,10 +109,10 @@ class ProfileHeaderSection extends StatelessWidget {
                   ),
                 ],
 
-                if (businessData?.storeName.isNotEmpty == true) ...[
+                if (storeName.isNotEmpty) ...[
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    businessData!.storeName,
+                    storeName,
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray600,
                     ),

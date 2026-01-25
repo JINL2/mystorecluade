@@ -21,11 +21,15 @@ class JoinResultModel with _$JoinResultModel {
     @Default(false) bool success,
     String? type,
     String? message,
+    @JsonKey(name: 'error_code') String? errorCode,
     @JsonKey(name: 'company_id') String? companyId,
     @JsonKey(name: 'company_name') String? companyName,
     @JsonKey(name: 'store_id') String? storeId,
     @JsonKey(name: 'store_name') String? storeName,
     @JsonKey(name: 'role_assigned') @Default(false) bool roleAssignedFlag,
+    // Employee limit fields
+    @JsonKey(name: 'max_employees') int? maxEmployees,
+    @JsonKey(name: 'current_employees') int? currentEmployees,
   }) = _JoinResultModel;
 
   factory JoinResultModel.fromJson(Map<String, dynamic> json) =>
@@ -46,8 +50,17 @@ class JoinResultModel with _$JoinResultModel {
   String get errorMessage => message ?? 'Failed to join. Please try again.';
 
   /// Check if this is an "already joined" error
-  bool get isAlreadyJoined => type == 'already_joined';
+  bool get isAlreadyJoined =>
+      type == 'already_joined' || errorCode == 'ALREADY_MEMBER';
 
   /// Check if this is an invalid code error
-  bool get isInvalidCode => type == 'invalid_code';
+  bool get isInvalidCode =>
+      type == 'invalid_code' || errorCode == 'BUSINESS_NOT_FOUND';
+
+  /// Check if employee limit reached
+  bool get isEmployeeLimitReached =>
+      type == 'employee_limit_reached' || errorCode == 'EMPLOYEE_LIMIT_REACHED';
+
+  /// Check if owner trying to join
+  bool get isOwnerCannotJoin => errorCode == 'OWNER_CANNOT_JOIN';
 }

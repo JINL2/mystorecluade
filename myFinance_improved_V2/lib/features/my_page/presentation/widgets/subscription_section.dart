@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/app/providers/app_state.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/services/revenuecat_service.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -35,17 +38,23 @@ class SubscriptionSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final appState = ref.watch(appStateProvider);
 
-    // ✅ Use RevenueCat subscription status (source of truth)
-    final proStatusAsync = ref.watch(proStatusProvider);
+    // 🔒 Only show subscription section to company owners
+    // Employees don't need to see subscription/billing info
+    if (!appState.isCurrentCompanyOwner) {
+      return const SizedBox.shrink();
+    }
+
+    // ✅ Use subscriptionDetailsProvider for comprehensive info including trial
+    final detailsAsync = ref.watch(subscriptionDetailsProvider);
 
     // Handle loading state - show skeleton while fetching
-    if (proStatusAsync.isLoading) {
+    if (detailsAsync.isLoading) {
       return _buildLoadingCard(context);
     }
 
-    final isPro = proStatusAsync.valueOrNull ?? false;
-    final planType = isPro ? 'pro' : 'free';
-    final isFreePlan = !isPro;
+    final details = detailsAsync.valueOrNull ?? SubscriptionDetails.free();
+    final planType = details.tier;
+    final isFreePlan = details.isFreeTier;
 
     return GestureDetector(
       onTap: () {
@@ -81,7 +90,7 @@ class SubscriptionSection extends ConsumerWidget {
         ),
         child: isFreePlan
             ? _buildFreeCard(context, appState)
-            : _buildPremiumCard(context, appState, planType),
+            : _buildPremiumCard(context, appState, planType, details),
       ),
     );
   }
@@ -180,7 +189,7 @@ class SubscriptionSection extends ConsumerWidget {
               _buildUsageRow(
                 icon: LucideIcons.store,
                 label: 'Stores',
-                current: '1',
+                current: '${appState.currentStoreCount}',
                 limit: '/${appState.maxStores}',
                 color: TossColors.primary,
               ),
@@ -188,7 +197,7 @@ class SubscriptionSection extends ConsumerWidget {
               _buildUsageRow(
                 icon: LucideIcons.users,
                 label: 'Employees',
-                current: '3',
+                current: '${appState.currentEmployeeCount}',
                 limit: '/${appState.maxEmployees}',
                 color: TossColors.info,
               ),
@@ -246,6 +255,12 @@ class SubscriptionSection extends ConsumerWidget {
                   ],
                 ),
               ),
+
+              // Promo Code Button (iOS only)
+              if (Platform.isIOS) ...[
+                const SizedBox(height: TossSpacing.space3),
+                _buildPromoCodeButton(context),
+              ],
             ],
           ),
         ),
@@ -253,10 +268,71 @@ class SubscriptionSection extends ConsumerWidget {
     );
   }
 
+  /// Promo Code 입력 버튼 (iOS only)
+  Widget _buildPromoCodeButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.lightImpact();
+        try {
+          await RevenueCatService().presentCodeRedemptionSheet();
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to open promo code sheet: $e'),
+                backgroundColor: TossColors.error,
+              ),
+            );
+          }
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          vertical: TossSpacing.space3,
+        ),
+        decoration: BoxDecoration(
+          color: TossColors.gray100,
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+          border: Border.all(
+            color: TossColors.gray200,
+            width: TossDimensions.dividerThickness,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              LucideIcons.gift,
+              color: TossColors.textSecondary,
+              size: TossSpacing.iconSM,
+            ),
+            const SizedBox(width: TossSpacing.space2),
+            Text(
+              'Have a promo code?',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textSecondary,
+                fontWeight: TossFontWeight.medium,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Premium plan card - celebration design
-  Widget _buildPremiumCard(BuildContext context, AppState appState, String planType) {
+  Widget _buildPremiumCard(
+    BuildContext context,
+    AppState appState,
+    String planType,
+    SubscriptionDetails details,
+  ) {
     final isPro = planType.toLowerCase() == 'pro';
     final planName = isPro ? 'Pro' : 'Basic';
+    final isOnTrial = details.isOnTrial;
+    final trialDaysRemaining = details.trialDaysRemaining;
+    final isTrialExpiringSoon = details.isTrialExpiringSoon;
 
     return Stack(
       children: [
@@ -328,81 +404,118 @@ class SubscriptionSection extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  // Badge
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: TossSpacing.space3,
-                      vertical: TossSpacing.space1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: TossColors.white.withValues(alpha: TossOpacity.strong),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.full),
-                      border: Border.all(
-                        color: TossColors.white.withValues(alpha: TossOpacity.heavy),
-                        width: TossDimensions.dividerThickness,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          LucideIcons.check,
-                          color: TossColors.white,
-                          size: TossSpacing.iconXS,
-                        ),
-                        const SizedBox(width: TossSpacing.space1),
-                        Text(
-                          'Active',
-                          style: TossTextStyles.small.copyWith(
-                            color: TossColors.white,
-                            fontWeight: TossFontWeight.semibold,
-                          ),
-                        ),
-                      ],
-                    ),
+                  // Status Badge - Trial or Active
+                  _buildStatusBadge(
+                    isOnTrial: isOnTrial,
+                    trialDaysRemaining: trialDaysRemaining,
+                    isTrialExpiringSoon: isTrialExpiringSoon,
                   ),
                 ],
               ),
 
+              // Trial countdown banner (if on trial)
+              if (isOnTrial) ...[
+                const SizedBox(height: TossSpacing.space4),
+                _buildTrialCountdownBanner(
+                  daysRemaining: trialDaysRemaining,
+                  isExpiringSoon: isTrialExpiringSoon,
+                  trialEndDate: details.trialEndDate,
+                ),
+              ],
+
               const SizedBox(height: TossSpacing.space5),
 
-              // Features row
+              // Features row - shows current/max usage
               Row(
                 children: [
                   _buildFeatureChip(
                     icon: LucideIcons.store,
-                    label: isPro ? 'Unlimited' : '${appState.maxStores} Stores',
+                    label: appState.hasUnlimitedStores
+                        ? '${appState.currentStoreCount} Stores'
+                        : '${appState.currentStoreCount}/${appState.maxStores}',
                   ),
                   const SizedBox(width: TossSpacing.space2),
                   _buildFeatureChip(
                     icon: LucideIcons.users,
-                    label: isPro ? 'Unlimited' : '${appState.maxEmployees} Staff',
+                    label: appState.hasUnlimitedEmployees
+                        ? '${appState.currentEmployeeCount} Staff'
+                        : '${appState.currentEmployeeCount}/${appState.maxEmployees}',
                   ),
                   const SizedBox(width: TossSpacing.space2),
                   _buildFeatureChip(
                     icon: LucideIcons.sparkles,
-                    label: isPro ? 'Unlimited AI' : '${appState.aiDailyLimit}/day',
+                    label: appState.hasUnlimitedAI
+                        ? 'Unlimited'
+                        : '${appState.aiDailyLimit}/day',
                   ),
                 ],
               ),
 
               const SizedBox(height: TossSpacing.space4),
 
-              // Manage subscription link
+              // Action buttons row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Manage subscription',
-                    style: TossTextStyles.body.copyWith(
-                      color: TossColors.white.withValues(alpha: TossOpacity.textHigh),
-                      fontWeight: TossFontWeight.medium,
+                  // Manage subscription button (Customer Center)
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () async {
+                        HapticFeedback.lightImpact();
+                        try {
+                          await RevenueCatService().presentCustomerCenter();
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to open subscription manager: $e'),
+                                backgroundColor: TossColors.error,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: TossSpacing.space2 + TossSpacing.space0_5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: TossColors.white.withValues(alpha: TossOpacity.medium),
+                          borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              LucideIcons.settings,
+                              color: TossColors.white,
+                              size: TossSpacing.iconSM,
+                            ),
+                            const SizedBox(width: TossSpacing.space1_5),
+                            Text(
+                              'Manage',
+                              style: TossTextStyles.body.copyWith(
+                                color: TossColors.white,
+                                fontWeight: TossFontWeight.semibold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  Icon(
-                    Icons.chevron_right_rounded,
-                    color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
-                    size: TossSpacing.iconMD2,
+                  const SizedBox(width: TossSpacing.space2),
+                  // View details arrow
+                  Container(
+                    padding: const EdgeInsets.all(TossSpacing.space2 + TossSpacing.space0_5),
+                    decoration: BoxDecoration(
+                      color: TossColors.white.withValues(alpha: TossOpacity.medium),
+                      borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                    ),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: TossColors.white,
+                      size: TossSpacing.iconSM,
+                    ),
                   ),
                 ],
               ),
@@ -410,6 +523,146 @@ class SubscriptionSection extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+
+  /// Build status badge (Trial with days remaining or Active)
+  Widget _buildStatusBadge({
+    required bool isOnTrial,
+    required int trialDaysRemaining,
+    required bool isTrialExpiringSoon,
+  }) {
+    // Determine badge style based on trial status
+    final Color badgeColor;
+    final String badgeText;
+    final IconData badgeIcon;
+
+    if (isOnTrial) {
+      if (isTrialExpiringSoon) {
+        // Trial expiring soon - warning style
+        badgeColor = TossColors.warning;
+        badgeText = '$trialDaysRemaining days left';
+        badgeIcon = LucideIcons.clock;
+      } else {
+        // Trial active - info style
+        badgeColor = TossColors.info;
+        badgeText = 'Trial: $trialDaysRemaining days';
+        badgeIcon = LucideIcons.gift;
+      }
+    } else {
+      // Active subscription
+      badgeColor = TossColors.white;
+      badgeText = 'Active';
+      badgeIcon = LucideIcons.check;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space3,
+        vertical: TossSpacing.space1,
+      ),
+      decoration: BoxDecoration(
+        color: isOnTrial
+            ? badgeColor.withValues(alpha: TossOpacity.medium)
+            : TossColors.white.withValues(alpha: TossOpacity.strong),
+        borderRadius: BorderRadius.circular(TossBorderRadius.full),
+        border: Border.all(
+          color: isOnTrial
+              ? badgeColor.withValues(alpha: TossOpacity.heavy)
+              : TossColors.white.withValues(alpha: TossOpacity.heavy),
+          width: TossDimensions.dividerThickness,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            badgeIcon,
+            color: TossColors.white,
+            size: TossSpacing.iconXS,
+          ),
+          const SizedBox(width: TossSpacing.space1),
+          Text(
+            badgeText,
+            style: TossTextStyles.small.copyWith(
+              color: TossColors.white,
+              fontWeight: TossFontWeight.semibold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build trial countdown banner
+  Widget _buildTrialCountdownBanner({
+    required int daysRemaining,
+    required bool isExpiringSoon,
+    DateTime? trialEndDate,
+  }) {
+    final bannerColor = isExpiringSoon
+        ? TossColors.warning.withValues(alpha: TossOpacity.medium)
+        : TossColors.white.withValues(alpha: TossOpacity.medium);
+
+    // Format end date
+    String endDateText = '';
+    if (trialEndDate != null) {
+      final months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      ];
+      endDateText = 'Ends ${months[trialEndDate.month - 1]} ${trialEndDate.day}';
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space3,
+      ),
+      decoration: BoxDecoration(
+        color: bannerColor,
+        borderRadius: BorderRadius.circular(TossBorderRadius.md),
+        border: Border.all(
+          color: isExpiringSoon
+              ? TossColors.warning.withValues(alpha: TossOpacity.heavy)
+              : TossColors.white.withValues(alpha: TossOpacity.strong),
+          width: TossDimensions.dividerThickness,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isExpiringSoon ? LucideIcons.alertCircle : LucideIcons.gift,
+            color: TossColors.white,
+            size: TossSpacing.iconSM2,
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isExpiringSoon
+                      ? 'Trial ending soon!'
+                      : 'You\'re on a free trial',
+                  style: TossTextStyles.body.copyWith(
+                    color: TossColors.white,
+                    fontWeight: TossFontWeight.semibold,
+                  ),
+                ),
+                if (endDateText.isNotEmpty)
+                  Text(
+                    endDateText,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

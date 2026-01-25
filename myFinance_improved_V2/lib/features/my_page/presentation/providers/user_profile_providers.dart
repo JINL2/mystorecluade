@@ -50,15 +50,6 @@ dynamic currentUserProfile(Ref ref) {
   return myPageState.userProfile;
 }
 
-/// Business Dashboard Provider - MyPageState에서 businessDashboard 추출
-///
-/// 기존 FutureProvider와 호환성을 위한 computed provider
-@riverpod
-dynamic businessDashboard(Ref ref) {
-  final myPageState = ref.watch(myPageNotifierProvider);
-  return myPageState.businessDashboard;
-}
-
 /// Refresh User Data Provider - 사용자 데이터 새로고침 함수
 ///
 /// UI에서 pull-to-refresh 등에 사용할 수 있는 새로고침 함수 제공

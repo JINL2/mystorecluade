@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/subscription/index.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/join_result.dart';
 import 'package:myfinance_improved/features/homepage/domain/entities/store.dart';
 import 'package:myfinance_improved/features/homepage/presentation/providers/homepage_providers.dart';
@@ -170,6 +171,15 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
     bool isSelected,
     dynamic company,
   ) {
+    // Use company's subscription data (inherited from owner's plan)
+    // NOT the logged-in user's subscription (which would be 'free' for employees)
+    //
+    // Data flow:
+    // 1. Owner subscribes → subscription_user table
+    // 2. Company inherits → companies.inherited_plan_id
+    // 3. RPC returns → company['subscription']['plan_name']
+    final planName = (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String? ?? 'free';
+
     return InkWell(
       onTap: () => _toggleCompanyExpansion(companyId),
       borderRadius: BorderRadius.circular(TossBorderRadius.sm),
@@ -205,8 +215,9 @@ class _CompanyStoreListState extends ConsumerState<CompanyStoreList> {
                       ),
                     ),
                     SizedBox(width: TossSpacing.space1 + TossSpacing.space1 / 2),
+                    // Use planName from SubscriptionStateNotifier (real-time)
                     SubscriptionBadge.fromPlanType(
-                      (company['subscription'] as Map<String, dynamic>?)?['plan_name'] as String?,
+                      planName,
                       compact: true,
                     ),
                   ],

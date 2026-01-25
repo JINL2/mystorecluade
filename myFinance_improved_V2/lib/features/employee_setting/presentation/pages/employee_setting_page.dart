@@ -362,17 +362,9 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
   }
 
   void _updateEmployeeInList(EmployeeSalary original, EmployeeSalary updated) {
-    final currentList = ref.read(mutableEmployeeListProvider);
-    if (currentList != null) {
-      final updatedList = currentList.map((emp) {
-        if (emp.salaryId == original.salaryId) {
-          return updated;
-        }
-        return emp;
-      }).toList();
-
-      ref.read(mutableEmployeeListProvider.notifier).update(updatedList);
-    }
+    // 2025+ Riverpod Best Practice: Use Optimistic Update method directly
+    // This avoids creating a new list and is more efficient
+    ref.read(mutableEmployeeListProvider.notifier).updateEmployee(updated);
   }
 
   Widget _buildFloatingActions() {

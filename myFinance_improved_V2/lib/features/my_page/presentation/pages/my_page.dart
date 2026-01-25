@@ -112,7 +112,6 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
 
     final myPageState = ref.watch(myPageNotifierProvider);
     final userProfile = myPageState.userProfile;
-    final businessData = myPageState.businessDashboard;
 
     return TossScaffold(
       backgroundColor: TossColors.gray100,
@@ -177,7 +176,6 @@ class _MyPageState extends ConsumerState<MyPage> with TickerProviderStateMixin {
                                       opacity: _animations[0],
                                       child: ProfileHeaderSection(
                                         profile: userProfile,
-                                        businessData: businessData,
                                         temporaryImageUrl: _temporaryProfileImageUrl,
                                         onAvatarTap: _handleAvatarTap,
                                       ),

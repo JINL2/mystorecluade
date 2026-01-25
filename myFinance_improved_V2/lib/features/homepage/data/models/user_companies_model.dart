@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
 import '../../../../core/domain/entities/company.dart';
 import '../../../../core/domain/entities/store.dart';
 import '../../../../core/domain/entities/subscription.dart';
@@ -24,6 +25,8 @@ class UserCompaniesModel with _$UserCompaniesModel {
     String? userLastName,
     String? profileImage,
     int? companyCount,
+    @Default(0) int totalStoreCount,
+    @Default(0) int totalEmployeeCount,
     required List<CompanyModel> companies,
   }) = _UserCompaniesModel;
 
@@ -39,6 +42,10 @@ class UserCompaniesModel with _$UserCompaniesModel {
       userLastName: userLastName ?? '',
       profileImage: profileImage ?? '',
       companies: companies.map((model) => model.toEntity()).toList(),
+      totalStoreCount: totalStoreCount,
+      totalEmployeeCount: totalEmployeeCount,
+      // companyCount from RPC is the count of OWNED companies (for subscription limit)
+      ownedCompanyCount: companyCount,
     );
   }
 
@@ -50,6 +57,10 @@ class UserCompaniesModel with _$UserCompaniesModel {
       userLastName: entity.userLastName,
       profileImage: entity.profileImage,
       companies: entity.companies.map((c) => CompanyModel.fromDomain(c)).toList(),
+      totalStoreCount: entity.totalStoreCount,
+      totalEmployeeCount: entity.totalEmployeeCount,
+      // ownedCompanyCount is the count of OWNED companies (for subscription limit)
+      companyCount: entity.ownedCompanyCount,
     );
   }
 }
@@ -65,6 +76,7 @@ class CompanyModel with _$CompanyModel {
     required String companyName,
     String? companyCode,
     int? storeCount,
+    int? employeeCount,  // ✅ Employee count from RPC
     RoleModel? role,  // ✅ Make nullable - some companies may not have role data
     @Default([]) List<StoreModel> stores,  // ✅ Provide default empty list
     SubscriptionModel? subscription,  // ✅ Company subscription plan info
@@ -90,6 +102,7 @@ class CompanyModel with _$CompanyModel {
       salaryType: salaryType,
       currencyCode: currencyCode,
       currencySymbol: currencySymbol,
+      employeeCount: employeeCount,
     );
   }
 
@@ -107,6 +120,7 @@ class CompanyModel with _$CompanyModel {
       salaryType: entity.salaryType,
       currencyCode: entity.currencyCode,
       currencySymbol: entity.currencySymbol,
+      employeeCount: entity.employeeCount,
     );
   }
 }
@@ -182,6 +196,12 @@ class RoleModel with _$RoleModel {
 }
 
 /// Subscription Model - nested model for company subscription/plan info
+///
+/// ⚠️ IMPORTANT: null values from DB mean UNLIMITED
+/// - max_companies: null = unlimited companies
+/// - max_stores: null = unlimited stores
+/// - max_employees: null = unlimited employees
+/// - ai_daily_limit: null = unlimited AI usage
 @freezed
 class SubscriptionModel with _$SubscriptionModel {
   const SubscriptionModel._();
@@ -192,10 +212,11 @@ class SubscriptionModel with _$SubscriptionModel {
     required String planName,
     String? displayName,
     required String planType,
-    @Default(1) int maxCompanies,
-    @Default(1) int maxStores,
-    @Default(5) int maxEmployees,
-    @Default(2) int aiDailyLimit,
+    // ⚠️ NULL = UNLIMITED (Pro plan), so we keep them nullable
+    int? maxCompanies,
+    int? maxStores,
+    int? maxEmployees,
+    int? aiDailyLimit,
     @Default(0) double priceMonthly,
     @Default([]) List<String> features,
   }) = _SubscriptionModel;
@@ -205,32 +226,37 @@ class SubscriptionModel with _$SubscriptionModel {
       _$SubscriptionModelFromJson(json);
 
   /// Convert to Domain Entity
+  ///
+  /// NULL values are converted to -1 (meaning unlimited in the app)
   Subscription toEntity() {
     return Subscription(
       planId: planId,
       planName: planName,
       displayName: displayName ?? planName,
       planType: planType,
-      maxCompanies: maxCompanies,
-      maxStores: maxStores,
-      maxEmployees: maxEmployees,
-      aiDailyLimit: aiDailyLimit,
+      maxCompanies: maxCompanies ?? -1,  // null = unlimited = -1
+      maxStores: maxStores ?? -1,
+      maxEmployees: maxEmployees ?? -1,
+      aiDailyLimit: aiDailyLimit ?? -1,
       priceMonthly: priceMonthly,
       features: features,
     );
   }
 
   /// Create from Domain Entity
+  ///
+  /// -1 values (unlimited) are converted back to null for consistency
   factory SubscriptionModel.fromDomain(Subscription entity) {
     return SubscriptionModel(
       planId: entity.planId,
       planName: entity.planName,
       displayName: entity.displayName,
       planType: entity.planType,
-      maxCompanies: entity.maxCompanies,
-      maxStores: entity.maxStores,
-      maxEmployees: entity.maxEmployees,
-      aiDailyLimit: entity.aiDailyLimit,
+      // -1 means unlimited, convert to null for JSON/cache
+      maxCompanies: entity.maxCompanies == -1 ? null : entity.maxCompanies,
+      maxStores: entity.maxStores == -1 ? null : entity.maxStores,
+      maxEmployees: entity.maxEmployees == -1 ? null : entity.maxEmployees,
+      aiDailyLimit: entity.aiDailyLimit == -1 ? null : entity.aiDailyLimit,
       priceMonthly: entity.priceMonthly,
       features: entity.features,
     );
@@ -242,12 +268,12 @@ class SubscriptionModel with _$SubscriptionModel {
   /// Check if this is a paid plan
   bool get isPaid => planType != 'free';
 
-  /// Check if stores are unlimited (-1 means unlimited)
-  bool get hasUnlimitedStores => maxStores == -1;
+  /// Check if stores are unlimited (null or -1 means unlimited)
+  bool get hasUnlimitedStores => maxStores == null || maxStores == -1;
 
-  /// Check if employees are unlimited (-1 means unlimited)
-  bool get hasUnlimitedEmployees => maxEmployees == -1;
+  /// Check if employees are unlimited (null or -1 means unlimited)
+  bool get hasUnlimitedEmployees => maxEmployees == null || maxEmployees == -1;
 
-  /// Check if AI is unlimited (-1 means unlimited)
-  bool get hasUnlimitedAI => aiDailyLimit == -1;
+  /// Check if AI is unlimited (null or -1 means unlimited)
+  bool get hasUnlimitedAI => aiDailyLimit == null || aiDailyLimit == -1;
 }

@@ -9,6 +9,15 @@
 // - PRODUCT_CHANGE: Plan changed (upgrade/downgrade)
 // - BILLING_ISSUE: Payment failed
 // - SUBSCRIBER_ALIAS: User alias updated
+//
+// Updated: 2025-01-22
+// - Added Basic/Pro plan detection from product_id
+// - Fixed column names to match actual DB schema
+// - Added trial_start/trial_end columns
+//
+// Updated: 2026-01-25
+// - Added missing fields: revenuecat_original_app_user_id, revenuecat_entitlement_id,
+//   revenuecat_data, original_purchase_date
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -19,6 +28,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
 };
+
+// Plan IDs from subscription_plans table in Supabase
+const PLAN_IDS = {
+  free: "499b821f-c0c3-4eaf-ba4e-c5aaaf9759be",
+  basic: "c484321e-99c6-4cd7-af77-e74c325acede",
+  pro: "29e2647b-082b-45e9-b228-ac78fc87daec",
+} as const;
 
 // RevenueCat event types
 type RevenueCatEventType =
@@ -49,6 +65,34 @@ interface RevenueCatEvent {
     currency?: string;
   };
   api_version: string;
+}
+
+/**
+ * Detect plan type (basic or pro) from product_id
+ * Product IDs are like: com.storebase.app.basic.monthly, com.storebase.app.pro.yearly
+ */
+function detectPlanType(productId: string): "basic" | "pro" | "free" {
+  const lowerProductId = productId.toLowerCase();
+  if (lowerProductId.includes("basic")) {
+    return "basic";
+  } else if (lowerProductId.includes("pro")) {
+    return "pro";
+  }
+  return "free";
+}
+
+/**
+ * Detect billing cycle from product_id
+ */
+function detectBillingCycle(productId: string): "monthly" | "yearly" {
+  const lowerProductId = productId.toLowerCase();
+  if (
+    lowerProductId.includes("yearly") ||
+    lowerProductId.includes("annual")
+  ) {
+    return "yearly";
+  }
+  return "monthly";
 }
 
 serve(async (req) => {
@@ -92,48 +136,67 @@ serve(async (req) => {
       );
     }
 
+    // Detect plan type from product_id (basic or pro)
+    const detectedPlanType = detectPlanType(event.product_id);
+    const billingCycle = detectBillingCycle(event.product_id);
+    const isTrial = event.is_trial_period || false;
+    const isSandbox = event.environment === "SANDBOX";
+
     // Determine subscription status based on event type
-    let planType = "free";
-    let isActive = false;
+    let planType: "free" | "basic" | "pro" = detectedPlanType;
+    let status: "active" | "trialing" | "canceled" | "expired" = "active";
+    let autoRenew = true;
     let expiresAt: string | null = null;
+    let purchasedAt: string | null = null;
+    let trialStart: string | null = null;
+    let trialEnd: string | null = null;
+
+    // Parse dates
+    if (event.expiration_at_ms) {
+      expiresAt = new Date(event.expiration_at_ms).toISOString();
+    }
+    if (event.purchased_at_ms) {
+      purchasedAt = new Date(event.purchased_at_ms).toISOString();
+    }
 
     switch (event.type) {
       case "INITIAL_PURCHASE":
       case "RENEWAL":
       case "UNCANCELLATION":
-        planType = "pro";
-        isActive = true;
-        expiresAt = event.expiration_at_ms
-          ? new Date(event.expiration_at_ms).toISOString()
-          : null;
-        console.log(`✅ Activating Pro subscription until ${expiresAt}`);
+        // Use detected plan type (basic or pro)
+        status = isTrial ? "trialing" : "active";
+        autoRenew = true;
+        if (isTrial) {
+          trialStart = purchasedAt;
+          trialEnd = expiresAt;
+        }
+        console.log(`✅ Activating ${planType} subscription until ${expiresAt} (trial: ${isTrial})`);
         break;
 
       case "CANCELLATION":
         // User cancelled but subscription is still active until expiration
-        planType = "pro";
-        isActive = true; // Still active until expiration
-        expiresAt = event.expiration_at_ms
-          ? new Date(event.expiration_at_ms).toISOString()
-          : null;
+        status = "canceled";
+        autoRenew = false;
         console.log(`⚠️ Subscription cancelled, expires at ${expiresAt}`);
         break;
 
       case "EXPIRATION":
       case "BILLING_ISSUE":
         planType = "free";
-        isActive = false;
+        status = "expired";
+        autoRenew = false;
         expiresAt = null;
         console.log(`❌ Subscription expired or billing issue`);
         break;
 
       case "PRODUCT_CHANGE":
-        planType = "pro";
-        isActive = true;
-        expiresAt = event.expiration_at_ms
-          ? new Date(event.expiration_at_ms).toISOString()
-          : null;
-        console.log(`🔄 Product changed to ${event.product_id}`);
+        status = isTrial ? "trialing" : "active";
+        autoRenew = true;
+        if (isTrial) {
+          trialStart = purchasedAt;
+          trialEnd = expiresAt;
+        }
+        console.log(`🔄 Product changed to ${event.product_id} (${planType})`);
         break;
 
       case "TEST":
@@ -150,6 +213,9 @@ serve(async (req) => {
         console.log(`ℹ️ Unhandled event type: ${event.type}`);
     }
 
+    // Get the correct plan_id UUID
+    const planId = PLAN_IDS[planType];
+
     // Update subscription_user table
     // First, check if record exists
     const { data: existingSubscription, error: fetchError } = await supabase
@@ -163,21 +229,32 @@ serve(async (req) => {
       console.error("Error fetching subscription:", fetchError);
     }
 
+    // Prepare subscription data with correct column names matching DB schema
+    const now = new Date().toISOString();
     const subscriptionData = {
       user_id: userId,
-      plan_type: planType,
-      is_active: isActive,
-      product_id: event.product_id,
-      original_purchase_date: event.purchased_at_ms
-        ? new Date(event.purchased_at_ms).toISOString()
-        : null,
-      expires_at: expiresAt,
-      is_trial: event.is_trial_period || false,
-      store: event.store,
-      environment: event.environment,
-      last_event_type: event.type,
-      updated_at: new Date().toISOString(),
+      plan_id: planId, // UUID reference to subscription_plans table
+      status: status, // 'active', 'trialing', 'canceled', 'expired'
+      billing_cycle: billingCycle,
+      current_period_start: purchasedAt,
+      current_period_end: expiresAt,
+      trial_start: trialStart,
+      trial_end: trialEnd,
+      expiration_date: expiresAt,
+      revenuecat_app_user_id: userId,
+      revenuecat_original_app_user_id: event.original_app_user_id, // ✅ Added
+      revenuecat_product_id: event.product_id,
+      revenuecat_entitlement_id: event.entitlement_ids?.[0] || null, // ✅ Added
+      revenuecat_store: event.store,
+      revenuecat_data: payload, // ✅ Added - Full webhook payload for debugging
+      original_purchase_date: purchasedAt, // ✅ Added
+      is_sandbox: isSandbox,
+      auto_renew_status: autoRenew,
+      payment_provider: event.store === "APP_STORE" ? "revenuecat_apple" : "revenuecat_google",
+      updated_at: now,
     };
+
+    console.log("📝 Subscription data:", JSON.stringify(subscriptionData, null, 2));
 
     let upsertError;
 
@@ -194,7 +271,7 @@ serve(async (req) => {
         .from("subscription_user")
         .insert({
           ...subscriptionData,
-          created_at: new Date().toISOString(),
+          created_at: now,
         });
       upsertError = error;
     }
@@ -204,10 +281,24 @@ serve(async (req) => {
       throw upsertError;
     }
 
-    console.log(`✅ Subscription record updated for user ${userId}`);
+    console.log(`✅ subscription_user record updated for user ${userId}`);
 
-    // The database trigger (trg_sync_subscription_to_companies) will automatically
-    // update all companies owned by this user with the new subscription status
+    // Update companies table with inherited_plan_id for this owner
+    const { error: companiesError } = await supabase
+      .from("companies")
+      .update({
+        inherited_plan_id: planId,
+        plan_updated_at: now,
+        updated_at: now,
+      })
+      .eq("owner_id", userId);
+
+    if (companiesError) {
+      console.error("Error updating companies:", companiesError);
+      // Don't throw - companies update is secondary
+    } else {
+      console.log(`✅ companies table updated for owner ${userId}`);
+    }
 
     return new Response(
       JSON.stringify({
@@ -216,8 +307,13 @@ serve(async (req) => {
         data: {
           userId,
           planType,
-          isActive,
+          planId,
+          status,
+          autoRenew,
           expiresAt,
+          isTrial,
+          trialStart,
+          trialEnd,
         },
       }),
       {

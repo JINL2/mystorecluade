@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/core/services/revenuecat_service.dart';
+import 'package:myfinance_improved/core/subscription/providers/subscription_state_notifier.dart';
 import 'package:myfinance_improved/features/my_page/presentation/providers/subscription_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
@@ -53,6 +55,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   DateTime? _expirationDate;
   bool _willRenew = false;
 
+  // Trial state
+  bool _isOnTrial = false;
+  int _trialDaysRemaining = 0;
+  DateTime? _trialEndDate;
+
   @override
   void initState() {
     super.initState();
@@ -97,16 +104,19 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   Future<void> _loadPackages() async {
+    debugPrint('📦 [SubscriptionPage] _loadPackages() called');
     try {
       setState(() => _isLoadingPackages = true);
       final packages = await RevenueCatService().getAvailablePackages();
+      debugPrint('📦 [SubscriptionPage] Loaded ${packages.length} packages');
       if (mounted) {
         setState(() {
           _packages = packages;
           _isLoadingPackages = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('📦 [SubscriptionPage] ❌ _loadPackages FAILED: $e');
       if (mounted) {
         setState(() => _isLoadingPackages = false);
       }
@@ -125,10 +135,13 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Future<void> _loadSubscriptionStatus() async {
+    debugPrint('📊 [SubscriptionPage] _loadSubscriptionStatus() called');
     try {
       final customerInfo = await RevenueCatService().getCustomerInfo();
+      debugPrint('📊 [SubscriptionPage] CustomerInfo received: ${customerInfo != null}');
 
       if (customerInfo != null && mounted) {
+        debugPrint('📊 [SubscriptionPage] Active entitlements: ${customerInfo.entitlements.active.keys.toList()}');
         final proEntitlement = _findEntitlementByMatch(customerInfo, 'pro');
         final basicEntitlement = _findEntitlementByMatch(customerInfo, 'basic');
 
@@ -136,6 +149,9 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         final hasBasic = basicEntitlement != null;
         final hasAnySubscription = hasPro || hasBasic;
         final activeEntitlement = proEntitlement ?? basicEntitlement;
+
+        debugPrint('📊 [SubscriptionPage] hasPro: $hasPro, hasBasic: $hasBasic');
+        debugPrint('📊 [SubscriptionPage] hasAnySubscription: $hasAnySubscription');
 
         setState(() {
           _hasActiveSubscription = hasAnySubscription;
@@ -149,6 +165,25 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
                 : null;
             _willRenew = activeEntitlement.willRenew;
 
+            // Extract trial information
+            _isOnTrial = activeEntitlement.periodType == PeriodType.trial;
+            if (_isOnTrial && _expirationDate != null) {
+              _trialEndDate = _expirationDate;
+              final now = DateTime.now();
+              final difference = _trialEndDate!.difference(now).inDays;
+              _trialDaysRemaining = difference > 0 ? difference : 0;
+            } else {
+              _trialEndDate = null;
+              _trialDaysRemaining = 0;
+            }
+
+            debugPrint('📊 [SubscriptionPage] Active subscription details:');
+            debugPrint('   - productId: $_activeProductId');
+            debugPrint('   - expirationDate: $_expirationDate');
+            debugPrint('   - willRenew: $_willRenew');
+            debugPrint('   - isOnTrial: $_isOnTrial');
+            debugPrint('   - trialDaysRemaining: $_trialDaysRemaining');
+
             if (_activeProductId?.contains('annual') == true ||
                 _activeProductId?.contains('yearly') == true) {
               _isAnnual = true;
@@ -158,8 +193,10 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
             _selectedPlanIndex = hasPro ? 1 : 0;
           }
         });
+        debugPrint('📊 [SubscriptionPage] State updated: isProPlan=$_isProPlan, isBasicPlan=$_isBasicPlan');
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('📊 [SubscriptionPage] ❌ _loadSubscriptionStatus FAILED: $e');
       // Subscription status load failure is not critical
     }
   }
@@ -171,10 +208,20 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Future<void> _refreshSubscriptionState() async {
+    debugPrint('🔄 [SubscriptionPage] _refreshSubscriptionState() called');
     await _loadSubscriptionStatus();
-    ref.invalidate(proStatusProvider);
-    ref.invalidate(subscriptionNotifierProvider);
+
+    // Invalidate providers to refresh UI
+    ref.invalidate(subscriptionDetailsProvider);
     ref.invalidate(customerInfoProvider);
+
+    // Force refresh SubscriptionStateNotifier (SSOT)
+    final userId = ref.read(currentUserIdProvider);
+    if (userId != null) {
+      await ref.read(subscriptionStateNotifierProvider.notifier).forceRefresh(userId);
+    }
+
+    debugPrint('🔄 [SubscriptionPage] ✅ State refresh complete');
   }
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -186,10 +233,16 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     final periodName = _isAnnual ? 'yearly' : 'monthly';
     final targetIdentifier = '$planName.$periodName';
 
+    debugPrint('🛒 [SubscriptionPage] _handleSubscribe() called');
+    debugPrint('🛒 [SubscriptionPage] Looking for: $targetIdentifier');
+    debugPrint('🛒 [SubscriptionPage] Available packages: ${_packages.length}');
+
     Package? targetPackage;
     for (final package in _packages) {
+      debugPrint('🛒 [SubscriptionPage] Checking package: ${package.identifier} (${package.storeProduct.identifier})');
       if (package.identifier == targetIdentifier) {
         targetPackage = package;
+        debugPrint('🛒 [SubscriptionPage] ✅ Found exact match: ${package.identifier}');
         break;
       }
       final productId = package.storeProduct.identifier.toLowerCase();
@@ -197,17 +250,20 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
           ((_isAnnual && (productId.contains('annual') || productId.contains('yearly'))) ||
            (!_isAnnual && productId.contains('monthly')))) {
         targetPackage = package;
+        debugPrint('🛒 [SubscriptionPage] ✅ Found partial match: ${package.identifier}');
         break;
       }
     }
 
     if (targetPackage == null) {
+      debugPrint('🛒 [SubscriptionPage] ❌ No matching package found!');
       SubscriptionDialogs.showErrorDialog(
         context,
         message: 'No subscription package found. Please try again later.',
       );
       return;
     }
+    debugPrint('🛒 [SubscriptionPage] Target package: ${targetPackage.identifier}');
 
     // Check if already subscribed
     try {
@@ -235,14 +291,17 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     }
 
     setState(() => _isPurchasing = true);
+    debugPrint('🛒 [SubscriptionPage] Starting purchase...');
 
     try {
       final success = await RevenueCatService().purchasePackage(targetPackage);
+      debugPrint('🛒 [SubscriptionPage] Purchase result: $success');
 
       if (mounted) {
         setState(() => _isPurchasing = false);
 
         if (success) {
+          debugPrint('🛒 [SubscriptionPage] ✅ Purchase SUCCESS! Refreshing state...');
           await _refreshSubscriptionState();
           SubscriptionDialogs.showSuccessDialog(
             context,
@@ -252,6 +311,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         }
       }
     } on PurchasesErrorCode catch (e) {
+      debugPrint('🛒 [SubscriptionPage] ❌ Purchase error: $e');
       if (mounted) {
         setState(() => _isPurchasing = false);
         if (e != PurchasesErrorCode.purchaseCancelledError) {
@@ -259,6 +319,7 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
         }
       }
     } catch (e) {
+      debugPrint('🛒 [SubscriptionPage] ❌ Unexpected error: $e');
       if (mounted) {
         setState(() => _isPurchasing = false);
         SubscriptionDialogs.showErrorDialog(context, message: 'An unexpected error occurred. Please try again.');
@@ -267,15 +328,18 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Future<void> _handleRestorePurchases() async {
+    debugPrint('🔄 [SubscriptionPage] _handleRestorePurchases() called');
     setState(() => _isPurchasing = true);
 
     try {
       final success = await RevenueCatService().restorePurchases();
+      debugPrint('🔄 [SubscriptionPage] Restore result: $success');
 
       if (mounted) {
         setState(() => _isPurchasing = false);
 
         if (success) {
+          debugPrint('🔄 [SubscriptionPage] ✅ Restore SUCCESS! Refreshing state...');
           await _refreshSubscriptionState();
           SubscriptionDialogs.showRestoreSuccessDialog(
             context,
@@ -283,10 +347,12 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
             currentPlanName: _currentPlanName,
           );
         } else {
+          debugPrint('🔄 [SubscriptionPage] No purchases to restore');
           SubscriptionDialogs.showNoPurchasesDialog(context);
         }
       }
     } catch (e) {
+      debugPrint('🔄 [SubscriptionPage] ❌ Restore FAILED: $e');
       if (mounted) {
         setState(() => _isPurchasing = false);
         SubscriptionDialogs.showErrorDialog(context, message: 'Failed to restore purchases. Please try again.');
@@ -334,11 +400,15 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
   }
 
   Future<void> _handleSyncToDatabase() async {
+    debugPrint('🔄 [SubscriptionPage] _handleSyncToDatabase() called');
     setState(() => _isPurchasing = true);
 
     try {
+      debugPrint('🔄 [SubscriptionPage] Invalidating customer info cache...');
       await Purchases.invalidateCustomerInfoCache();
       final customerInfo = await Purchases.getCustomerInfo();
+      debugPrint('🔄 [SubscriptionPage] Customer info received');
+      debugPrint('🔄 [SubscriptionPage] Active entitlements: ${customerInfo.entitlements.active.keys.toList()}');
       final hasActiveEntitlements = customerInfo.entitlements.active.isNotEmpty;
       final userId = ref.read(currentUserIdProvider)!;
 
@@ -454,6 +524,44 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
     return DateFormat('MMM d').format(date);
   }
 
+  /// Handle Offer Code redemption (iOS only)
+  ///
+  /// Presents Apple's native Offer Code redemption sheet.
+  /// After successful redemption, refreshes subscription state.
+  Future<void> _handleRedeemOfferCode() async {
+    debugPrint('🎁 [SubscriptionPage] _handleRedeemOfferCode() called');
+    setState(() => _isPurchasing = true);
+
+    try {
+      await RevenueCatService().presentCodeRedemptionSheet();
+      debugPrint('🎁 [SubscriptionPage] ✅ Code redemption sheet presented');
+
+      // Refresh subscription state after potential code redemption
+      await _refreshSubscriptionState();
+
+      if (mounted) {
+        TossToast.success(context, 'Offer code applied successfully!');
+      }
+    } catch (e) {
+      debugPrint('🎁 [SubscriptionPage] ❌ Offer code redemption failed: $e');
+      if (mounted) {
+        // Don't show error for user cancellation
+        if (!e.toString().contains('cancel')) {
+          SubscriptionDialogs.showErrorDialog(
+            context,
+            message: e.toString().contains('iOS')
+                ? 'Offer codes are only available on iOS devices.'
+                : 'Failed to redeem offer code. Please try again.',
+          );
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPurchasing = false);
+      }
+    }
+  }
+
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   // 🎨 Build
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -522,6 +630,11 @@ class _SubscriptionPageState extends ConsumerState<SubscriptionPage>
                           onRestorePurchases: _handleRestorePurchases,
                           onManageSubscription: _handleCancelSubscription,
                           onSyncToDatabase: _handleSyncToDatabase,
+                          onRedeemOfferCode: _handleRedeemOfferCode,
+                          // Trial info
+                          isOnTrial: _isOnTrial,
+                          trialDaysRemaining: _trialDaysRemaining,
+                          trialEndDate: _trialEndDate,
                         ),
 
                         const SizedBox(height: TossSpacing.space4),

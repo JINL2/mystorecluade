@@ -6,7 +6,7 @@ part of 'my_page_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$myPageNotifierHash() => r'b802c9539bba66203d4d794d1762d64342e19453';
+String _$myPageNotifierHash() => r'e5f0933084d3fe591f18b8d9d3af0a582116f26a';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// My Page Notifier - 상태 관리 + 비즈니스 로직 조율

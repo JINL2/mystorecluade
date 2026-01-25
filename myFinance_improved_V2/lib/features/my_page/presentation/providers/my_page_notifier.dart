@@ -26,19 +26,17 @@ class MyPageNotifier extends _$MyPageNotifier {
   /// 현재 사용자 ID 가져오기 (Auth Provider 통해)
   String? get _currentUserId => ref.read(currentUserIdProvider);
 
-  /// 사용자 프로필 및 비즈니스 대시보드 로드 (직접 Repository 호출)
+  /// 사용자 프로필 로드 (직접 Repository 호출)
+  /// Note: Role/Company/Store info는 AppState에서 가져옴 (RPC로 이미 로드됨)
   Future<void> loadUserData(String userId) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      // Flutter 표준: Repository 직접 호출 (Controller 없음)
       final userProfile = await _repository.getUserProfile(userId);
-      final businessDashboard = await _repository.getBusinessDashboard(userId);
 
       state = state.copyWith(
         isLoading: false,
         userProfile: userProfile,
-        businessDashboard: businessDashboard,
         errorMessage: null,
       );
     } catch (e) {

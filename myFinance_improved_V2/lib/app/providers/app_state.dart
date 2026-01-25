@@ -36,9 +36,17 @@ class AppState with _$AppState {
     // Subscription Context (for currently selected company)
     @Default({}) Map<String, dynamic> currentSubscription,
     @Default('free') String planType,  // 'free', 'basic', 'pro'
+    @Default(1) int maxCompanies,
     @Default(1) int maxStores,
     @Default(5) int maxEmployees,
     @Default(2) int aiDailyLimit,
+
+    // Current Usage Counts (for subscription limit checks)
+    @Default(0) int currentCompanyCount,
+    @Default(0) int currentStoreCount,
+    @Default(0) int currentEmployeeCount,
+    @Default(0) int totalStoreCount,      // 전체 가게 수 (모든 회사)
+    @Default(0) int totalEmployeeCount,   // 전체 직원 수 (모든 회사)
 
     // Menu & Features Context (from get_categories_with_features RPC)
     @Default([]) List<dynamic> categoryFeatures,
@@ -72,9 +80,15 @@ class AppState with _$AppState {
       storeName: (legacyState['storeName'] as String?) ?? '',
       currentSubscription: (legacyState['currentSubscription'] as Map<String, dynamic>?) ?? <String, dynamic>{},
       planType: (legacyState['planType'] as String?) ?? 'free',
+      maxCompanies: (legacyState['maxCompanies'] as int?) ?? 1,
       maxStores: (legacyState['maxStores'] as int?) ?? 1,
       maxEmployees: (legacyState['maxEmployees'] as int?) ?? 5,
       aiDailyLimit: (legacyState['aiDailyLimit'] as int?) ?? 2,
+      currentCompanyCount: (legacyState['currentCompanyCount'] as int?) ?? 0,
+      currentStoreCount: (legacyState['currentStoreCount'] as int?) ?? 0,
+      currentEmployeeCount: (legacyState['currentEmployeeCount'] as int?) ?? 0,
+      totalStoreCount: (legacyState['totalStoreCount'] as int?) ?? 0,
+      totalEmployeeCount: (legacyState['totalEmployeeCount'] as int?) ?? 0,
       categoryFeatures: (legacyState['categoryFeatures'] as List<dynamic>?) ?? <dynamic>[],
       permissions: Set<String>.from((legacyState['permissions'] as List<dynamic>?) ?? <String>[]),
       hasAdminPermission: (legacyState['hasAdminPermission'] as bool?) ?? false,
@@ -130,6 +144,9 @@ extension AppStateExtensions on AppState {
   /// Check if on paid plan (basic or pro)
   bool get isPaidPlan => planType != 'free';
 
+  /// Check if companies are unlimited (null in DB means unlimited for Pro)
+  bool get hasUnlimitedCompanies => maxCompanies == -1;
+
   /// Check if stores are unlimited (-1 means unlimited)
   bool get hasUnlimitedStores => maxStores == -1;
 
@@ -139,16 +156,34 @@ extension AppStateExtensions on AppState {
   /// Check if AI is unlimited (-1 means unlimited)
   bool get hasUnlimitedAI => aiDailyLimit == -1;
 
-  /// Check if can add more stores (based on current store count)
-  bool canAddStore(int currentStoreCount) {
+  /// Check if can add more companies
+  bool get canAddCompany {
+    if (hasUnlimitedCompanies) return true;
+    return currentCompanyCount < maxCompanies;
+  }
+
+  /// Check if can add more stores (uses cached currentStoreCount)
+  bool get canAddStore {
     if (hasUnlimitedStores) return true;
     return currentStoreCount < maxStores;
   }
 
-  /// Check if can add more employees
-  bool canAddEmployee(int currentEmployeeCount) {
+  /// Check if can add more employees (uses cached currentEmployeeCount)
+  bool get canAddEmployee {
     if (hasUnlimitedEmployees) return true;
     return currentEmployeeCount < maxEmployees;
+  }
+
+  /// Legacy: Check if can add more stores (with explicit count parameter)
+  bool canAddStoreWithCount(int storeCount) {
+    if (hasUnlimitedStores) return true;
+    return storeCount < maxStores;
+  }
+
+  /// Legacy: Check if can add more employees (with explicit count parameter)
+  bool canAddEmployeeWithCount(int employeeCount) {
+    if (hasUnlimitedEmployees) return true;
+    return employeeCount < maxEmployees;
   }
 
   /// Check if AI request is allowed today
@@ -168,4 +203,40 @@ extension AppStateExtensions on AppState {
         return 'Free';
     }
   }
+
+  // === Role-related convenience methods ===
+
+  /// Get current company's role name from AppState
+  ///
+  /// Returns the role name (e.g., "Owner", "Manager", "Cashier") for the
+  /// currently selected company. Falls back to 'Employee' if not found.
+  /// Data comes from get_user_companies_with_salary RPC loaded at app start.
+  String get currentCompanyRoleName {
+    if (companyChoosen.isEmpty) return 'Employee';
+
+    final companies = user['companies'] as List<dynamic>?;
+    if (companies == null || companies.isEmpty) return 'Employee';
+
+    try {
+      final currentCompany = companies.firstWhere(
+        (c) => (c as Map<String, dynamic>)['company_id'] == companyChoosen,
+      ) as Map<String, dynamic>;
+
+      final role = currentCompany['role'] as Map<String, dynamic>?;
+      if (role == null) return 'Employee';
+
+      return (role['role_name'] as String?) ?? 'Employee';
+    } catch (_) {
+      return 'Employee';
+    }
+  }
+
+  /// Check if user is owner of current selected company
+  ///
+  /// Returns true if user's role in the currently selected company is 'Owner'.
+  /// Used to show/hide owner-only features like subscription management.
+  bool get isCurrentCompanyOwner {
+    return currentCompanyRoleName.toLowerCase() == 'owner';
+  }
+
 }

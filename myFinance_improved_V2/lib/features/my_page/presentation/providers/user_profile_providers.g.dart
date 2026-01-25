@@ -97,27 +97,6 @@ final currentUserProfileProvider = AutoDisposeProvider<dynamic>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentUserProfileRef = AutoDisposeProviderRef<dynamic>;
-String _$businessDashboardHash() => r'3166324e6c8d843c5d8303aff4a9dc277bf0a7d8';
-
-/// Business Dashboard Provider - MyPageState에서 businessDashboard 추출
-///
-/// 기존 FutureProvider와 호환성을 위한 computed provider
-///
-/// Copied from [businessDashboard].
-@ProviderFor(businessDashboard)
-final businessDashboardProvider = AutoDisposeProvider<dynamic>.internal(
-  businessDashboard,
-  name: r'businessDashboardProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$businessDashboardHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef BusinessDashboardRef = AutoDisposeProviderRef<dynamic>;
 String _$refreshUserDataHash() => r'20815889039f2cdbd75e07467aa5239803936770';
 
 /// Refresh User Data Provider - 사용자 데이터 새로고침 함수

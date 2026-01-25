@@ -27,7 +27,7 @@ android {
 
     defaultConfig {
         applicationId = "com.storebase.myfinance_improved"
-        minSdk = 23  // Firebase Analytics 및 flutter_local_notifications 요구사항
+        minSdk = flutter.minSdkVersion  // Firebase Analytics 및 flutter_local_notifications 요구사항
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

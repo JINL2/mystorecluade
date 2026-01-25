@@ -28,7 +28,7 @@ final inventoryMetadataNotifierProvider = AutoDisposeNotifierProvider<
 typedef _$InventoryMetadataNotifier
     = AutoDisposeNotifier<InventoryMetadataState>;
 String _$inventoryPageNotifierHash() =>
-    r'cdff1fc510460c7d237788ceaead4bbe4d823a03';
+    r'4a19ea5709884af0477aa63624702b1a8fb647d0';
 
 /// Inventory Page Notifier
 /// Manages product list, filters, sorting, and pagination

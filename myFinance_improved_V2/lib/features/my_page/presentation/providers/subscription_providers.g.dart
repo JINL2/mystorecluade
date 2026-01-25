@@ -27,54 +27,7 @@ final subscriptionDataSourceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SubscriptionDataSourceRef = ProviderRef<SubscriptionDataSource>;
-String _$isProHash() => r'ebd40dd4037a0caaf841b9460f48c9fd6e6d76e1';
-
-/// Simple provider to check if user is Pro
-///
-/// Use this provider to conditionally show Pro features:
-/// ```dart
-/// final isPro = ref.watch(isProProvider);
-/// if (isPro) {
-///   // Show Pro feature
-/// }
-/// ```
-///
-/// Copied from [isPro].
-@ProviderFor(isPro)
-final isProProvider = AutoDisposeProvider<bool>.internal(
-  isPro,
-  name: r'isProProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$isProHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef IsProRef = AutoDisposeProviderRef<bool>;
-String _$proStatusHash() => r'96ed5a3ee426b94dc5d137dbcf4142c8c9ad1153';
-
-/// FutureProvider to fetch Pro status from RevenueCat
-///
-/// Automatically fetches and caches the Pro status.
-/// Use ref.invalidate(proStatusProvider) to refresh.
-///
-/// Copied from [proStatus].
-@ProviderFor(proStatus)
-final proStatusProvider = AutoDisposeFutureProvider<bool>.internal(
-  proStatus,
-  name: r'proStatusProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$proStatusHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ProStatusRef = AutoDisposeFutureProviderRef<bool>;
-String _$availablePackagesHash() => r'21e3c36e4645d9e995b2d0218e80f1d1cb544b2b';
+String _$availablePackagesHash() => r'307c8b65005afc9164daa81091105073fdf38b8f';
 
 /// Provider for available packages (subscription options)
 ///
@@ -94,7 +47,7 @@ final availablePackagesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AvailablePackagesRef = AutoDisposeFutureProviderRef<List<Package>>;
-String _$customerInfoHash() => r'bf006722b5f0eb25aeb8bd6b34e3699502a846c0';
+String _$customerInfoHash() => r'be6c42aa703b5e60e734c3e9f07674078744875a';
 
 /// Provider for customer info
 ///
@@ -112,7 +65,7 @@ final customerInfoProvider = AutoDisposeFutureProvider<CustomerInfo?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CustomerInfoRef = AutoDisposeFutureProviderRef<CustomerInfo?>;
-String _$subscriptionPlansHash() => r'c52462e1e012ead91145279de152542fee07348a';
+String _$subscriptionPlansHash() => r'6de5da51b460fea774bb915435b5b1d92e249e4e';
 
 /// Provider for subscription plans from database
 ///
@@ -342,24 +295,51 @@ final proPlanProvider = AutoDisposeFutureProvider<SubscriptionPlan?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef ProPlanRef = AutoDisposeFutureProviderRef<SubscriptionPlan?>;
-String _$subscriptionNotifierHash() =>
-    r'aada39d1c6d9a59164350dedca19b60dfd7209a6';
+String _$subscriptionDetailsHash() =>
+    r'83951fd31e82a4a4d927df69d8bc1fb8a8c8f95e';
 
-/// Subscription notifier for managing subscription state
+/// Provider for subscription details including trial information
 ///
-/// Copied from [SubscriptionNotifier].
-@ProviderFor(SubscriptionNotifier)
-final subscriptionNotifierProvider = AutoDisposeNotifierProvider<
-    SubscriptionNotifier, SubscriptionState>.internal(
-  SubscriptionNotifier.new,
-  name: r'subscriptionNotifierProvider',
+/// Returns comprehensive subscription details combining:
+/// 1. **Supabase DB** (SubscriptionStateNotifier) - Stripe 웹 결제 반영
+/// 2. **RevenueCat SDK** - iOS/Android 앱 내 결제 반영
+///
+/// ## 데이터 소스 우선순위
+/// - DB에 유료 플랜이 있으면 DB 데이터 우선 (Stripe 결제)
+/// - RevenueCat에만 유료 플랜이 있으면 RevenueCat 사용 (앱 내 결제)
+/// - 둘 다 없으면 free
+///
+/// 2026 Update: Now watches subscriptionStateNotifierProvider to auto-refresh
+/// when Supabase Realtime detects subscription changes (e.g., from web/Stripe).
+///
+/// keepAlive: true - Provider stays alive so Realtime updates work even when
+/// my_page is not on screen. Without this, autoDispose would disconnect
+/// the watch link when user navigates away.
+///
+/// ## Data Source Priority (DB is SSOT)
+/// DB (Supabase) is the Single Source of Truth because:
+/// 1. RevenueCat webhook updates DB on purchase/cancel
+/// 2. Stripe webhook updates DB on web purchase/cancel
+/// 3. DB has the most accurate, up-to-date state
+///
+/// RevenueCat SDK cache can be stale (shows old Pro status after cancellation),
+/// so we ALWAYS trust DB over RevenueCat SDK.
+///
+/// Copied from [subscriptionDetails].
+@ProviderFor(subscriptionDetails)
+final subscriptionDetailsProvider =
+    FutureProvider<SubscriptionDetails>.internal(
+  subscriptionDetails,
+  name: r'subscriptionDetailsProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$subscriptionNotifierHash,
+      : _$subscriptionDetailsHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$SubscriptionNotifier = AutoDisposeNotifier<SubscriptionState>;
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef SubscriptionDetailsRef = FutureProviderRef<SubscriptionDetails>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

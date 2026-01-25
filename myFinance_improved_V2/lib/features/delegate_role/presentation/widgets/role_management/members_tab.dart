@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
-import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
+import '../../../../../core/subscription/index.dart';
 import '../../../di/delegate_role_providers.dart';
 import '../../providers/role_providers.dart';
 import 'add_member_sheet.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Members Tab for role management - displays and manages role members
 class MembersTab extends ConsumerStatefulWidget {
@@ -32,10 +32,13 @@ class MembersTab extends ConsumerStatefulWidget {
 class _MembersTabState extends ConsumerState<MembersTab> {
   @override
   Widget build(BuildContext context) {
+    // Watch cached employee limit for UI feedback
+    final employeeLimit = ref.watch(employeeLimitFromCacheProvider);
+
     return Column(
       children: [
         // Header section with title, description and Add Member button
-        _buildHeaderSection(),
+        _buildHeaderSection(employeeLimit),
 
         // Members content
         Expanded(
@@ -93,7 +96,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildHeaderSection(SubscriptionLimitCheck employeeLimit) {
     return Container(
       padding: const EdgeInsets.fromLTRB(
         TossSpacing.space5,
@@ -118,27 +121,94 @@ class _MembersTabState extends ConsumerState<MembersTab> {
                       ),
                     ),
                     const SizedBox(height: TossSpacing.space1),
-                    Text(
-                      'Users assigned to this role',
-                      style: TossTextStyles.caption.copyWith(
-                        color: TossColors.gray600,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          'Users assigned to this role',
+                          style: TossTextStyles.caption.copyWith(
+                            color: TossColors.gray600,
+                          ),
+                        ),
+                        // Show limit info if not unlimited
+                        if (!employeeLimit.isUnlimited) ...[
+                          const SizedBox(width: TossSpacing.space2),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: TossSpacing.space2,
+                              vertical: TossSpacing.space1 / 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: employeeLimit.canAdd
+                                  ? TossColors.gray100
+                                  : TossColors.warning.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(TossBorderRadius.xs),
+                            ),
+                            child: Text(
+                              employeeLimit.limitDisplayText,
+                              style: TossTextStyles.small.copyWith(
+                                color: employeeLimit.canAdd
+                                    ? TossColors.gray600
+                                    : TossColors.warning,
+                                fontWeight: TossFontWeight.semibold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ),
               if (widget.canEdit)
                 IconButton(
-                  icon: const Icon(Icons.add,
-                      size: TossSpacing.iconMD2, color: TossColors.primary),
-                  onPressed: () => _showAddMemberModal(),
-                  tooltip: 'Add Member',
+                  icon: Icon(
+                    employeeLimit.canAdd ? Icons.add : Icons.lock_outline,
+                    size: TossSpacing.iconMD2,
+                    color: employeeLimit.canAdd ? TossColors.primary : TossColors.warning,
+                  ),
+                  onPressed: () => _handleAddMember(employeeLimit),
+                  tooltip: employeeLimit.canAdd ? 'Add Member' : 'Employee limit reached',
                 ),
             ],
           ),
         ],
       ),
     );
+  }
+
+  /// Handle add member with subscription limit check
+  Future<void> _handleAddMember(SubscriptionLimitCheck cachedLimit) async {
+    // If cache says can't add, show upgrade dialog immediately
+    if (!cachedLimit.canAdd) {
+      await SubscriptionUpgradeDialog.show(
+        context,
+        limitCheck: cachedLimit,
+        resourceType: 'employee',
+      );
+      return;
+    }
+
+    // Fresh check before proceeding
+    try {
+      final freshLimit = await ref.read(employeeLimitFreshProvider().future);
+
+      if (!context.mounted) return;
+
+      if (freshLimit.canAdd) {
+        _showAddMemberModal();
+      } else {
+        // Show upgrade dialog with fresh data
+        await SubscriptionUpgradeDialog.show(
+          context,
+          limitCheck: freshLimit,
+          resourceType: 'employee',
+        );
+      }
+    } catch (e) {
+      // On error, trust cache and proceed
+      if (!context.mounted) return;
+      _showAddMemberModal();
+    }
   }
 
   Widget _buildEmptyState() {

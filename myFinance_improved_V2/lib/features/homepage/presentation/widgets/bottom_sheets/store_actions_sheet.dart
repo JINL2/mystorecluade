@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/subscription/index.dart';
 import '../../../../../shared/themes/toss_border_radius.dart';
 import '../../../../../shared/themes/toss_colors.dart';
 import '../../../../../shared/themes/toss_spacing.dart';
@@ -20,6 +21,9 @@ class StoreActionsSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Watch cached store limit for instant UI response
+    final storeLimit = ref.watch(storeLimitFromCacheProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -84,20 +88,21 @@ class StoreActionsSheet extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(TossSpacing.paddingXL, 0, TossSpacing.paddingXL, TossSpacing.paddingXL),
             child: Column(
               children: [
-                // Create Store
-                _buildOptionCard(
-                  context,
+                // Create Store - with limit check
+                LimitAwareOptionCard(
                   icon: Icons.store,
                   title: 'Create Store',
-                  subtitle: 'Add a new store to $companyName',
-                  onTap: onCreateStore,
+                  subtitle: storeLimit.canAdd
+                      ? 'Add a new store to $companyName'
+                      : 'Limit reached (${storeLimit.limitDisplayText})',
+                  canTap: storeLimit.canAdd,
+                  onTap: () => _handleCreateStore(context, ref, storeLimit),
                 ),
 
                 const SizedBox(height: TossSpacing.space4),
 
-                // Join Store by Code
-                _buildOptionCard(
-                  context,
+                // Join Store by Code - no limit check needed
+                LimitAwareOptionCard(
                   icon: Icons.add_location,
                   title: 'Join by Code',
                   subtitle: 'Enter store invite code to join',
@@ -112,74 +117,46 @@ class StoreActionsSheet extends ConsumerWidget {
     );
   }
 
-  Widget _buildOptionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return Material(
-      color: TossColors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-        child: Container(
-          padding: const EdgeInsets.all(TossSpacing.paddingMD),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-            border: Border.all(
-              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: TossSpacing.inputHeightLG,
-                height: TossSpacing.inputHeightLG,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(TossBorderRadius.lg),
-                ),
-                child: Icon(
-                  icon,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: TossSpacing.iconMD,
-                ),
-              ),
-              const SizedBox(width: TossSpacing.space4),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: TossTextStyles.body.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: TossSpacing.space1/2),
-                    Text(
-                      subtitle,
-                      style: TossTextStyles.caption.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.arrow_forward_ios,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                size: TossSpacing.iconXS,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  /// Handle create store with fresh limit check
+  Future<void> _handleCreateStore(
+    BuildContext context,
+    WidgetRef ref,
+    SubscriptionLimitCheck cachedLimit,
+  ) async {
+    // If cache says can't add, show upgrade dialog immediately
+    if (!cachedLimit.canAdd) {
+      await SubscriptionUpgradeDialog.show(
+        context,
+        limitCheck: cachedLimit,
+        resourceType: 'store',
+      );
+      return;
+    }
+
+    // Fresh check before proceeding
+    try {
+      final freshLimit = await ref.read(storeLimitFreshProvider().future);
+
+      if (!context.mounted) return;
+
+      if (freshLimit.canAdd) {
+        // Close bottom sheet and proceed
+        Navigator.of(context).pop();
+        onCreateStore();
+      } else {
+        // Show upgrade dialog with fresh data
+        await SubscriptionUpgradeDialog.show(
+          context,
+          limitCheck: freshLimit,
+          resourceType: 'store',
+        );
+      }
+    } catch (e) {
+      // On error, trust cache and proceed
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+      onCreateStore();
+    }
   }
 
   /// Show the store actions sheet

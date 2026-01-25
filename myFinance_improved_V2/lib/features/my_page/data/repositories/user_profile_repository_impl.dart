@@ -1,11 +1,9 @@
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 
-import '../../domain/entities/business_dashboard.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../datasources/profile_image_datasource.dart';
 import '../datasources/user_profile_datasource.dart';
-import '../models/business_dashboard_model.dart';
 import '../models/user_profile_model.dart';
 
 class UserProfileRepositoryImpl implements UserProfileRepository {
@@ -28,27 +26,6 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       return model.toEntity();
     } catch (e) {
       throw Exception('Failed to get user profile: $e');
-    }
-  }
-
-  @override
-  Future<BusinessDashboard?> getBusinessDashboard(String userId) async {
-    try {
-      final data = await _userProfileDataSource.getBusinessDashboard(userId);
-      if (data == null) return null;
-
-      final model = BusinessDashboardModel.fromJson(data);
-      return model.toEntity();
-    } catch (e) {
-      // Return default on error
-      return const BusinessDashboard(
-        companyName: '',
-        storeName: '',
-        userRole: 'Employee',
-        totalEmployees: 0,
-        monthlyRevenue: 0.0,
-        activeShifts: 0,
-      );
     }
   }
 

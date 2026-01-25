@@ -3,15 +3,19 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import 'subscription_cache_service.dart';
+
 /// HiveCacheService - Persistent local cache using Hive
 ///
 /// Provides fast local storage for homepage data with TTL support.
 /// Used for SWR (Stale-While-Revalidate) pattern to enable instant app launch.
 ///
 /// Boxes:
-/// - user_companies: User + companies + subscriptions (12h TTL)
+/// - user_companies: User + companies (7d TTL) - NO subscription data
 /// - categories: Feature categories (infinite TTL - static data)
-/// - quick_access: User's quick access features per company (24h TTL)
+/// - quick_access: User's quick access features per company (7d TTL)
+///
+/// Note: Subscription data is handled by SubscriptionCacheService (1hr TTL)
 class HiveCacheService {
   HiveCacheService._();
   static final HiveCacheService _instance = HiveCacheService._();
@@ -42,6 +46,9 @@ class HiveCacheService {
       await Hive.openBox<String>(_userCompaniesBox);
       await Hive.openBox<String>(_categoriesBox);
       await Hive.openBox<String>(_quickAccessBox);
+
+      // Also initialize SubscriptionCacheService (separate 1hr TTL cache)
+      await SubscriptionCacheService.instance.initialize();
 
       _isInitialized = true;
       debugPrint('HiveCacheService initialized successfully');
@@ -264,6 +271,10 @@ class HiveCacheService {
       await Hive.box<String>(_userCompaniesBox).clear();
       await Hive.box<String>(_categoriesBox).clear();
       await Hive.box<String>(_quickAccessBox).clear();
+
+      // Also clear subscription cache
+      await SubscriptionCacheService.instance.clearAll();
+
       if (kDebugMode) {
         debugPrint('✅ [SWR] All Hive caches cleared (logout)');
       }

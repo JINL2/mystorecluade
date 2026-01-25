@@ -25,6 +25,8 @@ mixin _$UserCompaniesModel {
   String? get userLastName => throw _privateConstructorUsedError;
   String? get profileImage => throw _privateConstructorUsedError;
   int? get companyCount => throw _privateConstructorUsedError;
+  int get totalStoreCount => throw _privateConstructorUsedError;
+  int get totalEmployeeCount => throw _privateConstructorUsedError;
   List<CompanyModel> get companies => throw _privateConstructorUsedError;
 
   /// Serializes this UserCompaniesModel to a JSON map.
@@ -49,6 +51,8 @@ abstract class $UserCompaniesModelCopyWith<$Res> {
       String? userLastName,
       String? profileImage,
       int? companyCount,
+      int totalStoreCount,
+      int totalEmployeeCount,
       List<CompanyModel> companies});
 }
 
@@ -72,6 +76,8 @@ class _$UserCompaniesModelCopyWithImpl<$Res, $Val extends UserCompaniesModel>
     Object? userLastName = freezed,
     Object? profileImage = freezed,
     Object? companyCount = freezed,
+    Object? totalStoreCount = null,
+    Object? totalEmployeeCount = null,
     Object? companies = null,
   }) {
     return _then(_value.copyWith(
@@ -95,6 +101,14 @@ class _$UserCompaniesModelCopyWithImpl<$Res, $Val extends UserCompaniesModel>
           ? _value.companyCount
           : companyCount // ignore: cast_nullable_to_non_nullable
               as int?,
+      totalStoreCount: null == totalStoreCount
+          ? _value.totalStoreCount
+          : totalStoreCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalEmployeeCount: null == totalEmployeeCount
+          ? _value.totalEmployeeCount
+          : totalEmployeeCount // ignore: cast_nullable_to_non_nullable
+              as int,
       companies: null == companies
           ? _value.companies
           : companies // ignore: cast_nullable_to_non_nullable
@@ -117,6 +131,8 @@ abstract class _$$UserCompaniesModelImplCopyWith<$Res>
       String? userLastName,
       String? profileImage,
       int? companyCount,
+      int totalStoreCount,
+      int totalEmployeeCount,
       List<CompanyModel> companies});
 }
 
@@ -138,6 +154,8 @@ class __$$UserCompaniesModelImplCopyWithImpl<$Res>
     Object? userLastName = freezed,
     Object? profileImage = freezed,
     Object? companyCount = freezed,
+    Object? totalStoreCount = null,
+    Object? totalEmployeeCount = null,
     Object? companies = null,
   }) {
     return _then(_$UserCompaniesModelImpl(
@@ -161,6 +179,14 @@ class __$$UserCompaniesModelImplCopyWithImpl<$Res>
           ? _value.companyCount
           : companyCount // ignore: cast_nullable_to_non_nullable
               as int?,
+      totalStoreCount: null == totalStoreCount
+          ? _value.totalStoreCount
+          : totalStoreCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      totalEmployeeCount: null == totalEmployeeCount
+          ? _value.totalEmployeeCount
+          : totalEmployeeCount // ignore: cast_nullable_to_non_nullable
+              as int,
       companies: null == companies
           ? _value._companies
           : companies // ignore: cast_nullable_to_non_nullable
@@ -179,6 +205,8 @@ class _$UserCompaniesModelImpl extends _UserCompaniesModel {
       this.userLastName,
       this.profileImage,
       this.companyCount,
+      this.totalStoreCount = 0,
+      this.totalEmployeeCount = 0,
       required final List<CompanyModel> companies})
       : _companies = companies,
         super._();
@@ -196,6 +224,12 @@ class _$UserCompaniesModelImpl extends _UserCompaniesModel {
   final String? profileImage;
   @override
   final int? companyCount;
+  @override
+  @JsonKey()
+  final int totalStoreCount;
+  @override
+  @JsonKey()
+  final int totalEmployeeCount;
   final List<CompanyModel> _companies;
   @override
   List<CompanyModel> get companies {
@@ -206,7 +240,7 @@ class _$UserCompaniesModelImpl extends _UserCompaniesModel {
 
   @override
   String toString() {
-    return 'UserCompaniesModel(userId: $userId, userFirstName: $userFirstName, userLastName: $userLastName, profileImage: $profileImage, companyCount: $companyCount, companies: $companies)';
+    return 'UserCompaniesModel(userId: $userId, userFirstName: $userFirstName, userLastName: $userLastName, profileImage: $profileImage, companyCount: $companyCount, totalStoreCount: $totalStoreCount, totalEmployeeCount: $totalEmployeeCount, companies: $companies)';
   }
 
   @override
@@ -223,6 +257,10 @@ class _$UserCompaniesModelImpl extends _UserCompaniesModel {
                 other.profileImage == profileImage) &&
             (identical(other.companyCount, companyCount) ||
                 other.companyCount == companyCount) &&
+            (identical(other.totalStoreCount, totalStoreCount) ||
+                other.totalStoreCount == totalStoreCount) &&
+            (identical(other.totalEmployeeCount, totalEmployeeCount) ||
+                other.totalEmployeeCount == totalEmployeeCount) &&
             const DeepCollectionEquality()
                 .equals(other._companies, _companies));
   }
@@ -236,6 +274,8 @@ class _$UserCompaniesModelImpl extends _UserCompaniesModel {
       userLastName,
       profileImage,
       companyCount,
+      totalStoreCount,
+      totalEmployeeCount,
       const DeepCollectionEquality().hash(_companies));
 
   /// Create a copy of UserCompaniesModel
@@ -262,6 +302,8 @@ abstract class _UserCompaniesModel extends UserCompaniesModel {
       final String? userLastName,
       final String? profileImage,
       final int? companyCount,
+      final int totalStoreCount,
+      final int totalEmployeeCount,
       required final List<CompanyModel> companies}) = _$UserCompaniesModelImpl;
   const _UserCompaniesModel._() : super._();
 
@@ -278,6 +320,10 @@ abstract class _UserCompaniesModel extends UserCompaniesModel {
   String? get profileImage;
   @override
   int? get companyCount;
+  @override
+  int get totalStoreCount;
+  @override
+  int get totalEmployeeCount;
   @override
   List<CompanyModel> get companies;
 
@@ -299,6 +345,8 @@ mixin _$CompanyModel {
   String get companyName => throw _privateConstructorUsedError;
   String? get companyCode => throw _privateConstructorUsedError;
   int? get storeCount => throw _privateConstructorUsedError;
+  int? get employeeCount =>
+      throw _privateConstructorUsedError; // ✅ Employee count from RPC
   RoleModel? get role =>
       throw _privateConstructorUsedError; // ✅ Make nullable - some companies may not have role data
   List<StoreModel> get stores =>
@@ -333,6 +381,7 @@ abstract class $CompanyModelCopyWith<$Res> {
       String companyName,
       String? companyCode,
       int? storeCount,
+      int? employeeCount,
       RoleModel? role,
       List<StoreModel> stores,
       SubscriptionModel? subscription,
@@ -363,6 +412,7 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
     Object? companyName = null,
     Object? companyCode = freezed,
     Object? storeCount = freezed,
+    Object? employeeCount = freezed,
     Object? role = freezed,
     Object? stores = null,
     Object? subscription = freezed,
@@ -386,6 +436,10 @@ class _$CompanyModelCopyWithImpl<$Res, $Val extends CompanyModel>
       storeCount: freezed == storeCount
           ? _value.storeCount
           : storeCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      employeeCount: freezed == employeeCount
+          ? _value.employeeCount
+          : employeeCount // ignore: cast_nullable_to_non_nullable
               as int?,
       role: freezed == role
           ? _value.role
@@ -456,6 +510,7 @@ abstract class _$$CompanyModelImplCopyWith<$Res>
       String companyName,
       String? companyCode,
       int? storeCount,
+      int? employeeCount,
       RoleModel? role,
       List<StoreModel> stores,
       SubscriptionModel? subscription,
@@ -486,6 +541,7 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
     Object? companyName = null,
     Object? companyCode = freezed,
     Object? storeCount = freezed,
+    Object? employeeCount = freezed,
     Object? role = freezed,
     Object? stores = null,
     Object? subscription = freezed,
@@ -509,6 +565,10 @@ class __$$CompanyModelImplCopyWithImpl<$Res>
       storeCount: freezed == storeCount
           ? _value.storeCount
           : storeCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      employeeCount: freezed == employeeCount
+          ? _value.employeeCount
+          : employeeCount // ignore: cast_nullable_to_non_nullable
               as int?,
       role: freezed == role
           ? _value.role
@@ -547,6 +607,7 @@ class _$CompanyModelImpl extends _CompanyModel {
       required this.companyName,
       this.companyCode,
       this.storeCount,
+      this.employeeCount,
       this.role,
       final List<StoreModel> stores = const [],
       this.subscription,
@@ -567,6 +628,9 @@ class _$CompanyModelImpl extends _CompanyModel {
   final String? companyCode;
   @override
   final int? storeCount;
+  @override
+  final int? employeeCount;
+// ✅ Employee count from RPC
   @override
   final RoleModel? role;
 // ✅ Make nullable - some companies may not have role data
@@ -596,7 +660,7 @@ class _$CompanyModelImpl extends _CompanyModel {
 
   @override
   String toString() {
-    return 'CompanyModel(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, storeCount: $storeCount, role: $role, stores: $stores, subscription: $subscription, salaryType: $salaryType, currencyCode: $currencyCode, currencySymbol: $currencySymbol)';
+    return 'CompanyModel(companyId: $companyId, companyName: $companyName, companyCode: $companyCode, storeCount: $storeCount, employeeCount: $employeeCount, role: $role, stores: $stores, subscription: $subscription, salaryType: $salaryType, currencyCode: $currencyCode, currencySymbol: $currencySymbol)';
   }
 
   @override
@@ -612,6 +676,8 @@ class _$CompanyModelImpl extends _CompanyModel {
                 other.companyCode == companyCode) &&
             (identical(other.storeCount, storeCount) ||
                 other.storeCount == storeCount) &&
+            (identical(other.employeeCount, employeeCount) ||
+                other.employeeCount == employeeCount) &&
             (identical(other.role, role) || other.role == role) &&
             const DeepCollectionEquality().equals(other._stores, _stores) &&
             (identical(other.subscription, subscription) ||
@@ -632,6 +698,7 @@ class _$CompanyModelImpl extends _CompanyModel {
       companyName,
       companyCode,
       storeCount,
+      employeeCount,
       role,
       const DeepCollectionEquality().hash(_stores),
       subscription,
@@ -661,6 +728,7 @@ abstract class _CompanyModel extends CompanyModel {
       required final String companyName,
       final String? companyCode,
       final int? storeCount,
+      final int? employeeCount,
       final RoleModel? role,
       final List<StoreModel> stores,
       final SubscriptionModel? subscription,
@@ -680,6 +748,8 @@ abstract class _CompanyModel extends CompanyModel {
   String? get companyCode;
   @override
   int? get storeCount;
+  @override
+  int? get employeeCount; // ✅ Employee count from RPC
   @override
   RoleModel?
       get role; // ✅ Make nullable - some companies may not have role data
@@ -1130,11 +1200,12 @@ mixin _$SubscriptionModel {
   String get planId => throw _privateConstructorUsedError;
   String get planName => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
-  String get planType => throw _privateConstructorUsedError;
-  int get maxCompanies => throw _privateConstructorUsedError;
-  int get maxStores => throw _privateConstructorUsedError;
-  int get maxEmployees => throw _privateConstructorUsedError;
-  int get aiDailyLimit => throw _privateConstructorUsedError;
+  String get planType =>
+      throw _privateConstructorUsedError; // ⚠️ NULL = UNLIMITED (Pro plan), so we keep them nullable
+  int? get maxCompanies => throw _privateConstructorUsedError;
+  int? get maxStores => throw _privateConstructorUsedError;
+  int? get maxEmployees => throw _privateConstructorUsedError;
+  int? get aiDailyLimit => throw _privateConstructorUsedError;
   double get priceMonthly => throw _privateConstructorUsedError;
   List<String> get features => throw _privateConstructorUsedError;
 
@@ -1159,10 +1230,10 @@ abstract class $SubscriptionModelCopyWith<$Res> {
       String planName,
       String? displayName,
       String planType,
-      int maxCompanies,
-      int maxStores,
-      int maxEmployees,
-      int aiDailyLimit,
+      int? maxCompanies,
+      int? maxStores,
+      int? maxEmployees,
+      int? aiDailyLimit,
       double priceMonthly,
       List<String> features});
 }
@@ -1186,10 +1257,10 @@ class _$SubscriptionModelCopyWithImpl<$Res, $Val extends SubscriptionModel>
     Object? planName = null,
     Object? displayName = freezed,
     Object? planType = null,
-    Object? maxCompanies = null,
-    Object? maxStores = null,
-    Object? maxEmployees = null,
-    Object? aiDailyLimit = null,
+    Object? maxCompanies = freezed,
+    Object? maxStores = freezed,
+    Object? maxEmployees = freezed,
+    Object? aiDailyLimit = freezed,
     Object? priceMonthly = null,
     Object? features = null,
   }) {
@@ -1210,22 +1281,22 @@ class _$SubscriptionModelCopyWithImpl<$Res, $Val extends SubscriptionModel>
           ? _value.planType
           : planType // ignore: cast_nullable_to_non_nullable
               as String,
-      maxCompanies: null == maxCompanies
+      maxCompanies: freezed == maxCompanies
           ? _value.maxCompanies
           : maxCompanies // ignore: cast_nullable_to_non_nullable
-              as int,
-      maxStores: null == maxStores
+              as int?,
+      maxStores: freezed == maxStores
           ? _value.maxStores
           : maxStores // ignore: cast_nullable_to_non_nullable
-              as int,
-      maxEmployees: null == maxEmployees
+              as int?,
+      maxEmployees: freezed == maxEmployees
           ? _value.maxEmployees
           : maxEmployees // ignore: cast_nullable_to_non_nullable
-              as int,
-      aiDailyLimit: null == aiDailyLimit
+              as int?,
+      aiDailyLimit: freezed == aiDailyLimit
           ? _value.aiDailyLimit
           : aiDailyLimit // ignore: cast_nullable_to_non_nullable
-              as int,
+              as int?,
       priceMonthly: null == priceMonthly
           ? _value.priceMonthly
           : priceMonthly // ignore: cast_nullable_to_non_nullable
@@ -1251,10 +1322,10 @@ abstract class _$$SubscriptionModelImplCopyWith<$Res>
       String planName,
       String? displayName,
       String planType,
-      int maxCompanies,
-      int maxStores,
-      int maxEmployees,
-      int aiDailyLimit,
+      int? maxCompanies,
+      int? maxStores,
+      int? maxEmployees,
+      int? aiDailyLimit,
       double priceMonthly,
       List<String> features});
 }
@@ -1276,10 +1347,10 @@ class __$$SubscriptionModelImplCopyWithImpl<$Res>
     Object? planName = null,
     Object? displayName = freezed,
     Object? planType = null,
-    Object? maxCompanies = null,
-    Object? maxStores = null,
-    Object? maxEmployees = null,
-    Object? aiDailyLimit = null,
+    Object? maxCompanies = freezed,
+    Object? maxStores = freezed,
+    Object? maxEmployees = freezed,
+    Object? aiDailyLimit = freezed,
     Object? priceMonthly = null,
     Object? features = null,
   }) {
@@ -1300,22 +1371,22 @@ class __$$SubscriptionModelImplCopyWithImpl<$Res>
           ? _value.planType
           : planType // ignore: cast_nullable_to_non_nullable
               as String,
-      maxCompanies: null == maxCompanies
+      maxCompanies: freezed == maxCompanies
           ? _value.maxCompanies
           : maxCompanies // ignore: cast_nullable_to_non_nullable
-              as int,
-      maxStores: null == maxStores
+              as int?,
+      maxStores: freezed == maxStores
           ? _value.maxStores
           : maxStores // ignore: cast_nullable_to_non_nullable
-              as int,
-      maxEmployees: null == maxEmployees
+              as int?,
+      maxEmployees: freezed == maxEmployees
           ? _value.maxEmployees
           : maxEmployees // ignore: cast_nullable_to_non_nullable
-              as int,
-      aiDailyLimit: null == aiDailyLimit
+              as int?,
+      aiDailyLimit: freezed == aiDailyLimit
           ? _value.aiDailyLimit
           : aiDailyLimit // ignore: cast_nullable_to_non_nullable
-              as int,
+              as int?,
       priceMonthly: null == priceMonthly
           ? _value.priceMonthly
           : priceMonthly // ignore: cast_nullable_to_non_nullable
@@ -1337,10 +1408,10 @@ class _$SubscriptionModelImpl extends _SubscriptionModel {
       required this.planName,
       this.displayName,
       required this.planType,
-      this.maxCompanies = 1,
-      this.maxStores = 1,
-      this.maxEmployees = 5,
-      this.aiDailyLimit = 2,
+      this.maxCompanies,
+      this.maxStores,
+      this.maxEmployees,
+      this.aiDailyLimit,
       this.priceMonthly = 0,
       final List<String> features = const []})
       : _features = features,
@@ -1357,18 +1428,15 @@ class _$SubscriptionModelImpl extends _SubscriptionModel {
   final String? displayName;
   @override
   final String planType;
+// ⚠️ NULL = UNLIMITED (Pro plan), so we keep them nullable
   @override
-  @JsonKey()
-  final int maxCompanies;
+  final int? maxCompanies;
   @override
-  @JsonKey()
-  final int maxStores;
+  final int? maxStores;
   @override
-  @JsonKey()
-  final int maxEmployees;
+  final int? maxEmployees;
   @override
-  @JsonKey()
-  final int aiDailyLimit;
+  final int? aiDailyLimit;
   @override
   @JsonKey()
   final double priceMonthly;
@@ -1449,10 +1517,10 @@ abstract class _SubscriptionModel extends SubscriptionModel {
       required final String planName,
       final String? displayName,
       required final String planType,
-      final int maxCompanies,
-      final int maxStores,
-      final int maxEmployees,
-      final int aiDailyLimit,
+      final int? maxCompanies,
+      final int? maxStores,
+      final int? maxEmployees,
+      final int? aiDailyLimit,
       final double priceMonthly,
       final List<String> features}) = _$SubscriptionModelImpl;
   const _SubscriptionModel._() : super._();
@@ -1467,15 +1535,16 @@ abstract class _SubscriptionModel extends SubscriptionModel {
   @override
   String? get displayName;
   @override
-  String get planType;
+  String
+      get planType; // ⚠️ NULL = UNLIMITED (Pro plan), so we keep them nullable
   @override
-  int get maxCompanies;
+  int? get maxCompanies;
   @override
-  int get maxStores;
+  int? get maxStores;
   @override
-  int get maxEmployees;
+  int? get maxEmployees;
   @override
-  int get aiDailyLimit;
+  int? get aiDailyLimit;
   @override
   double get priceMonthly;
   @override

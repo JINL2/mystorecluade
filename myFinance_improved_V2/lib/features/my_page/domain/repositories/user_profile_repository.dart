@@ -1,12 +1,8 @@
-import '../entities/business_dashboard.dart';
 import '../entities/user_profile.dart';
 
 abstract class UserProfileRepository {
   /// Get user profile by user ID
   Future<UserProfile?> getUserProfile(String userId);
-
-  /// Get business dashboard data for user
-  Future<BusinessDashboard?> getBusinessDashboard(String userId);
 
   /// Update user profile
   Future<bool> updateUserProfile({

@@ -408,6 +408,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
       if (mounted) {
         _showErrorSnackbar(e.message);
       }
+    } on EmployeeLimitReachedException catch (e) {
+      if (mounted) {
+        _showEmployeeLimitDialog(e.maxEmployees, e.currentEmployees);
+      }
     } on InvalidCompanyCodeException catch (_) {
       if (mounted) {
         _showErrorSnackbar('Invalid company code. Please check and try again.');
@@ -415,6 +419,10 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
     } on AlreadyMemberException catch (_) {
       if (mounted) {
         _showErrorSnackbar('You are already a member of this company.');
+      }
+    } on OwnerCannotJoinException catch (_) {
+      if (mounted) {
+        _showErrorSnackbar('You cannot join your own business as an employee.');
       }
     } on NetworkException catch (_) {
       if (mounted) {
@@ -476,5 +484,98 @@ class _JoinBusinessPageState extends ConsumerState<JoinBusinessPage> {
 
   void _showErrorSnackbar(String message) {
     TossToast.error(context, message);
+  }
+
+  /// Show dialog when company has reached employee limit
+  ///
+  /// Informs user about the limit and suggests contacting owner for upgrade
+  void _showEmployeeLimitDialog(int maxEmployees, int currentEmployees) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(TossBorderRadius.lg),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space2),
+              decoration: BoxDecoration(
+                color: TossColors.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+              ),
+              child: const Icon(
+                Icons.people_outline,
+                color: TossColors.warning,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: TossSpacing.space3),
+            const Expanded(
+              child: Text('Employee Limit Reached'),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This company has reached its employee limit.',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Container(
+              padding: const EdgeInsets.all(TossSpacing.space3),
+              decoration: BoxDecoration(
+                color: TossColors.gray50,
+                borderRadius: BorderRadius.circular(TossBorderRadius.sm),
+                border: Border.all(color: TossColors.border),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.person,
+                    size: 18,
+                    color: TossColors.textSecondary,
+                  ),
+                  const SizedBox(width: TossSpacing.space2),
+                  Text(
+                    '$currentEmployees / $maxEmployees employees',
+                    style: TossTextStyles.body.copyWith(
+                      color: TossColors.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: TossSpacing.space3),
+            Text(
+              'Please contact the business owner to upgrade their subscription plan to add more employees.',
+              style: TossTextStyles.caption.copyWith(
+                color: TossColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: TossTextStyles.body.copyWith(
+                color: TossColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

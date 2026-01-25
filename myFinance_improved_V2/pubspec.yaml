@@ -102,6 +102,7 @@ dependencies:
 
   # In-App Purchases (RevenueCat)
   purchases_flutter: ^8.0.0
+  purchases_ui_flutter: ^8.6.0  # Customer Center UI
 
   # PDF Generation & Printing
   pdf: ^3.10.8

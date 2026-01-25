@@ -254,6 +254,11 @@ class IconMapper {
       'history': LucideIcons.history,
       'transactionHistory': LucideIcons.history,
 
+      // ✅ Material Icons style keys (from database)
+      'access_time': LucideIcons.clock,
+      'receipt_long': LucideIcons.receipt,
+      'local_shipping': LucideIcons.truck,
+
       // ✅ Lucide native names (snake_case from database)
       'user_round_cog': LucideIcons.userCog,
       'clock_8': LucideIcons.clock,

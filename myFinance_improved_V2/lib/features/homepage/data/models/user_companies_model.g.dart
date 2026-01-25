@@ -14,6 +14,8 @@ _$UserCompaniesModelImpl _$$UserCompaniesModelImplFromJson(
       userLastName: json['user_last_name'] as String?,
       profileImage: json['profile_image'] as String?,
       companyCount: (json['company_count'] as num?)?.toInt(),
+      totalStoreCount: (json['total_store_count'] as num?)?.toInt() ?? 0,
+      totalEmployeeCount: (json['total_employee_count'] as num?)?.toInt() ?? 0,
       companies: (json['companies'] as List<dynamic>)
           .map((e) => CompanyModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -27,6 +29,8 @@ Map<String, dynamic> _$$UserCompaniesModelImplToJson(
       'user_last_name': instance.userLastName,
       'profile_image': instance.profileImage,
       'company_count': instance.companyCount,
+      'total_store_count': instance.totalStoreCount,
+      'total_employee_count': instance.totalEmployeeCount,
       'companies': instance.companies,
     };
 
@@ -36,6 +40,7 @@ _$CompanyModelImpl _$$CompanyModelImplFromJson(Map<String, dynamic> json) =>
       companyName: json['company_name'] as String,
       companyCode: json['company_code'] as String?,
       storeCount: (json['store_count'] as num?)?.toInt(),
+      employeeCount: (json['employee_count'] as num?)?.toInt(),
       role: json['role'] == null
           ? null
           : RoleModel.fromJson(json['role'] as Map<String, dynamic>),
@@ -58,6 +63,7 @@ Map<String, dynamic> _$$CompanyModelImplToJson(_$CompanyModelImpl instance) =>
       'company_name': instance.companyName,
       'company_code': instance.companyCode,
       'store_count': instance.storeCount,
+      'employee_count': instance.employeeCount,
       'role': instance.role,
       'stores': instance.stores,
       'subscription': instance.subscription,
@@ -105,10 +111,10 @@ _$SubscriptionModelImpl _$$SubscriptionModelImplFromJson(
       planName: json['plan_name'] as String,
       displayName: json['display_name'] as String?,
       planType: json['plan_type'] as String,
-      maxCompanies: (json['max_companies'] as num?)?.toInt() ?? 1,
-      maxStores: (json['max_stores'] as num?)?.toInt() ?? 1,
-      maxEmployees: (json['max_employees'] as num?)?.toInt() ?? 5,
-      aiDailyLimit: (json['ai_daily_limit'] as num?)?.toInt() ?? 2,
+      maxCompanies: (json['max_companies'] as num?)?.toInt(),
+      maxStores: (json['max_stores'] as num?)?.toInt(),
+      maxEmployees: (json['max_employees'] as num?)?.toInt(),
+      aiDailyLimit: (json['ai_daily_limit'] as num?)?.toInt(),
       priceMonthly: (json['price_monthly'] as num?)?.toDouble() ?? 0,
       features: (json['features'] as List<dynamic>?)
               ?.map((e) => e as String)

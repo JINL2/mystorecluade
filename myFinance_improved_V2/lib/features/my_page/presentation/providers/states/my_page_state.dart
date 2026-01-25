@@ -1,18 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../domain/entities/business_dashboard.dart';
 import '../../../domain/entities/user_profile.dart';
 
 part 'my_page_state.freezed.dart';
 
 /// My Page State - UI state for my page
 ///
-/// Centralized state for user profile and business dashboard
+/// Note: Role/Company/Store info는 AppState에서 가져옴 (RPC로 이미 로드됨)
 @freezed
 class MyPageState with _$MyPageState {
   const factory MyPageState({
     UserProfile? userProfile,
-    BusinessDashboard? businessDashboard,
     @Default(false) bool isLoading,
     @Default(false) bool isUpdating,
     String? errorMessage,

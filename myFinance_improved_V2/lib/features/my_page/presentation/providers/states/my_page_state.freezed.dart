@@ -17,8 +17,6 @@ final _privateConstructorUsedError = UnsupportedError(
 /// @nodoc
 mixin _$MyPageState {
   UserProfile? get userProfile => throw _privateConstructorUsedError;
-  BusinessDashboard? get businessDashboard =>
-      throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isUpdating => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
@@ -38,7 +36,6 @@ abstract class $MyPageStateCopyWith<$Res> {
   @useResult
   $Res call(
       {UserProfile? userProfile,
-      BusinessDashboard? businessDashboard,
       bool isLoading,
       bool isUpdating,
       String? errorMessage});
@@ -62,7 +59,6 @@ class _$MyPageStateCopyWithImpl<$Res, $Val extends MyPageState>
   @override
   $Res call({
     Object? userProfile = freezed,
-    Object? businessDashboard = freezed,
     Object? isLoading = null,
     Object? isUpdating = null,
     Object? errorMessage = freezed,
@@ -72,10 +68,6 @@ class _$MyPageStateCopyWithImpl<$Res, $Val extends MyPageState>
           ? _value.userProfile
           : userProfile // ignore: cast_nullable_to_non_nullable
               as UserProfile?,
-      businessDashboard: freezed == businessDashboard
-          ? _value.businessDashboard
-          : businessDashboard // ignore: cast_nullable_to_non_nullable
-              as BusinessDashboard?,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -116,7 +108,6 @@ abstract class _$$MyPageStateImplCopyWith<$Res>
   @useResult
   $Res call(
       {UserProfile? userProfile,
-      BusinessDashboard? businessDashboard,
       bool isLoading,
       bool isUpdating,
       String? errorMessage});
@@ -139,7 +130,6 @@ class __$$MyPageStateImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? userProfile = freezed,
-    Object? businessDashboard = freezed,
     Object? isLoading = null,
     Object? isUpdating = null,
     Object? errorMessage = freezed,
@@ -149,10 +139,6 @@ class __$$MyPageStateImplCopyWithImpl<$Res>
           ? _value.userProfile
           : userProfile // ignore: cast_nullable_to_non_nullable
               as UserProfile?,
-      businessDashboard: freezed == businessDashboard
-          ? _value.businessDashboard
-          : businessDashboard // ignore: cast_nullable_to_non_nullable
-              as BusinessDashboard?,
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -174,15 +160,12 @@ class __$$MyPageStateImplCopyWithImpl<$Res>
 class _$MyPageStateImpl implements _MyPageState {
   const _$MyPageStateImpl(
       {this.userProfile,
-      this.businessDashboard,
       this.isLoading = false,
       this.isUpdating = false,
       this.errorMessage});
 
   @override
   final UserProfile? userProfile;
-  @override
-  final BusinessDashboard? businessDashboard;
   @override
   @JsonKey()
   final bool isLoading;
@@ -194,7 +177,7 @@ class _$MyPageStateImpl implements _MyPageState {
 
   @override
   String toString() {
-    return 'MyPageState(userProfile: $userProfile, businessDashboard: $businessDashboard, isLoading: $isLoading, isUpdating: $isUpdating, errorMessage: $errorMessage)';
+    return 'MyPageState(userProfile: $userProfile, isLoading: $isLoading, isUpdating: $isUpdating, errorMessage: $errorMessage)';
   }
 
   @override
@@ -204,8 +187,6 @@ class _$MyPageStateImpl implements _MyPageState {
             other is _$MyPageStateImpl &&
             (identical(other.userProfile, userProfile) ||
                 other.userProfile == userProfile) &&
-            (identical(other.businessDashboard, businessDashboard) ||
-                other.businessDashboard == businessDashboard) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isUpdating, isUpdating) ||
@@ -215,8 +196,8 @@ class _$MyPageStateImpl implements _MyPageState {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, userProfile, businessDashboard,
-      isLoading, isUpdating, errorMessage);
+  int get hashCode => Object.hash(
+      runtimeType, userProfile, isLoading, isUpdating, errorMessage);
 
   /// Create a copy of MyPageState
   /// with the given fields replaced by the non-null parameter values.
@@ -230,15 +211,12 @@ class _$MyPageStateImpl implements _MyPageState {
 abstract class _MyPageState implements MyPageState {
   const factory _MyPageState(
       {final UserProfile? userProfile,
-      final BusinessDashboard? businessDashboard,
       final bool isLoading,
       final bool isUpdating,
       final String? errorMessage}) = _$MyPageStateImpl;
 
   @override
   UserProfile? get userProfile;
-  @override
-  BusinessDashboard? get businessDashboard;
   @override
   bool get isLoading;
   @override

@@ -161,11 +161,9 @@ class RoleSelectionHelper {
       if (!context.mounted) return false;
       context.pop();
 
-      // Callback to update local state
+      // Optimistic Update: Update mutableEmployeeListProvider directly for instant UI refresh
+      // This is the 2025+ Riverpod best practice - no need to invalidate/refresh entire list
       onRoleUpdated(selectedRole.roleName);
-
-      // Refresh employees data
-      await refreshEmployees(ref);
 
       // Show success dialog
       if (!context.mounted) return false;

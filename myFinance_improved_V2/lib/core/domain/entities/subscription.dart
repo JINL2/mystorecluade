@@ -31,16 +31,23 @@ class Subscription {
   // ============================================================================
 
   /// Create Subscription from Map
+  ///
+  /// NULL values mean unlimited, converted to -1 for internal representation.
   factory Subscription.fromMap(Map<String, dynamic> map) {
+    // NULL은 무제한을 의미 -> -1로 변환
+    final maxEmployees = (map['max_employees'] as int?) ?? -1;
+    final maxStores = (map['max_stores'] as int?) ?? -1;
+    final maxCompanies = (map['max_companies'] as int?) ?? -1;
+
     return Subscription(
       planId: map['plan_id'] as String,
       planName: map['plan_name'] as String,
       displayName: (map['display_name'] as String?) ?? map['plan_name'] as String,
       planType: map['plan_type'] as String,
-      maxCompanies: (map['max_companies'] as int?) ?? 1,
-      maxStores: (map['max_stores'] as int?) ?? 1,
-      maxEmployees: (map['max_employees'] as int?) ?? 5,
-      aiDailyLimit: (map['ai_daily_limit'] as int?) ?? 2,
+      maxCompanies: maxCompanies,
+      maxStores: maxStores,
+      maxEmployees: maxEmployees,
+      aiDailyLimit: (map['ai_daily_limit'] as int?) ?? -1,  // null = 무제한 = -1
       priceMonthly: (map['price_monthly'] as num?)?.toDouble() ?? 0.0,
       features: (map['features'] as List<dynamic>?)
               ?.map((f) => f as String)

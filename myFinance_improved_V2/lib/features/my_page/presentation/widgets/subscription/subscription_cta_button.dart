@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +31,12 @@ class SubscriptionCtaButton extends ConsumerWidget {
   final VoidCallback onRestorePurchases;
   final VoidCallback onManageSubscription;
   final VoidCallback onSyncToDatabase;
+  final VoidCallback? onRedeemOfferCode;
+
+  // Trial-specific properties
+  final bool isOnTrial;
+  final int trialDaysRemaining;
+  final DateTime? trialEndDate;
 
   const SubscriptionCtaButton({
     super.key,
@@ -45,6 +53,11 @@ class SubscriptionCtaButton extends ConsumerWidget {
     required this.onRestorePurchases,
     required this.onManageSubscription,
     required this.onSyncToDatabase,
+    this.onRedeemOfferCode,
+    // Trial defaults
+    this.isOnTrial = false,
+    this.trialDaysRemaining = 0,
+    this.trialEndDate,
   });
 
   String get _currentPlanName {
@@ -141,17 +154,23 @@ class SubscriptionCtaButton extends ConsumerWidget {
               padding: const EdgeInsets.all(TossSpacing.space3),
               margin: const EdgeInsets.only(bottom: TossSpacing.space3),
               decoration: BoxDecoration(
-                color: bannerColor.withValues(alpha: TossOpacity.light),
+                color: isOnTrial
+                    ? TossColors.info.withValues(alpha: TossOpacity.light)
+                    : bannerColor.withValues(alpha: TossOpacity.light),
                 borderRadius: BorderRadius.circular(TossBorderRadius.lg),
                 border: Border.all(
-                  color: bannerColor.withValues(alpha: TossOpacity.strong),
+                  color: isOnTrial
+                      ? TossColors.info.withValues(alpha: TossOpacity.strong)
+                      : bannerColor.withValues(alpha: TossOpacity.strong),
                 ),
               ),
               child: Row(
                 children: [
                   Icon(
-                    isProPlan ? LucideIcons.crown : LucideIcons.checkCircle,
-                    color: bannerColor,
+                    isOnTrial
+                        ? LucideIcons.gift
+                        : (isProPlan ? LucideIcons.crown : LucideIcons.checkCircle),
+                    color: isOnTrial ? TossColors.info : bannerColor,
                     size: TossSpacing.iconSM,
                   ),
                   const SizedBox(width: TossSpacing.space2),
@@ -160,14 +179,42 @@ class SubscriptionCtaButton extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'You\'re a $_currentPlanName subscriber!',
+                          isOnTrial
+                              ? 'You\'re on a $_currentPlanName trial!'
+                              : 'You\'re a $_currentPlanName subscriber!',
                           style: TossTextStyles.body.copyWith(
                             fontWeight: TossFontWeight.semibold,
-                            color: bannerColor,
+                            color: isOnTrial ? TossColors.info : bannerColor,
                           ),
                         ),
-                        if (expirationDate != null) ...[
-                          SizedBox(height: TossSpacing.space1 / 2),
+                        SizedBox(height: TossSpacing.space1 / 2),
+                        if (isOnTrial) ...[
+                          Row(
+                            children: [
+                              Icon(
+                                LucideIcons.clock,
+                                size: TossSpacing.iconXS,
+                                color: trialDaysRemaining <= 3
+                                    ? TossColors.warning
+                                    : TossColors.gray600,
+                              ),
+                              SizedBox(width: TossSpacing.space1),
+                              Text(
+                                trialDaysRemaining > 0
+                                    ? '$trialDaysRemaining days remaining'
+                                    : 'Trial ends today',
+                                style: TossTextStyles.small.copyWith(
+                                  color: trialDaysRemaining <= 3
+                                      ? TossColors.warning
+                                      : TossColors.gray600,
+                                  fontWeight: trialDaysRemaining <= 3
+                                      ? TossFontWeight.semibold
+                                      : TossFontWeight.regular,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ] else if (expirationDate != null) ...[
                           Text(
                             willRenew
                                 ? 'Renews on ${_formatDate(expirationDate!)}'
@@ -180,6 +227,30 @@ class SubscriptionCtaButton extends ConsumerWidget {
                       ],
                     ),
                   ),
+                  // Trial badge
+                  if (isOnTrial)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space2,
+                        vertical: TossSpacing.space1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: trialDaysRemaining <= 3
+                            ? TossColors.warning.withValues(alpha: TossOpacity.medium)
+                            : TossColors.info.withValues(alpha: TossOpacity.medium),
+                        borderRadius: BorderRadius.circular(TossBorderRadius.full),
+                      ),
+                      child: Text(
+                        'TRIAL',
+                        style: TossTextStyles.small.copyWith(
+                          color: trialDaysRemaining <= 3
+                              ? TossColors.warning
+                              : TossColors.info,
+                          fontWeight: TossFontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -270,6 +341,27 @@ class SubscriptionCtaButton extends ConsumerWidget {
               ),
             ),
           ),
+
+          // Offer Code link (iOS only)
+          if (Platform.isIOS && onRedeemOfferCode != null)
+            GestureDetector(
+              onTap: isPurchasing
+                  ? null
+                  : () {
+                      HapticFeedback.lightImpact();
+                      onRedeemOfferCode!();
+                    },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: TossSpacing.space2),
+                child: Text(
+                  'Have an Offer Code?',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.primary,
+                    fontWeight: TossFontWeight.medium,
+                  ),
+                ),
+              ),
+            ),
 
           // DEBUG buttons (DEBUG only)
           if (kDebugMode && hasActiveSubscription) ...[

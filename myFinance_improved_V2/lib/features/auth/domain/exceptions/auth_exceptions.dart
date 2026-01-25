@@ -114,3 +114,27 @@ class AlreadyMemberException extends AuthException {
           code: 'ALREADY_MEMBER',
         );
 }
+
+/// Company has reached its employee limit (subscription restriction)
+class EmployeeLimitReachedException extends AuthException {
+  final int maxEmployees;
+  final int currentEmployees;
+
+  const EmployeeLimitReachedException({
+    required this.maxEmployees,
+    required this.currentEmployees,
+  }) : super(
+          'This company has reached its employee limit ($currentEmployees/$maxEmployees). '
+          'Please ask the owner to upgrade their subscription.',
+          code: 'EMPLOYEE_LIMIT_REACHED',
+        );
+}
+
+/// Owner cannot join their own company as employee
+class OwnerCannotJoinException extends AuthException {
+  const OwnerCannotJoinException()
+      : super(
+          'You cannot join your own business as an employee',
+          code: 'OWNER_CANNOT_JOIN',
+        );
+}

@@ -11,6 +11,9 @@ class UserWithCompanies {
     required this.userLastName,
     required this.companies,
     required this.profileImage,
+    this.totalStoreCount = 0,
+    this.totalEmployeeCount = 0,
+    this.ownedCompanyCount,
   });
 
   final String userId;
@@ -18,9 +21,21 @@ class UserWithCompanies {
   final String userLastName;
   final List<Company> companies;
   final String profileImage;
+  /// Total store count across all companies (from RPC)
+  final int totalStoreCount;
+  /// Total employee count across all companies (from RPC)
+  final int totalEmployeeCount;
+  /// Owned company count from RPC (only companies where user is Owner)
+  /// Used for subscription limit checking
+  /// null means not yet loaded from RPC
+  final int? ownedCompanyCount;
 
-  /// Calculate total company count (computed property)
-  int get companyCount => companies.length;
+  /// Total company count (all companies user has access to)
+  int get totalCompanyCount => companies.length;
+
+  /// Company count for subscription limit (owned companies only)
+  /// Falls back to totalCompanyCount if ownedCompanyCount not available
+  int get companyCount => ownedCompanyCount ?? companies.length;
 
   /// Get full name
   String get fullName => '$userFirstName $userLastName'.trim();

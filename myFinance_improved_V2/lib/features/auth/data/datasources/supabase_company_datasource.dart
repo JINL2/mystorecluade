@@ -2,6 +2,7 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../domain/exceptions/auth_exceptions.dart';
 import '../models/company_type_model.dart';
 import '../models/currency_model.dart';
 import '../models/freezed/company_dto.dart';
@@ -214,11 +215,35 @@ class SupabaseCompanyDataSource implements CompanyDataSource {
 
         return CompanyDto.fromJson(companyData);
       } else {
-        // RPC returned an error
+        // RPC returned an error - throw specific exceptions based on error code
         final errorCode = result['error_code'] ?? 'UNKNOWN_ERROR';
-        final errorMessage = result['error'] ?? 'Failed to join company';
-        throw Exception('$errorCode: $errorMessage');
+
+        switch (errorCode) {
+          case 'EMPLOYEE_LIMIT_REACHED':
+            throw EmployeeLimitReachedException(
+              maxEmployees: (result['max_employees'] as int?) ?? 0,
+              currentEmployees: (result['current_employees'] as int?) ?? 0,
+            );
+          case 'INVALID_COMPANY_CODE':
+          case 'BUSINESS_NOT_FOUND':
+            throw const InvalidCompanyCodeException();
+          case 'ALREADY_MEMBER':
+            throw const AlreadyMemberException();
+          case 'OWNER_CANNOT_JOIN':
+            throw const OwnerCannotJoinException();
+          default:
+            final errorMessage = result['error'] ?? 'Failed to join company';
+            throw Exception('$errorCode: $errorMessage');
+        }
       }
+    } on EmployeeLimitReachedException {
+      rethrow;
+    } on InvalidCompanyCodeException {
+      rethrow;
+    } on AlreadyMemberException {
+      rethrow;
+    } on OwnerCannotJoinException {
+      rethrow;
     } catch (e) {
       throw Exception('Failed to join company: $e');
     }

@@ -12,11 +12,14 @@ _$JoinResultModelImpl _$$JoinResultModelImplFromJson(
       success: json['success'] as bool? ?? false,
       type: json['type'] as String?,
       message: json['message'] as String?,
+      errorCode: json['error_code'] as String?,
       companyId: json['company_id'] as String?,
       companyName: json['company_name'] as String?,
       storeId: json['store_id'] as String?,
       storeName: json['store_name'] as String?,
       roleAssignedFlag: json['role_assigned'] as bool? ?? false,
+      maxEmployees: (json['max_employees'] as num?)?.toInt(),
+      currentEmployees: (json['current_employees'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$JoinResultModelImplToJson(
@@ -25,9 +28,12 @@ Map<String, dynamic> _$$JoinResultModelImplToJson(
       'success': instance.success,
       'type': instance.type,
       'message': instance.message,
+      'error_code': instance.errorCode,
       'company_id': instance.companyId,
       'company_name': instance.companyName,
       'store_id': instance.storeId,
       'store_name': instance.storeName,
       'role_assigned': instance.roleAssignedFlag,
+      'max_employees': instance.maxEmployees,
+      'current_employees': instance.currentEmployees,
     };

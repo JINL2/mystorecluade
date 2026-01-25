@@ -20,7 +20,7 @@ class JoinRepositoryImpl extends BaseRepository implements JoinRepository {
   }) async {
     return executeWithErrorHandling(
       operation: () async {
-        // Call remote data source
+        // Call remote data source (now uses join_business_by_code RPC)
         final model = await remoteDataSource.joinByCode(
           userId: userId,
           code: code,
@@ -29,14 +29,25 @@ class JoinRepositoryImpl extends BaseRepository implements JoinRepository {
         // Check if join was successful
         if (!model.success) {
           // RPC returned success=false with error details
-          if (model.isAlreadyJoined) {
-            throw NotFoundFailure(
-              message: model.errorMessage,
-              code: 'ALREADY_JOINED',
+          if (model.isEmployeeLimitReached) {
+            throw ValidationFailure(
+              message:
+                  'This company has reached its employee limit (${model.currentEmployees}/${model.maxEmployees}). Please ask the owner to upgrade their subscription.',
+              code: 'EMPLOYEE_LIMIT_REACHED',
+            );
+          } else if (model.isAlreadyJoined) {
+            throw ValidationFailure(
+              message: 'You have already joined this company.',
+              code: 'ALREADY_MEMBER',
+            );
+          } else if (model.isOwnerCannotJoin) {
+            throw ValidationFailure(
+              message: 'You cannot join your own business as an employee.',
+              code: 'OWNER_CANNOT_JOIN',
             );
           } else if (model.isInvalidCode) {
             throw NotFoundFailure(
-              message: model.errorMessage,
+              message: 'Invalid code. Please check and try again.',
               code: 'INVALID_CODE',
             );
           } else {

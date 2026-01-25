@@ -48,7 +48,9 @@ class DataFilterUtils {
     }).toList();
 
     data['companies'] = filteredCompanies;
-    data['company_count'] = filteredCompanies.length;
+    // Note: DO NOT override company_count here!
+    // RPC returns company_count as OWNED companies count (for subscription limit)
+    // filteredCompanies.length is ALL companies user has access to
 
     return data;
   }

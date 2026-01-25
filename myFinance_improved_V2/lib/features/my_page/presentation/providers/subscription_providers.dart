@@ -4,6 +4,7 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/services/revenuecat_service.dart';
+import '../../../../core/subscription/providers/subscription_state_notifier.dart';
 import '../../data/datasources/subscription_datasource.dart';
 
 part 'subscription_providers.g.dart';
@@ -68,123 +69,16 @@ class SubscriptionPlan {
   bool get hasUnlimitedAI => aiDailyLimit == null;
 }
 
-/// Subscription state for the app
-class SubscriptionState {
-  final bool isPro;
-  final bool isLoading;
-  final String? errorMessage;
-  final CustomerInfo? customerInfo;
-
-  const SubscriptionState({
-    this.isPro = false,
-    this.isLoading = false,
-    this.errorMessage,
-    this.customerInfo,
-  });
-
-  SubscriptionState copyWith({
-    bool? isPro,
-    bool? isLoading,
-    String? errorMessage,
-    CustomerInfo? customerInfo,
-  }) {
-    return SubscriptionState(
-      isPro: isPro ?? this.isPro,
-      isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
-      customerInfo: customerInfo ?? this.customerInfo,
-    );
-  }
-}
-
-/// Subscription notifier for managing subscription state
-@riverpod
-class SubscriptionNotifier extends _$SubscriptionNotifier {
-  @override
-  SubscriptionState build() => const SubscriptionState();
-
-  /// Check current subscription status
-  Future<void> checkSubscriptionStatus() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
-
-    try {
-      final isPro = await RevenueCatService().checkProStatus();
-      final customerInfo = await RevenueCatService().getCustomerInfo();
-
-      state = state.copyWith(
-        isPro: isPro,
-        isLoading: false,
-        customerInfo: customerInfo,
-      );
-
-      debugPrint('✅ [SubscriptionProvider] Pro status: $isPro');
-    } catch (e) {
-      debugPrint('❌ [SubscriptionProvider] Error checking status: $e');
-      state = state.copyWith(
-        isLoading: false,
-        errorMessage: e.toString(),
-      );
-    }
-  }
-
-  /// Update subscription state after purchase
-  void updateProStatus(bool isPro, CustomerInfo? customerInfo) {
-    state = state.copyWith(
-      isPro: isPro,
-      customerInfo: customerInfo,
-    );
-  }
-
-  /// Reset subscription state (e.g., on logout)
-  void reset() {
-    state = const SubscriptionState();
-  }
-}
-
-/// Simple provider to check if user is Pro
-///
-/// Use this provider to conditionally show Pro features:
-/// ```dart
-/// final isPro = ref.watch(isProProvider);
-/// if (isPro) {
-///   // Show Pro feature
-/// }
-/// ```
-@riverpod
-bool isPro(Ref ref) {
-  final subscriptionState = ref.watch(subscriptionNotifierProvider);
-  return subscriptionState.isPro;
-}
-
-/// FutureProvider to fetch Pro status from RevenueCat
-///
-/// Automatically fetches and caches the Pro status.
-/// Use ref.invalidate(proStatusProvider) to refresh.
-@riverpod
-Future<bool> proStatus(Ref ref) async {
-  try {
-    final isPro = await RevenueCatService().checkProStatus();
-
-    // Update the subscription state provider too
-    ref.read(subscriptionNotifierProvider.notifier).updateProStatus(
-      isPro,
-      await RevenueCatService().getCustomerInfo(),
-    );
-
-    return isPro;
-  } catch (e) {
-    debugPrint('❌ [proStatusProvider] Error: $e');
-    return false;
-  }
-}
+// =============================================================================
+// RevenueCat Providers (for subscription_page purchase UI)
+// =============================================================================
 
 /// Provider for available packages (subscription options)
 @riverpod
 Future<List<Package>> availablePackages(Ref ref) async {
   try {
     return await RevenueCatService().getAvailablePackages();
-  } catch (e) {
-    debugPrint('❌ [availablePackagesProvider] Error: $e');
+  } catch (_) {
     return [];
   }
 }
@@ -194,8 +88,7 @@ Future<List<Package>> availablePackages(Ref ref) async {
 Future<CustomerInfo?> customerInfo(Ref ref) async {
   try {
     return await RevenueCatService().getCustomerInfo();
-  } catch (e) {
-    debugPrint('❌ [customerInfoProvider] Error: $e');
+  } catch (_) {
     return null;
   }
 }
@@ -210,14 +103,8 @@ Future<List<SubscriptionPlan>> subscriptionPlans(Ref ref) async {
     final dataSource = ref.watch(subscriptionDataSourceProvider);
     final response = await dataSource.getActiveSubscriptionPlans();
 
-    final plans = response
-        .map((json) => SubscriptionPlan.fromJson(json))
-        .toList();
-
-    debugPrint('✅ [subscriptionPlansProvider] Loaded ${plans.length} plans');
-    return plans;
-  } catch (e) {
-    debugPrint('❌ [subscriptionPlansProvider] Error: $e');
+    return response.map((json) => SubscriptionPlan.fromJson(json)).toList();
+  } catch (_) {
     return [];
   }
 }
@@ -243,4 +130,169 @@ Future<SubscriptionPlan?> basicPlan(Ref ref) async {
 @riverpod
 Future<SubscriptionPlan?> proPlan(Ref ref) async {
   return ref.watch(subscriptionPlanByNameProvider('pro').future);
+}
+
+// =============================================================================
+// Subscription Details Model (Trial 상태 포함)
+// =============================================================================
+
+/// Subscription details including trial information
+///
+/// Used for displaying trial countdown, expiration, and renewal status.
+class SubscriptionDetails {
+  final String tier; // 'free', 'basic', 'pro'
+  final bool isOnTrial;
+  final DateTime? trialEndDate;
+  final DateTime? expirationDate;
+  final bool willRenew;
+  final String? productId;
+
+  const SubscriptionDetails({
+    required this.tier,
+    this.isOnTrial = false,
+    this.trialEndDate,
+    this.expirationDate,
+    this.willRenew = false,
+    this.productId,
+  });
+
+  /// Factory for free plan (default state)
+  factory SubscriptionDetails.free() => const SubscriptionDetails(tier: 'free');
+
+  /// Days remaining in trial (returns 0 if not on trial or expired)
+  int get trialDaysRemaining {
+    if (!isOnTrial || trialEndDate == null) return 0;
+    final now = DateTime.now();
+    final difference = trialEndDate!.difference(now).inDays;
+    return difference > 0 ? difference : 0;
+  }
+
+  /// Hours remaining in trial (for countdown when < 1 day)
+  int get trialHoursRemaining {
+    if (!isOnTrial || trialEndDate == null) return 0;
+    final now = DateTime.now();
+    final difference = trialEndDate!.difference(now).inHours;
+    return difference > 0 ? difference : 0;
+  }
+
+  /// Days remaining until subscription expires
+  int get daysUntilExpiration {
+    if (expirationDate == null) return 0;
+    final now = DateTime.now();
+    final difference = expirationDate!.difference(now).inDays;
+    return difference > 0 ? difference : 0;
+  }
+
+  /// Check if trial is expiring soon (within 3 days)
+  bool get isTrialExpiringSoon => isOnTrial && trialDaysRemaining <= 3 && trialDaysRemaining > 0;
+
+  /// Check if trial has expired
+  bool get isTrialExpired {
+    if (!isOnTrial || trialEndDate == null) return false;
+    return DateTime.now().isAfter(trialEndDate!);
+  }
+
+  /// Check if this is a paid plan (basic or pro)
+  bool get isPaidPlan => tier == 'basic' || tier == 'pro';
+
+  /// Check if this is free tier
+  bool get isFreeTier => tier == 'free';
+
+  /// Get display string for tier
+  String get tierDisplayName {
+    switch (tier) {
+      case 'basic':
+        return 'Basic';
+      case 'pro':
+        return 'Pro';
+      default:
+        return 'Free';
+    }
+  }
+
+  /// Get billing cycle from product ID
+  String get billingCycle {
+    if (productId == null) return 'monthly';
+    if (productId!.contains('yearly') || productId!.contains('annual')) {
+      return 'yearly';
+    }
+    return 'monthly';
+  }
+
+  @override
+  String toString() {
+    return 'SubscriptionDetails(tier: $tier, isOnTrial: $isOnTrial, '
+        'trialEndDate: $trialEndDate, expirationDate: $expirationDate, '
+        'willRenew: $willRenew, productId: $productId)';
+  }
+}
+
+/// Provider for subscription details including trial information
+///
+/// Returns comprehensive subscription details combining:
+/// 1. **Supabase DB** (SubscriptionStateNotifier) - Stripe 웹 결제 반영
+/// 2. **RevenueCat SDK** - iOS/Android 앱 내 결제 반영
+///
+/// ## 데이터 소스 우선순위
+/// - DB에 유료 플랜이 있으면 DB 데이터 우선 (Stripe 결제)
+/// - RevenueCat에만 유료 플랜이 있으면 RevenueCat 사용 (앱 내 결제)
+/// - 둘 다 없으면 free
+///
+/// 2026 Update: Now watches subscriptionStateNotifierProvider to auto-refresh
+/// when Supabase Realtime detects subscription changes (e.g., from web/Stripe).
+///
+/// keepAlive: true - Provider stays alive so Realtime updates work even when
+/// my_page is not on screen. Without this, autoDispose would disconnect
+/// the watch link when user navigates away.
+///
+/// ## Data Source Priority (DB is SSOT)
+/// DB (Supabase) is the Single Source of Truth because:
+/// 1. RevenueCat webhook updates DB on purchase/cancel
+/// 2. Stripe webhook updates DB on web purchase/cancel
+/// 3. DB has the most accurate, up-to-date state
+///
+/// RevenueCat SDK cache can be stale (shows old Pro status after cancellation),
+/// so we ALWAYS trust DB over RevenueCat SDK.
+@Riverpod(keepAlive: true)
+Future<SubscriptionDetails> subscriptionDetails(Ref ref) async {
+  // Watch subscriptionStateNotifierProvider to trigger refresh on Realtime changes
+  // This ensures my_page UI updates when subscription changes via DB (Stripe)
+  final subscriptionStateAsync = ref.watch(subscriptionStateNotifierProvider);
+
+  // Get DB subscription state - THIS IS THE SINGLE SOURCE OF TRUTH
+  final dbState = subscriptionStateAsync.valueOrNull;
+  final dbTier = dbState?.planName ?? 'free';
+
+  // DB is loaded and has valid data - use it directly
+  // Don't check RevenueCat because DB is already updated by webhooks
+  if (dbState != null && dbState.userId.isNotEmpty) {
+    return SubscriptionDetails(
+      tier: dbTier,
+      isOnTrial: dbState.isOnTrial,
+      trialEndDate: dbState.trialEndsAt,
+      expirationDate: dbState.currentPeriodEndsAt,
+      willRenew: dbState.status == 'active',
+      productId: null,
+    );
+  }
+
+  // DB not loaded yet - fallback to RevenueCat SDK (for initial load only)
+  try {
+    final data = await RevenueCatService().getSubscriptionDetails();
+    return SubscriptionDetails(
+      tier: data.tier,
+      isOnTrial: data.isOnTrial,
+      trialEndDate: data.trialEndDate,
+      expirationDate: data.expirationDate,
+      willRenew: data.willRenew,
+      productId: data.productId,
+    );
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('⚠️ [subscriptionDetailsProvider] RevenueCat error: $e');
+    }
+  }
+
+  // Fallback to free
+  return SubscriptionDetails.free();
 }
