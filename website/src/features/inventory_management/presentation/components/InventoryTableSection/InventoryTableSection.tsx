@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { TossButton } from '@/shared/components/toss/TossButton';
 import { LoadingAnimation } from '@/shared/components/common/LoadingAnimation';
+import { ImageHoverPreview } from '@/shared/components/common/ImageHoverPreview';
 import type { InventoryTableSectionProps } from './InventoryTableSection.types';
 import type { InventoryItem } from '../../../domain/entities/InventoryItem';
 import { InventoryDataSource, type ProductHistoryItem } from '../../../data/datasources/InventoryDataSource';
@@ -744,10 +745,12 @@ export const InventoryTableSection: React.FC<InventoryTableSectionProps> = ({
                         </td>
                         <td className={styles.imageCell}>
                           {item.imageUrls && item.imageUrls.length > 0 ? (
-                            <img
+                            <ImageHoverPreview
                               src={item.imageUrls[0]}
                               alt={item.productName}
-                              className={styles.productThumbnail}
+                              thumbnailClassName={styles.productThumbnail}
+                              previewSize={200}
+                              position="right"
                             />
                           ) : (
                             <div className={styles.noImagePlaceholder}>
