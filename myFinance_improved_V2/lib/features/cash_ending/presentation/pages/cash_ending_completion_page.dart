@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/constants/account_ids.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -134,6 +135,8 @@ class _CashEndingCompletionPageState
           userId: widget.userId,
           locationName: widget.locationName,
           cashLocationId: widget.cashLocationId,
+          cashAccountId: AccountIds.cash,
+          errorAccountId: AccountIds.errorAdjustment,
           storeId: widget.storeId,
         ));
       } else {
@@ -144,6 +147,8 @@ class _CashEndingCompletionPageState
           userId: widget.userId,
           locationName: widget.locationName,
           cashLocationId: widget.cashLocationId,
+          cashAccountId: AccountIds.cash,
+          foreignCurrencyAccountId: AccountIds.foreignCurrencyTranslation,
           storeId: widget.storeId,
         ));
       }

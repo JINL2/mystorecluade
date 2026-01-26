@@ -1,6 +1,7 @@
 // lib/features/cash_ending/data/datasources/location_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/constants.dart';
 
 /// Remote Data Source for Locations
 ///
@@ -35,7 +36,7 @@ class LocationRemoteDataSource {
         : storeId;
 
     final response = await _client.rpc<List<dynamic>>(
-      'get_cash_locations_v2',
+      CashEndingConstants.rpcGetCashLocations,
       params: {
         'p_company_id': companyId,
         'p_location_type': locationType,

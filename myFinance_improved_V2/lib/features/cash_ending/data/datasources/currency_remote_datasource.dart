@@ -1,6 +1,7 @@
 // lib/features/cash_ending/data/datasources/currency_remote_datasource.dart
 
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../core/constants.dart';
 
 /// Remote Data Source for Currencies
 ///
@@ -34,7 +35,7 @@ class CurrencyRemoteDataSource {
     DateTime? rateDate,
   }) async {
     final response = await _client.rpc<List<dynamic>>(
-      'get_company_currencies_with_exchange_rates',
+      CashEndingConstants.rpcGetCompanyCurrencies,
       params: {
         'p_company_id': companyId,
         'p_rate_date': rateDate?.toIso8601String().split('T')[0] ??

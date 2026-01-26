@@ -60,24 +60,4 @@ class BalanceSummaryDto with _$BalanceSummaryDto {
       lastUpdated: lastUpdated,
     );
   }
-
-  /// Helper: Get formatted total journal
-  String get formattedTotalJournal =>
-      '$currencySymbol${totalJournal.toStringAsFixed(2)}';
-
-  /// Helper: Get formatted total real
-  String get formattedTotalReal =>
-      '$currencySymbol${totalReal.toStringAsFixed(2)}';
-
-  /// Helper: Get formatted difference
-  String get formattedDifference =>
-      '$currencySymbol${difference.toStringAsFixed(2)}';
-
-  /// Helper: Get status message
-  String get statusMessage {
-    if (isBalanced) return 'Balanced ✓';
-    if (hasShortage) return 'Shortage (${formattedDifference})';
-    if (hasSurplus) return 'Surplus (+${formattedDifference})';
-    return 'Unknown';
-  }
 }

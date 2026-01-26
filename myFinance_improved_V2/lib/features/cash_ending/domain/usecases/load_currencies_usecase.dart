@@ -1,6 +1,5 @@
 // lib/features/cash_ending/domain/usecases/load_currencies_usecase.dart
 
-import '../../../../core/monitoring/sentry_config.dart';
 import '../entities/currency.dart';
 import '../repositories/currency_repository.dart';
 
@@ -76,13 +75,8 @@ class LoadCurrenciesUseCase {
         defaultCurrencyId: defaultCurrencyId,
         baseCurrency: baseCurrency,
       );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'LoadCurrenciesUseCase.execute failed',
-        extra: {'companyId': companyId},
-      );
+    } catch (e) {
+      // Error handling is done at the presentation layer
       rethrow;
     }
   }

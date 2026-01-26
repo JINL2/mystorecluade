@@ -2,8 +2,6 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../../core/utils/number_formatter.dart';
-
 part 'balance_summary.freezed.dart';
 
 /// Domain Entity for Balance Summary
@@ -46,19 +44,6 @@ class BalanceSummary with _$BalanceSummary {
     if (hasShortage) return BalanceStatus.shortage;
     if (hasSurplus) return BalanceStatus.surplus;
     return BalanceStatus.unknown;
-  }
-
-  /// Get formatted amounts with currency symbol and thousand separators
-  /// Uses NumberFormatter utility for cached formatting
-  String get formattedTotalJournal =>
-      NumberFormatter.formatCurrencyDecimal(totalJournal, currencySymbol);
-
-  String get formattedTotalReal =>
-      NumberFormatter.formatCurrencyDecimal(totalReal, currencySymbol);
-
-  String get formattedDifference {
-    final sign = difference > 0 ? '+' : '';
-    return '$sign${NumberFormatter.formatCurrencyDecimal(difference.abs(), currencySymbol)}';
   }
 
   /// Calculate difference percentage (difference / totalReal * 100)

@@ -26,7 +26,7 @@ class JournalRemoteDataSource {
   }) async {
     try {
       final response = await _supabase.rpc(
-        'insert_journal_with_everything_utc',
+        CashEndingConstants.rpcInsertJournal,
         params: {
           'p_base_amount': baseAmount,
           'p_company_id': companyId,

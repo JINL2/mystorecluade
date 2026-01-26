@@ -17,12 +17,25 @@ class CashEndingConstants {
   /// Handles IN, OUT, and RECOUNT transaction types
   static const String rpcInsertAmountMultiCurrency = 'cash_ending_insert_amount_multi_currency';
 
-  /// RPC function for getting location stock flow (UTC version)
-  static const String rpcGetLocationStockFlow = 'get_location_stock_flow_utc';
+  /// RPC function for getting location stock flow
+  /// Returns journal flows (book) and actual flows (physical) with pagination
+  static const String rpcGetLocationStockFlow = 'cash_ending_get_location_stock_flow';
 
   /// RPC function for getting cash location balance summary
   /// Compares journal balance (book) vs actual balance (physical count)
   static const String rpcGetBalanceSummary = 'cash_ending_get_cash_location_balance_summary';
+
+  /// RPC function for getting company currencies with exchange rates
+  /// Returns currencies with denominations and exchange rates to base currency
+  static const String rpcGetCompanyCurrencies = 'get_company_currencies_with_exchange_rates';
+
+  /// RPC function for getting cash locations by type
+  /// Returns locations filtered by company, type, and optional store
+  static const String rpcGetCashLocations = 'get_cash_locations_v2';
+
+  /// RPC function for inserting journal entry with all details
+  /// Creates complete journal entry with header and lines
+  static const String rpcInsertJournal = 'insert_journal_with_everything_utc';
 
   // ============================================================================
   // Pagination Configuration

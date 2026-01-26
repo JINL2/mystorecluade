@@ -1,6 +1,5 @@
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/account_ids.dart';
 import '../repositories/journal_repository.dart';
 
 /// Parameters for creating an error adjustment journal entry
@@ -11,6 +10,8 @@ class CreateErrorAdjustmentParams {
   final String locationName;
   final String cashLocationId;
   final String? storeId;
+  final String cashAccountId;
+  final String errorAccountId;
 
   CreateErrorAdjustmentParams({
     required this.differenceAmount,
@@ -18,6 +19,8 @@ class CreateErrorAdjustmentParams {
     required this.userId,
     required this.locationName,
     required this.cashLocationId,
+    required this.cashAccountId,
+    required this.errorAccountId,
     this.storeId,
   });
 }
@@ -31,9 +34,9 @@ class CreateErrorAdjustmentUseCase {
   CreateErrorAdjustmentUseCase(this.repository);
 
   Future<Map<String, dynamic>> call(CreateErrorAdjustmentParams params) async {
-    // Use centralized account IDs
-    const cashAccountId = AccountIds.cash;
-    const errorAccountId = AccountIds.errorAdjustment;
+    // Use account IDs from params (injected from presentation layer)
+    final cashAccountId = params.cashAccountId;
+    final errorAccountId = params.errorAccountId;
 
     // Get current date
     final now = DateTime.now().toLocal();
