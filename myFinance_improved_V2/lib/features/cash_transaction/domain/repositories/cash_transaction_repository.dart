@@ -40,7 +40,7 @@ abstract class CashTransactionRepository {
 
   /// Get counterparties for company
   ///
-  /// Uses RPC: get_counterparties_v2
+  /// Uses RPC: get_counterparties_v3 (mode: 'list')
   Future<List<Counterparty>> getCounterparties({
     required String companyId,
     String? query,
@@ -50,6 +50,8 @@ abstract class CashTransactionRepository {
   /// Get self-counterparty for a company
   /// This is the counterparty where company_id = linked_company_id
   /// Used for within-company transfers (same company, different stores)
+  ///
+  /// Uses RPC: get_counterparties_v3 (mode: 'list', is_internal=true, linked_company_id=company_id)
   Future<Counterparty?> getSelfCounterparty({
     required String companyId,
   });

@@ -9,11 +9,6 @@ abstract class AccountMappingRepository {
     required String counterpartyId,
   });
 
-  /// Get a single account mapping by ID
-  Future<AccountMapping?> getAccountMappingById({
-    required String mappingId,
-  });
-
   /// Create a new account mapping
   /// V1 uses 'bidirectional' as default direction
   Future<AccountMapping> createAccountMapping({
@@ -25,24 +20,9 @@ abstract class AccountMappingRepository {
     String? createdBy,
   });
 
-  /// Update an existing account mapping
-  Future<AccountMapping> updateAccountMapping({
-    required String mappingId,
-    required String myAccountId,
-    required String linkedAccountId,
-    required String direction,
-  });
-
   /// Delete (soft delete) an account mapping
   Future<bool> deleteAccountMapping({
     required String mappingId,
-  });
-
-  /// Check if an account mapping already exists
-  Future<bool> mappingExists({
-    required String myCompanyId,
-    required String myAccountId,
-    required String counterpartyId,
   });
 
   /// Get available accounts for mapping dropdown

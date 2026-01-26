@@ -204,6 +204,7 @@ Future<bool> deleteCounterParty(
 }
 
 /// Get unlinked companies provider
+/// Uses AppState.user['companies'] instead of DB query for same-owner companies
 @riverpod
 Future<List<Map<String, dynamic>>> unlinkedCompanies(
   UnlinkedCompaniesRef ref,
@@ -213,7 +214,6 @@ Future<List<Map<String, dynamic>>> unlinkedCompanies(
   final companyId = ref.watch(selectedCompanyIdProvider);
 
   debugPrint('🏢 [unlinkedCompaniesProvider] companyId: $companyId');
-  debugPrint('🏢 [unlinkedCompaniesProvider] appState.user: ${appState.user}');
 
   if (companyId == null || appState.user.isEmpty) {
     debugPrint(
@@ -221,22 +221,53 @@ Future<List<Map<String, dynamic>>> unlinkedCompanies(
     return [];
   }
 
-  // Safe type checking instead of unsafe cast
-  final userId = appState.user['user_id'];
-  debugPrint(
-      '🏢 [unlinkedCompaniesProvider] userId: $userId (type: ${userId.runtimeType})');
-
-  if (userId is! String) {
-    debugPrint(
-        '⚠️ [unlinkedCompaniesProvider] userId is not String: ${userId.runtimeType}');
+  // Get companies from AppState (already loaded at app start)
+  final companies = appState.user['companies'] as List<dynamic>? ?? [];
+  if (companies.isEmpty) {
+    debugPrint('⚠️ [unlinkedCompaniesProvider] No companies in AppState');
     return [];
   }
 
-  final result = await repository.getUnlinkedCompanies(
-    userId: userId,
-    companyId: companyId,
-  );
-  debugPrint('✅ [unlinkedCompaniesProvider] Got ${result.length} companies');
+  // Filter out current company (same owner companies are already in AppState)
+  final otherCompanies = companies
+      .where((c) => (c as Map<String, dynamic>)['company_id'] != companyId)
+      .map((c) => c as Map<String, dynamic>)
+      .toList();
+
+  debugPrint('🏢 [unlinkedCompaniesProvider] Other companies: ${otherCompanies.length}');
+
+  if (otherCompanies.isEmpty) {
+    return [];
+  }
+
+  // Get already linked company IDs using RPC
+  final linkedIds = await repository.getLinkedCompanyIds(companyId: companyId);
+  debugPrint('🏢 [unlinkedCompaniesProvider] Linked IDs: $linkedIds');
+
+  // Build result with linked status
+  final availableCompanies = <Map<String, dynamic>>[];
+  final linkedCompanies = <Map<String, dynamic>>[];
+
+  for (final company in otherCompanies) {
+    final cid = company['company_id'] as String;
+    final isAlreadyLinked = linkedIds.contains(cid);
+
+    final companyData = {
+      'company_id': cid,
+      'company_name': company['company_name'] as String? ?? '',
+      'is_already_linked': isAlreadyLinked,
+    };
+
+    if (isAlreadyLinked) {
+      linkedCompanies.add(companyData);
+    } else {
+      availableCompanies.add(companyData);
+    }
+  }
+
+  // Sort: available companies first, then linked companies at the bottom
+  final result = [...availableCompanies, ...linkedCompanies];
+  debugPrint('✅ [unlinkedCompaniesProvider] Got ${result.length} companies (${linkedCompanies.length} already linked)');
   return result;
 }
 

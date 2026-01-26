@@ -27,22 +27,6 @@ class AccountMappingRepositoryImpl implements AccountMappingRepository {
   }
 
   @override
-  Future<AccountMapping?> getAccountMappingById({
-    required String mappingId,
-  }) async {
-    try {
-      final data = await _dataSource.getAccountMappingById(
-        mappingId: mappingId,
-      );
-
-      if (data == null) return null;
-      return AccountMappingDto.fromJson(data).toEntity();
-    } catch (e) {
-      throw Exception('Failed to load account mapping: $e');
-    }
-  }
-
-  @override
   Future<AccountMapping> createAccountMapping({
     required String myCompanyId,
     required String myAccountId,
@@ -111,45 +95,11 @@ class AccountMappingRepositoryImpl implements AccountMappingRepository {
   }
 
   @override
-  Future<AccountMapping> updateAccountMapping({
-    required String mappingId,
-    required String myAccountId,
-    required String linkedAccountId,
-    required String direction,
-  }) async {
-    try {
-      final data = await _dataSource.updateAccountMapping(
-        mappingId: mappingId,
-        myAccountId: myAccountId,
-        linkedAccountId: linkedAccountId,
-        direction: direction,
-      );
-
-      return AccountMappingDto.fromJson(data).toEntity();
-    } catch (e) {
-      throw Exception('Failed to update account mapping: $e');
-    }
-  }
-
-  @override
   Future<bool> deleteAccountMapping({
     required String mappingId,
   }) async {
     return await _dataSource.deleteAccountMapping(
       mappingId: mappingId,
-    );
-  }
-
-  @override
-  Future<bool> mappingExists({
-    required String myCompanyId,
-    required String myAccountId,
-    required String counterpartyId,
-  }) async {
-    return await _dataSource.mappingExists(
-      myCompanyId: myCompanyId,
-      myAccountId: myAccountId,
-      counterpartyId: counterpartyId,
     );
   }
 

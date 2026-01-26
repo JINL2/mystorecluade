@@ -14,50 +14,30 @@ class AccountMappingDataSource {
     required String counterpartyId,
   }) async {
     try {
-      final response = await _client.rpc(
+      final response = await _client.rpc<List<dynamic>>(
         'get_account_mappings_with_company',
         params: {
           'p_counterparty_id': counterpartyId,
         },
       );
 
-      if (response == null) return [];
-      if (response is List) {
-        // Convert UUIDs to strings for Freezed entity
-        return response.map((item) {
-          final map = Map<String, dynamic>.from(item as Map);
-          // Ensure all UUID fields are strings
-          if (map['mapping_id'] != null) map['mapping_id'] = map['mapping_id'].toString();
-          if (map['my_company_id'] != null) map['my_company_id'] = map['my_company_id'].toString();
-          if (map['my_account_id'] != null) map['my_account_id'] = map['my_account_id'].toString();
-          if (map['counterparty_id'] != null) map['counterparty_id'] = map['counterparty_id'].toString();
-          if (map['linked_account_id'] != null) map['linked_account_id'] = map['linked_account_id'].toString();
-          if (map['created_by'] != null) map['created_by'] = map['created_by'].toString();
-          if (map['linked_company_id'] != null) map['linked_company_id'] = map['linked_company_id'].toString();
-          return map;
-        }).toList();
-      }
-      return [];
+      if (response.isEmpty) return [];
+
+      // Convert UUIDs to strings for Freezed entity
+      return response.map((item) {
+        final map = Map<String, dynamic>.from(item as Map);
+        // Ensure all UUID fields are strings
+        if (map['mapping_id'] != null) map['mapping_id'] = map['mapping_id'].toString();
+        if (map['my_company_id'] != null) map['my_company_id'] = map['my_company_id'].toString();
+        if (map['my_account_id'] != null) map['my_account_id'] = map['my_account_id'].toString();
+        if (map['counterparty_id'] != null) map['counterparty_id'] = map['counterparty_id'].toString();
+        if (map['linked_account_id'] != null) map['linked_account_id'] = map['linked_account_id'].toString();
+        if (map['created_by'] != null) map['created_by'] = map['created_by'].toString();
+        if (map['linked_company_id'] != null) map['linked_company_id'] = map['linked_company_id'].toString();
+        return map;
+      }).toList();
     } catch (e) {
       throw Exception('Failed to fetch account mappings: $e');
-    }
-  }
-
-  /// Get a single account mapping by ID
-  Future<Map<String, dynamic>?> getAccountMappingById({
-    required String mappingId,
-  }) async {
-    try {
-      final response = await _client
-          .from('account_mappings')
-          .select()
-          .eq('mapping_id', mappingId)
-          .eq('is_deleted', false)
-          .maybeSingle();
-
-      return response;
-    } catch (e) {
-      throw Exception('Failed to fetch account mapping: $e');
     }
   }
 
@@ -81,15 +61,21 @@ class AccountMappingDataSource {
     String? createdBy,
   }) async {
     try {
-      // Get the linked_company_id from counterparty
-      final counterparty = await _client
-          .from('counterparties')
-          .select('linked_company_id, company_id')
-          .eq('counterparty_id', counterpartyId)
-          .single();
+      // Get the linked_company_id from counterparty using RPC
+      final counterpartyResponse = await _client.rpc<Map<String, dynamic>>(
+        'get_counterparties_v3',
+        params: {
+          'p_counterparty_id': counterpartyId,
+          'p_mode': 'linked_info',
+        },
+      );
 
-      final linkedCompanyId = counterparty['linked_company_id'];
-      final counterpartyOwnerId = counterparty['company_id'];
+      if (counterpartyResponse['success'] != true) {
+        throw Exception(counterpartyResponse['error'] ?? 'Failed to fetch counterparty info');
+      }
+
+      final linkedCompanyId = counterpartyResponse['linked_company_id'];
+      final counterpartyOwnerId = counterpartyResponse['company_id'];
 
       // Validate counterparty data
       if (linkedCompanyId == null) {
@@ -108,7 +94,7 @@ class AccountMappingDataSource {
 
       if (isSameCompany) {
         // Same company: Use create_account_mapping (single direction)
-        final response = await _client.rpc(
+        final response = await _client.rpc<List<dynamic>>(
           'create_account_mapping',
           params: {
             'p_my_company_id': myCompanyId,
@@ -120,12 +106,11 @@ class AccountMappingDataSource {
         );
 
         // RPC returns [{success: bool, message: string, mapping_id: uuid}]
-        final result = response as List;
-        if (result.isEmpty) {
+        if (response.isEmpty) {
           throw Exception('Failed to create mapping');
         }
 
-        final rpcResult = result.first;
+        final rpcResult = response.first as Map<String, dynamic>;
         if (rpcResult['success'] != true) {
           throw Exception(rpcResult['message'] ?? 'Failed to create mapping');
         }
@@ -137,7 +122,7 @@ class AccountMappingDataSource {
         };
       } else {
         // Different companies: Use insert_account_mapping_with_company (bidirectional)
-        final response = await _client.rpc(
+        final response = await _client.rpc<String>(
           'insert_account_mapping_with_company',
           params: {
             'p_my_company_id': myCompanyId,
@@ -180,46 +165,21 @@ class AccountMappingDataSource {
     }
   }
 
-  /// Update an existing account mapping
-  Future<Map<String, dynamic>> updateAccountMapping({
-    required String mappingId,
-    required String myAccountId,
-    required String linkedAccountId,
-    required String direction,
-  }) async {
-    try {
-      final response = await _client
-          .from('account_mappings')
-          .update({
-            'my_account_id': myAccountId,
-            'linked_account_id': linkedAccountId,
-            'direction': direction,
-          })
-          .eq('mapping_id', mappingId)
-          .select()
-          .single();
-
-      return response;
-    } catch (e) {
-      throw Exception('Failed to update account mapping: $e');
-    }
-  }
-
   /// Delete an account mapping
   /// Uses V1 RPC: delete_account_mapping (hard delete, not soft)
   Future<bool> deleteAccountMapping({
     required String mappingId,
   }) async {
     try {
-      final response = await _client.rpc(
+      final response = await _client.rpc<List<dynamic>>(
         'delete_account_mapping',
         params: {
           'p_mapping_id': mappingId,
         },
       );
 
-      // V1 RPC returns: {success: bool, message: text}
-      final result = response.first;
+      // V1 RPC returns: [{success: bool, message: text}]
+      final result = response.first as Map<String, dynamic>;
       if (result['success'] == false) {
         throw Exception(result['message']);
       }
@@ -227,28 +187,6 @@ class AccountMappingDataSource {
       return true;
     } catch (e) {
       throw Exception('Failed to delete account mapping: $e');
-    }
-  }
-
-  /// Check if mapping exists for this account
-  Future<bool> mappingExists({
-    required String myCompanyId,
-    required String myAccountId,
-    required String counterpartyId,
-  }) async {
-    try {
-      final response = await _client
-          .from('account_mappings')
-          .select('mapping_id')
-          .eq('my_company_id', myCompanyId)
-          .eq('my_account_id', myAccountId)
-          .eq('counterparty_id', counterpartyId)
-          .eq('is_deleted', false)
-          .maybeSingle();
-
-      return response != null;
-    } catch (e) {
-      return false;
     }
   }
 
@@ -261,15 +199,15 @@ class AccountMappingDataSource {
     try {
       // Since accounts are shared, we can use the provided company_id
       // The RPC will filter accounts based on debt_tag/category_tag
-      final response = await _client.rpc(
+      final response = await _client.rpc<List<dynamic>>(
         'get_debt_accounts_for_company',
         params: {'p_company_id': companyId},
       );
 
-      if (response == null) return [];
+      if (response.isEmpty) return [];
 
       // Convert response to list
-      final List<Map<String, dynamic>> accounts = (response as List)
+      final List<Map<String, dynamic>> accounts = response
           .map((item) => item as Map<String, dynamic>)
           .toList();
 
@@ -284,24 +222,34 @@ class AccountMappingDataSource {
   }
 
   /// Get linked company info from counterparty
+  /// Uses RPC: get_counterparties_v3 (linked_info mode)
   Future<Map<String, dynamic>?> getLinkedCompanyInfo({
     required String counterpartyId,
   }) async {
     try {
-      final response = await _client
-          .from('counterparties')
-          .select('linked_company_id')
-          .eq('counterparty_id', counterpartyId)
-          .maybeSingle();
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_counterparties_v3',
+        params: {
+          'p_counterparty_id': counterpartyId,
+          'p_mode': 'linked_info',
+        },
+      );
 
-      if (response == null || response['linked_company_id'] == null) {
-        return response;
+      if (response['success'] != true) {
+        // Not found is not an error, return null
+        if (response['error'] == 'Counterparty not found') {
+          return null;
+        }
+        throw Exception(response['error'] ?? 'Failed to fetch linked company info');
       }
 
-      // Convert UUID to string
-      final linkedCompanyId = response['linked_company_id'].toString();
+      final linkedCompanyId = response['linked_company_id'];
+      if (linkedCompanyId == null) {
+        return {'linked_company_id': null};
+      }
+
       return {
-        'linked_company_id': linkedCompanyId,
+        'linked_company_id': linkedCompanyId.toString(),
       };
     } catch (e) {
       throw Exception('Failed to fetch linked company info: $e');

@@ -168,12 +168,10 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getUnlinkedCompanies({
-    required String userId,
+  Future<Set<String>> getLinkedCompanyIds({
     required String companyId,
   }) async {
-    return await _dataSource.getUnlinkedCompanies(
-      userId: userId,
+    return await _dataSource.getLinkedCompanyIds(
       companyId: companyId,
     );
   }

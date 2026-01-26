@@ -1,15 +1,15 @@
-import 'package:flutter/foundation.dart';
 import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Counter Party Data Source - Direct Supabase interaction
+/// Uses get_counterparties_v3 RPC for all READ operations
 class CounterPartyDataSource {
   final SupabaseClient _client;
 
   CounterPartyDataSource(this._client);
 
   /// Get all counter parties for a company
-  /// Includes linked company name for internal counterparties
+  /// Uses RPC mode: 'list'
   Future<List<Map<String, dynamic>>> getCounterParties({
     required String companyId,
     List<String>? typeFilters,
@@ -19,75 +19,92 @@ class CounterPartyDataSource {
     String sortColumn = 'is_internal',
     bool ascending = false,
   }) async {
-    // Join with companies table to get linked company name
-    var query = _client
-        .from('counterparties')
-        .select('*, linked_company:linked_company_id(company_name)')
-        .eq('company_id', companyId)
-        .eq('is_deleted', false);
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_counterparties_v3',
+      params: {
+        'p_company_id': companyId,
+        'p_counterparty_types': typeFilters,
+        'p_is_internal': isInternal,
+        'p_created_after': createdAfter != null ? DateTimeUtils.toUtc(createdAfter) : null,
+        'p_created_before': createdBefore != null ? DateTimeUtils.toUtc(createdBefore) : null,
+        'p_sort_column': sortColumn,
+        'p_sort_ascending': ascending,
+        'p_mode': 'list',
+      },
+    );
 
-    // Apply filters
-    if (typeFilters != null && typeFilters.isNotEmpty) {
-      query = query.inFilter('type', typeFilters);
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to fetch counterparties');
     }
 
-    if (isInternal != null) {
-      query = query.eq('is_internal', isInternal);
-    }
-
-    if (createdAfter != null) {
-      query = query.gte('created_at', DateTimeUtils.toUtc(createdAfter));
-    }
-
-    if (createdBefore != null) {
-      query = query.lte('created_at', DateTimeUtils.toUtc(createdBefore));
-    }
-
-    // Apply sorting
-    final response = await query.order(sortColumn, ascending: ascending);
-
-    // Flatten linked_company data for easier access
-    final results = List<Map<String, dynamic>>.from(response as List);
-    return results.map((item) {
-      final linkedCompany = item['linked_company'] as Map<String, dynamic>?;
-      return {
-        ...item,
-        'linked_company_name': linkedCompany?['company_name'],
-      };
-    }).toList();
+    return List<Map<String, dynamic>>.from(response['data'] as List);
   }
 
   /// Get counter party by ID
+  /// Uses RPC mode: 'single'
   Future<Map<String, dynamic>?> getCounterPartyById(String counterpartyId) async {
-    final response = await _client
-        .from('counterparties')
-        .select()
-        .eq('counterparty_id', counterpartyId)
-        .maybeSingle();
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_counterparties_v3',
+      params: {
+        'p_counterparty_id': counterpartyId,
+        'p_mode': 'single',
+      },
+    );
 
-    return response;
+    if (response['success'] != true) {
+      // Not found is not an error, return null
+      if (response['error'] == 'Counterparty not found') {
+        return null;
+      }
+      throw Exception(response['error'] ?? 'Failed to fetch counterparty');
+    }
+
+    return response['data'] as Map<String, dynamic>;
   }
 
   /// Check if internal counterparty with same linked_company_id already exists
+  /// Uses RPC mode: 'duplicate_check'
   Future<bool> checkDuplicateInternalCounterparty({
     required String companyId,
     required String linkedCompanyId,
     String? excludeCounterpartyId,
   }) async {
-    var query = _client
-        .from('counterparties')
-        .select('counterparty_id')
-        .eq('company_id', companyId)
-        .eq('linked_company_id', linkedCompanyId)
-        .eq('is_deleted', false);
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_counterparties_v3',
+      params: {
+        'p_company_id': companyId,
+        'p_linked_company_id': linkedCompanyId,
+        'p_counterparty_id': excludeCounterpartyId,
+        'p_mode': 'duplicate_check',
+      },
+    );
 
-    // Exclude current counterparty when updating
-    if (excludeCounterpartyId != null) {
-      query = query.neq('counterparty_id', excludeCounterpartyId);
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to check duplicate');
     }
 
-    final response = await query.maybeSingle();
-    return response != null;
+    return response['exists'] as bool;
+  }
+
+  /// Get linked company IDs for a company's counterparties
+  /// Uses RPC mode: 'linked_ids'
+  Future<Set<String>> getLinkedCompanyIds({
+    required String companyId,
+  }) async {
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_counterparties_v3',
+      params: {
+        'p_company_id': companyId,
+        'p_mode': 'linked_ids',
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['error'] ?? 'Failed to fetch linked IDs');
+    }
+
+    final data = response['data'] as List;
+    return data.map((id) => id.toString()).toSet();
   }
 
   /// Create counter party
@@ -206,12 +223,12 @@ class CounterPartyDataSource {
   /// Validate if counter party can be deleted
   /// Returns validation result with debt and transaction info
   Future<Map<String, dynamic>> validateDeletion(String counterpartyId) async {
-    final response = await _client.rpc(
+    final response = await _client.rpc<Map<String, dynamic>>(
       'can_delete_counterparty',
       params: {'p_counterparty_id': counterpartyId},
     );
 
-    return response as Map<String, dynamic>;
+    return response;
   }
 
   /// Soft delete counter party
@@ -222,92 +239,4 @@ class CounterPartyDataSource {
     }).eq('counterparty_id', counterpartyId);
   }
 
-  /// Get all linkable internal companies with linked status
-  /// Shows only companies owned by the same owner as the current company
-  /// (True "internal" companies - same owner, different entities)
-  /// Already linked companies are sorted to the bottom
-  Future<List<Map<String, dynamic>>> getUnlinkedCompanies({
-    required String userId,
-    required String companyId,
-  }) async {
-    try {
-      debugPrint('🔍 [getUnlinkedCompanies] Fetching with userId: $userId, companyId: $companyId');
-
-      // Step 1: Get the current company's owner_id
-      final currentCompany = await _client
-          .from('companies')
-          .select('owner_id')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false)
-          .maybeSingle();
-
-      if (currentCompany == null) {
-        debugPrint('❌ [getUnlinkedCompanies] Current company not found');
-        return [];
-      }
-
-      final ownerId = currentCompany['owner_id'] as String?;
-      if (ownerId == null) {
-        debugPrint('❌ [getUnlinkedCompanies] Current company has no owner');
-        return [];
-      }
-
-      debugPrint('🔍 [getUnlinkedCompanies] Current company owner: $ownerId');
-
-      // Step 2: Get all companies owned by the same owner (true internal companies)
-      final ownedCompanies = await _client
-          .from('companies')
-          .select('company_id, company_name')
-          .eq('owner_id', ownerId)
-          .eq('is_deleted', false)
-          .neq('company_id', companyId); // Exclude current company
-
-      debugPrint('🔍 [getUnlinkedCompanies] Same-owner companies: ${ownedCompanies.length}');
-
-      // Step 3: Get already linked company IDs for current company's counterparties
-      final linkedCounterparties = await _client
-          .from('counterparties')
-          .select('linked_company_id')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false)
-          .not('linked_company_id', 'is', null);
-
-      final linkedIds = (linkedCounterparties as List)
-          .map((cp) => cp['linked_company_id'] as String)
-          .toSet();
-
-      debugPrint('🔍 [getUnlinkedCompanies] Already linked IDs: $linkedIds');
-
-      // Step 4: Build result with owned companies, marking linked status
-      final availableCompanies = <Map<String, dynamic>>[];
-      final linkedCompanies = <Map<String, dynamic>>[];
-
-      for (final company in ownedCompanies) {
-        final cid = company['company_id'] as String;
-        final isAlreadyLinked = linkedIds.contains(cid);
-
-        final companyData = {
-          'company_id': cid,
-          'company_name': company['company_name'] as String,
-          'is_already_linked': isAlreadyLinked,
-        };
-
-        if (isAlreadyLinked) {
-          linkedCompanies.add(companyData);
-        } else {
-          availableCompanies.add(companyData);
-        }
-      }
-
-      // Sort: available companies first, then linked companies at the bottom
-      final result = [...availableCompanies, ...linkedCompanies];
-
-      debugPrint('✅ [getUnlinkedCompanies] Returning ${result.length} internal companies (${linkedCompanies.length} already linked)');
-      return result;
-    } catch (e, stack) {
-      debugPrint('❌ [getUnlinkedCompanies] Error: $e');
-      debugPrint('❌ [getUnlinkedCompanies] Stack: $stack');
-      return [];
-    }
-  }
 }

@@ -47,9 +47,9 @@ abstract class CounterPartyRepository {
   /// Soft delete a counter party
   Future<bool> deleteCounterParty(String counterpartyId);
 
-  /// Get unlinked companies for internal linking
-  Future<List<Map<String, dynamic>>> getUnlinkedCompanies({
-    required String userId,
+  /// Get linked company IDs for a company's counterparties
+  /// Uses RPC mode: 'linked_ids'
+  Future<Set<String>> getLinkedCompanyIds({
     required String companyId,
   });
 }

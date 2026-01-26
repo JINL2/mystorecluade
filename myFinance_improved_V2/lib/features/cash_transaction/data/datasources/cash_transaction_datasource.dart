@@ -120,31 +120,30 @@ class CashTransactionDataSource {
   }
 
   /// Get counterparties for a company
-  /// Uses RPC: get_counterparties_v2
-  /// Note: isInternal filter is applied client-side since RPC doesn't support it
+  /// Uses RPC: get_counterparties_v3 (mode: 'list')
+  /// Server-side filtering for isInternal
   Future<List<CounterpartyModel>> getCounterparties({
     required String companyId,
     bool? isInternal,
   }) async {
     try {
-      final response = await _client.rpc<List<dynamic>>(
-        'get_counterparties_v2',
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_counterparties_v3',
         params: {
           'p_company_id': companyId,
-          'p_counterparty_type': null,
+          'p_is_internal': isInternal,
+          'p_mode': 'list',
         },
       );
 
-      var models = response
-          .map((json) => CounterpartyModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-
-      // Client-side filter for isInternal (RPC doesn't support this filter)
-      if (isInternal != null) {
-        models = models.where((m) => m.isInternal == isInternal).toList();
+      if (response['success'] != true) {
+        throw Exception(response['error'] ?? 'Unknown error');
       }
 
-      return models;
+      final data = response['data'] as List<dynamic>? ?? [];
+      return data
+          .map((json) => CounterpartyModel.fromJson(json as Map<String, dynamic>))
+          .toList();
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -157,29 +156,33 @@ class CashTransactionDataSource {
   }
 
   /// Get self-counterparty for a company
-  /// Uses RPC: get_counterparties_v2 and filters for linked_company_id = company_id
+  /// Uses RPC: get_counterparties_v3 (mode: 'list')
+  /// Server-side filtering: is_internal=true AND linked_company_id=company_id
   /// Used for within-company transfers (same company, different stores)
   Future<CounterpartyModel?> getSelfCounterparty({
     required String companyId,
   }) async {
     try {
-      final response = await _client.rpc<List<dynamic>>(
-        'get_counterparties_v2',
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_counterparties_v3',
         params: {
           'p_company_id': companyId,
-          'p_counterparty_type': null,
+          'p_is_internal': true,
+          'p_linked_company_id': companyId,
+          'p_mode': 'list',
         },
       );
 
-      final models = response
-          .map((json) => CounterpartyModel.fromJson(json as Map<String, dynamic>))
-          .toList();
+      if (response['success'] != true) {
+        throw Exception(response['error'] ?? 'Unknown error');
+      }
 
-      // Find self-counterparty: is_internal = true AND linked_company_id = company_id
-      final selfCounterparty = models.where((m) =>
-          m.isInternal == true && m.linkedCompanyId == companyId).firstOrNull;
+      final data = response['data'] as List<dynamic>? ?? [];
+      if (data.isEmpty) {
+        return null;
+      }
 
-      return selfCounterparty;
+      return CounterpartyModel.fromJson(data.first as Map<String, dynamic>);
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
