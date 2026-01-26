@@ -48,29 +48,6 @@ final roleRemoteDataSourceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RoleRemoteDataSourceRef = AutoDisposeProviderRef<RoleRemoteDataSource>;
-String _$delegationRemoteDataSourceHash() =>
-    r'a7b924e7ad35a5b6619f823f28ba44c0d8129358';
-
-/// Delegation Remote DataSource
-/// Handles all delegation-related Supabase operations
-///
-/// Copied from [delegationRemoteDataSource].
-@ProviderFor(delegationRemoteDataSource)
-final delegationRemoteDataSourceProvider =
-    AutoDisposeProvider<DelegationRemoteDataSource>.internal(
-  delegationRemoteDataSource,
-  name: r'delegationRemoteDataSourceProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$delegationRemoteDataSourceHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DelegationRemoteDataSourceRef
-    = AutoDisposeProviderRef<DelegationRemoteDataSource>;
 String _$roleRepositoryHash() => r'465d1eef88ac8c8cc1d1e56e209ff08d47122072';
 
 /// Role Repository
@@ -91,28 +68,6 @@ final roleRepositoryProvider = AutoDisposeProvider<RoleRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RoleRepositoryRef = AutoDisposeProviderRef<RoleRepository>;
-String _$delegationRepositoryHash() =>
-    r'69696f8a33cad29f7fc2cf996c2229eb5b221ea6';
-
-/// Delegation Repository
-/// Implements domain DelegationRepository interface
-///
-/// Copied from [delegationRepository].
-@ProviderFor(delegationRepository)
-final delegationRepositoryProvider =
-    AutoDisposeProvider<DelegationRepository>.internal(
-  delegationRepository,
-  name: r'delegationRepositoryProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$delegationRepositoryHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef DelegationRepositoryRef = AutoDisposeProviderRef<DelegationRepository>;
 String _$createRoleUseCaseHash() => r'f582896aee60bdd76ef47186d5fc06b20d556e5c';
 
 /// Create Role UseCase

@@ -1,13 +1,13 @@
-import '../entities/delegatable_role.dart';
 import '../entities/role.dart';
+import '../entities/role_member.dart';
+import '../entities/role_permission_info.dart';
 
 /// Abstract repository for Role management
 abstract class RoleRepository {
   /// Get all roles for a company
   Future<List<Role>> getAllCompanyRoles(String companyId, String? currentUserId);
 
-  /// Get a single role by ID
-  Future<Role> getRoleById(String roleId);
+  // getRoleById removed - data already available from get_company_roles_optimized RPC
 
   /// Create a new role
   Future<String> createRole({
@@ -26,20 +26,21 @@ abstract class RoleRepository {
     List<String>? tags,
   });
 
-  /// Delete a role
-  Future<void> deleteRole(String roleId, String companyId);
+  /// Delete a role (soft delete with audit trail)
+  Future<void> deleteRole({
+    required String roleId,
+    required String companyId,
+    required String deletedBy,
+  });
 
-  /// Get role permissions
-  Future<Map<String, dynamic>> getRolePermissions(String roleId);
+  /// Get role permissions with categorized features
+  Future<RolePermissionInfo> getRolePermissions(String roleId);
 
   /// Update role permissions
   Future<void> updateRolePermissions(String roleId, Set<String> permissions);
 
-  /// Get roles that can be delegated by current user
-  Future<List<DelegatableRole>> getDelegatableRoles(String companyId);
-
-  /// Get role members
-  Future<List<Map<String, dynamic>>> getRoleMembers(String roleId);
+  /// Get role members as typed entities
+  Future<List<RoleMember>> getRoleMembers(String roleId);
 
   /// Assign user to role
   Future<void> assignUserToRole({

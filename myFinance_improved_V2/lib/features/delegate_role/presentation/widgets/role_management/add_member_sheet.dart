@@ -9,20 +9,22 @@ import 'package:myfinance_improved/shared/themes/toss_opacity.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
-import '../../../di/delegate_role_providers.dart';
-import '../../providers/role_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+
+import '../../providers/role_providers.dart';
 
 /// Add Member Bottom Sheet for assigning users to a role
 class AddMemberSheet extends ConsumerStatefulWidget {
   final String roleId;
   final String roleName;
+  final String companyId;
   final VoidCallback onMemberAdded;
 
   const AddMemberSheet({
     super.key,
     required this.roleId,
     required this.roleName,
+    required this.companyId,
     required this.onMemberAdded,
   });
 
@@ -52,15 +54,12 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
       // ✅ Use GetUserRoleAssignmentsUseCase instead of direct Supabase access
       final getUserRoleAssignmentsUseCase =
           ref.read(getUserRoleAssignmentsUseCaseProvider);
-      final roleRepository = ref.read(roleRepositoryProvider);
-
-      // Get role to extract company ID
-      final role = await roleRepository.getRoleById(widget.roleId);
 
       // Get all user role assignments for this company
+      // companyId is now passed directly, eliminating getRoleById query
       final assignments = await getUserRoleAssignmentsUseCase.execute(
         roleId: widget.roleId,
-        companyId: role.companyId,
+        companyId: widget.companyId,
       );
 
       if (mounted) {
@@ -80,8 +79,8 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // First get the role data to extract companyId
-    final roleAsync = ref.watch(roleByIdProvider(widget.roleId));
+    // companyId is now passed directly, no need for roleByIdProvider
+    final companyUsersAsync = ref.watch(companyUsersProvider(widget.companyId));
 
     return Container(
       decoration: const BoxDecoration(
@@ -139,180 +138,155 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
             ),
           ),
 
-          // Users list - fetch users after getting companyId from role
+          // Users list - companyId is now passed directly
           Expanded(
-            child: roleAsync.when(
-              data: (role) {
-                // Now fetch users for this company
-                final companyUsersAsync =
-                    ref.watch(companyUsersProvider(role.companyId));
-
-                return companyUsersAsync.when(
-                  data: (users) {
-                    if (users.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.people_outline,
-                              size: TossSpacing.icon4XL,
-                              color: TossColors.gray300,
-                            ),
-                            const SizedBox(height: TossSpacing.space4),
-                            Text(
-                              'No users found',
-                              style: TossTextStyles.h3.copyWith(
-                                color: TossColors.gray600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: TossSpacing.space5),
-                      itemCount: users.length,
-                      separatorBuilder: (context, index) => Container(
-                        margin: const EdgeInsets.symmetric(
-                            vertical: TossSpacing.space1),
-                        height: 0.5,
-                        color: TossColors.gray200,
-                      ),
-                      itemBuilder: (context, index) {
-                        final user = users[index];
-                        final userId = user['id'] as String;
-                        final userName = user['name'] as String;
-                        final userEmail = user['email'] as String;
-                        final currentRole = user['role'] as String;
-                        final isSelected = _selectedUserIds.contains(userId);
-
-                        // Check if user is owner or already has the target role
-                        final isOwner = currentRole.toLowerCase() == 'owner';
-                        final hasTargetRole =
-                            _isUserAlreadyAssigned(userId, currentRole);
-                        final isDisabled = isOwner || hasTargetRole;
-
-                        return Material(
-                          color: TossColors.transparent,
-                          child: InkWell(
-                            onTap: isDisabled
-                                ? null
-                                : () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedUserIds.remove(userId);
-                                      } else {
-                                        _selectedUserIds.add(userId);
-                                      }
-                                    });
-                                  },
-                            borderRadius:
-                                BorderRadius.circular(TossBorderRadius.sm),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: TossSpacing.space3),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: TossSpacing.iconXXL,
-                                    height: TossSpacing.iconXXL,
-                                    decoration: BoxDecoration(
-                                      color: isOwner
-                                          ? Color.alphaBlend(
-                                              TossColors.primary
-                                                  .withValues(alpha: TossOpacity.light),
-                                              TossColors.background,
-                                            )
-                                          : isDisabled
-                                              ? TossColors.gray100
-                                              : TossColors.gray200,
-                                      borderRadius: BorderRadius.circular(
-                                          TossBorderRadius.xxl),
-                                    ),
-                                    child: Icon(
-                                      isOwner ? Icons.star : Icons.person,
-                                      color: isOwner
-                                          ? TossColors.primary
-                                          : isDisabled
-                                              ? TossColors.gray400
-                                              : TossColors.gray600,
-                                    ),
-                                  ),
-                                  const SizedBox(width: TossSpacing.space3),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          userName,
-                                          style: TossTextStyles.body.copyWith(
-                                            fontWeight: TossFontWeight.semibold,
-                                            color: isDisabled
-                                                ? TossColors.gray500
-                                                : TossColors.gray900,
-                                          ),
-                                        ),
-                                        Text(
-                                          userEmail,
-                                          style:
-                                              TossTextStyles.bodySmall.copyWith(
-                                            color: isDisabled
-                                                ? TossColors.gray400
-                                                : TossColors.gray600,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Current: $currentRole',
-                                          style:
-                                              TossTextStyles.caption.copyWith(
-                                            color: isDisabled
-                                                ? TossColors.gray400
-                                                : TossColors.gray500,
-                                            fontWeight: TossFontWeight.medium,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  _buildRoleBadge(currentRole, hasTargetRole),
-                                  if (isSelected) ...[
-                                    const SizedBox(width: TossSpacing.space2),
-                                    const Icon(
-                                      Icons.check,
-                                      color: TossColors.primary,
-                                      size: TossSpacing.iconMD2,
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  loading: () => const Center(
-                    child: TossLoadingView(),
-                  ),
-                  error: (error, stack) => Center(
+            child: companyUsersAsync.when(
+              data: (users) {
+                if (users.isEmpty) {
+                  return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline,
-                            color: TossColors.error, size: TossSpacing.iconXXL),
-                        const SizedBox(height: TossSpacing.space3),
+                        const Icon(
+                          Icons.people_outline,
+                          size: TossSpacing.icon4XL,
+                          color: TossColors.gray300,
+                        ),
+                        const SizedBox(height: TossSpacing.space4),
                         Text(
-                          'Failed to load users',
-                          style: TossTextStyles.body
-                              .copyWith(color: TossColors.error),
+                          'No users found',
+                          style: TossTextStyles.h3.copyWith(
+                            color: TossColors.gray600,
+                          ),
                         ),
                       ],
                     ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: TossSpacing.space5,
                   ),
+                  itemCount: users.length,
+                  separatorBuilder: (context, index) => Container(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: TossSpacing.space1,
+                    ),
+                    height: 0.5,
+                    color: TossColors.gray200,
+                  ),
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    final userId = user['id'] as String;
+                    final userName = user['name'] as String;
+                    final userEmail = user['email'] as String;
+                    final currentRole = user['role'] as String;
+                    final isSelected = _selectedUserIds.contains(userId);
+
+                    // Check if user is owner or already has the target role
+                    final isOwner = currentRole.toLowerCase() == 'owner';
+                    final hasTargetRole =
+                        _isUserAlreadyAssigned(userId, currentRole);
+                    final isDisabled = isOwner || hasTargetRole;
+
+                    return Material(
+                      color: TossColors.transparent,
+                      child: InkWell(
+                        onTap: isDisabled
+                            ? null
+                            : () {
+                                setState(() {
+                                  if (isSelected) {
+                                    _selectedUserIds.remove(userId);
+                                  } else {
+                                    _selectedUserIds.add(userId);
+                                  }
+                                });
+                              },
+                        borderRadius:
+                            BorderRadius.circular(TossBorderRadius.sm),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: TossSpacing.space3,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: TossSpacing.iconXXL,
+                                height: TossSpacing.iconXXL,
+                                decoration: BoxDecoration(
+                                  color: isOwner
+                                      ? Color.alphaBlend(
+                                          TossColors.primary
+                                              .withValues(alpha: TossOpacity.light),
+                                          TossColors.background,
+                                        )
+                                      : isDisabled
+                                          ? TossColors.gray100
+                                          : TossColors.gray200,
+                                  borderRadius: BorderRadius.circular(
+                                    TossBorderRadius.xxl,
+                                  ),
+                                ),
+                                child: Icon(
+                                  isOwner ? Icons.star : Icons.person,
+                                  color: isOwner
+                                      ? TossColors.primary
+                                      : isDisabled
+                                          ? TossColors.gray400
+                                          : TossColors.gray600,
+                                ),
+                              ),
+                              const SizedBox(width: TossSpacing.space3),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      userName,
+                                      style: TossTextStyles.body.copyWith(
+                                        fontWeight: TossFontWeight.semibold,
+                                        color: isDisabled
+                                            ? TossColors.gray500
+                                            : TossColors.gray900,
+                                      ),
+                                    ),
+                                    Text(
+                                      userEmail,
+                                      style: TossTextStyles.bodySmall.copyWith(
+                                        color: isDisabled
+                                            ? TossColors.gray400
+                                            : TossColors.gray600,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Current: $currentRole',
+                                      style: TossTextStyles.caption.copyWith(
+                                        color: isDisabled
+                                            ? TossColors.gray400
+                                            : TossColors.gray500,
+                                        fontWeight: TossFontWeight.medium,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              _buildRoleBadge(currentRole, hasTargetRole),
+                              if (isSelected) ...[
+                                const SizedBox(width: TossSpacing.space2),
+                                const Icon(
+                                  Icons.check,
+                                  color: TossColors.primary,
+                                  size: TossSpacing.iconMD2,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
               loading: () => const Center(
@@ -322,13 +296,17 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline,
-                        color: TossColors.error, size: TossSpacing.iconXXL),
+                    const Icon(
+                      Icons.error_outline,
+                      color: TossColors.error,
+                      size: TossSpacing.iconXXL,
+                    ),
                     const SizedBox(height: TossSpacing.space3),
                     Text(
-                      'Failed to load role',
-                      style:
-                          TossTextStyles.body.copyWith(color: TossColors.error),
+                      'Failed to load users',
+                      style: TossTextStyles.body.copyWith(
+                        color: TossColors.error,
+                      ),
                     ),
                   ],
                 ),
@@ -426,12 +404,8 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
     setState(() => _isAssigning = true);
 
     try {
-      // Get roleRepository to fetch companyId
-      final roleRepository = ref.read(roleRepositoryProvider);
-      final role = await roleRepository.getRoleById(widget.roleId);
-      final companyId = role.companyId;
-
       // ✅ Use AssignUserToRoleUseCase to assign all selected users
+      // companyId is now passed directly, eliminating getRoleById query
       final assignUserUseCase = ref.read(assignUserToRoleUseCaseProvider);
 
       // Assign each selected user
@@ -439,7 +413,7 @@ class _AddMemberSheetState extends ConsumerState<AddMemberSheet> {
         await assignUserUseCase.execute(
           userId: userId,
           roleId: widget.roleId,
-          companyId: companyId,
+          companyId: widget.companyId,
         );
 
         // Update local role assignments to reflect the change immediately

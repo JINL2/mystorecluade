@@ -1,5 +1,6 @@
-import '../../domain/entities/delegatable_role.dart';
 import '../../domain/entities/role.dart';
+import '../../domain/entities/role_member.dart';
+import '../../domain/entities/role_permission_info.dart';
 import '../../domain/repositories/role_repository.dart';
 import '../datasources/role_remote_data_source.dart';
 
@@ -21,11 +22,7 @@ class RoleRepositoryImpl implements RoleRepository {
     return models.map((model) => model.toEntity()).toList();
   }
 
-  @override
-  Future<Role> getRoleById(String roleId) async {
-    final model = await _remoteDataSource.getRoleById(roleId);
-    return model.toEntity();
-  }
+  // getRoleById removed - data already available from get_company_roles_optimized RPC
 
   @override
   Future<String> createRole({
@@ -60,13 +57,51 @@ class RoleRepositoryImpl implements RoleRepository {
   }
 
   @override
-  Future<void> deleteRole(String roleId, String companyId) async {
-    return await _remoteDataSource.deleteRole(roleId, companyId);
+  Future<void> deleteRole({
+    required String roleId,
+    required String companyId,
+    required String deletedBy,
+  }) async {
+    return await _remoteDataSource.deleteRole(
+      roleId: roleId,
+      companyId: companyId,
+      deletedBy: deletedBy,
+    );
   }
 
   @override
-  Future<Map<String, dynamic>> getRolePermissions(String roleId) async {
-    return await _remoteDataSource.getRolePermissions(roleId);
+  Future<RolePermissionInfo> getRolePermissions(String roleId) async {
+    final data = await _remoteDataSource.getRolePermissions(roleId);
+
+    // Convert raw data to typed entities
+    final currentPermissions = data['currentPermissions'] as Set<String>? ?? {};
+    final categoriesData = data['categories'] as List<dynamic>? ?? [];
+
+    final categories = categoriesData.map((cat) {
+      final catMap = cat as Map<String, dynamic>;
+      final featuresData = catMap['features'] as List<dynamic>? ?? [];
+
+      final features = featuresData.map((f) {
+        final featureMap = f as Map<String, dynamic>;
+        return Feature(
+          featureId: featureMap['feature_id'] as String,
+          featureName: featureMap['feature_name'] as String,
+          description: featureMap['description'] as String?,
+        );
+      }).toList();
+
+      return FeatureCategory(
+        categoryId: catMap['category_id'] as String,
+        categoryName: catMap['category_name'] as String,
+        description: catMap['description'] as String?,
+        features: features,
+      );
+    }).toList();
+
+    return RolePermissionInfo(
+      currentPermissions: currentPermissions,
+      categories: categories,
+    );
   }
 
   @override
@@ -78,15 +113,19 @@ class RoleRepositoryImpl implements RoleRepository {
   }
 
   @override
-  Future<List<DelegatableRole>> getDelegatableRoles(String companyId) async {
-    // Note: This needs current user role, but we don't have it in domain
-    // For now, return empty list - needs refactoring
-    return [];
-  }
+  Future<List<RoleMember>> getRoleMembers(String roleId) async {
+    final data = await _remoteDataSource.getRoleMembers(roleId);
 
-  @override
-  Future<List<Map<String, dynamic>>> getRoleMembers(String roleId) async {
-    return await _remoteDataSource.getRoleMembers(roleId);
+    return data.map((memberMap) {
+      return RoleMember(
+        userId: memberMap['user_id'] as String,
+        name: memberMap['name'] as String,
+        email: memberMap['email'] as String,
+        assignedAt: memberMap['created_at'] != null
+            ? DateTime.tryParse(memberMap['created_at'] as String)
+            : null,
+      );
+    }).toList();
   }
 
   @override

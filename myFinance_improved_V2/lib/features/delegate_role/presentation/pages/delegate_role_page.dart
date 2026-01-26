@@ -294,6 +294,7 @@ class _DelegateRolePageState extends ConsumerState<DelegateRolePage> {
       context,
       roleId: role.roleId,
       roleName: role.roleName,
+      companyId: role.companyId,
       description: role.description,
       tags: role.tags,
       permissions: role.permissions,

@@ -9,6 +9,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 
 import '../../../../../core/subscription/index.dart';
 import '../../../di/delegate_role_providers.dart';
+import '../../../domain/entities/role_member.dart';
 import '../../providers/role_providers.dart';
 import 'add_member_sheet.dart';
 
@@ -16,12 +17,14 @@ import 'add_member_sheet.dart';
 class MembersTab extends ConsumerStatefulWidget {
   final String roleId;
   final String roleName;
+  final String companyId;
   final bool canEdit;
 
   const MembersTab({
     super.key,
     required this.roleId,
     required this.roleName,
+    required this.companyId,
     required this.canEdit,
   });
 
@@ -42,7 +45,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
 
         // Members content
         Expanded(
-          child: FutureBuilder<List<Map<String, dynamic>>>(
+          child: FutureBuilder<List<RoleMember>>(
             future: _getRoleMembers(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -82,10 +85,10 @@ class _MembersTabState extends ConsumerState<MembersTab> {
                 itemBuilder: (context, index) {
                   final member = members[index];
                   return _buildMemberItem(
-                    userId: member['user_id'] as String,
-                    name: (member['name'] as String?) ?? 'Unknown User',
-                    email: (member['email'] as String?) ?? '',
-                    joinedDate: _formatJoinDate(member['created_at'] as String?),
+                    userId: member.userId,
+                    name: member.name,
+                    email: member.email,
+                    joinedDate: _formatJoinDate(member.assignedAt),
                   );
                 },
               );
@@ -292,7 +295,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
     );
   }
 
-  Future<List<Map<String, dynamic>>> _getRoleMembers() async {
+  Future<List<RoleMember>> _getRoleMembers() async {
     try {
       final getRoleMembersUseCase = ref.read(getRoleMembersUseCaseProvider);
       final members = await getRoleMembersUseCase.execute(widget.roleId);
@@ -303,12 +306,11 @@ class _MembersTabState extends ConsumerState<MembersTab> {
     }
   }
 
-  String _formatJoinDate(dynamic createdAt) {
-    if (createdAt == null) return 'Role assigned recently';
+  String _formatJoinDate(DateTime? assignedAt) {
+    if (assignedAt == null) return 'Role assigned recently';
 
     try {
-      final date = DateTime.parse(createdAt.toString());
-      final dateLocal = date.isUtc ? date.toLocal() : date;
+      final dateLocal = assignedAt.isUtc ? assignedAt.toLocal() : assignedAt;
       final now = DateTime.now();
       final difference = now.difference(dateLocal);
 
@@ -359,6 +361,7 @@ class _MembersTabState extends ConsumerState<MembersTab> {
           child: AddMemberSheet(
             roleId: widget.roleId,
             roleName: widget.roleName,
+            companyId: widget.companyId,
             onMemberAdded: () {
               ref.invalidate(companyUsersProvider);
               setState(() {});

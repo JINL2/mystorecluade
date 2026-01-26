@@ -8,6 +8,7 @@ import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 
+import '../../../domain/entities/role_permission_info.dart';
 import '../../providers/role_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -41,8 +42,8 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
         ref.watch(rolePermissionsProvider(widget.roleId));
 
     return rolePermissionsAsync.when(
-      data: (permissionData) {
-        final categories = permissionData['categories'] as List;
+      data: (permissionInfo) {
+        final categories = permissionInfo.categories;
 
         return SingleChildScrollView(
           primary: true,
@@ -63,13 +64,9 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
 
               // Permission categories
               ...categories.map((category) {
-                final categoryName = category['category_name'] as String;
-                final features = (category['features'] as List? ?? [])
-                    .cast<Map<String, dynamic>>();
+                if (category.features.isEmpty) return const SizedBox.shrink();
 
-                if (features.isEmpty) return const SizedBox.shrink();
-
-                return _buildPermissionCategory(categoryName, features);
+                return _buildPermissionCategory(category);
               }),
             ],
           ),
@@ -105,7 +102,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
     );
   }
 
-  Widget _buildHeaderSection(List categories) {
+  Widget _buildHeaderSection(List<FeatureCategory> categories) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -143,10 +140,8 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
                 // Select all available permissions
                 final allFeatureIds = <String>{};
                 for (final category in categories) {
-                  final features = (category['features'] as List? ?? [])
-                      .cast<Map<String, dynamic>>();
-                  for (final feature in features) {
-                    allFeatureIds.add(feature['feature_id'] as String);
+                  for (final feature in category.features) {
+                    allFeatureIds.add(feature.featureId);
                   }
                 }
                 widget.onPermissionsChanged(allFeatureIds);
@@ -161,10 +156,11 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
     );
   }
 
-  Widget _buildPermissionCategory(
-      String title, List<Map<String, dynamic>> features) {
+  Widget _buildPermissionCategory(FeatureCategory category) {
+    final title = category.categoryName;
+    final features = category.features;
     final isExpanded = _expandedCategories.contains(title);
-    final featureIds = features.map((f) => f['feature_id'] as String).toList();
+    final featureIds = features.map((f) => f.featureId).toList();
     final selectedCount = featureIds
         .where((id) => widget.selectedPermissions.contains(id))
         .length;
@@ -206,12 +202,14 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
               ),
               child: Column(
                 children: features.map((feature) {
-                  final featureId = feature['feature_id'] as String;
-                  final featureName = feature['feature_name'] as String;
                   final isSelected =
-                      widget.selectedPermissions.contains(featureId);
+                      widget.selectedPermissions.contains(feature.featureId);
 
-                  return _buildPermissionItem(featureId, featureName, isSelected);
+                  return _buildPermissionItem(
+                    feature.featureId,
+                    feature.featureName,
+                    isSelected,
+                  );
                 }).toList(),
               ),
             ),
@@ -223,7 +221,7 @@ class _PermissionsTabState extends ConsumerState<PermissionsTab> {
 
   Widget _buildCategoryHeader(
     String title,
-    List<Map<String, dynamic>> features,
+    List<Feature> features,
     List<String> featureIds,
     bool isExpanded,
     bool allSelected,

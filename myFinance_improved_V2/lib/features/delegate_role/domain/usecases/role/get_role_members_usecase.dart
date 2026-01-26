@@ -1,5 +1,6 @@
 // lib/features/delegate_role/domain/usecases/role/get_role_members_usecase.dart
 
+import '../../entities/role_member.dart';
 import '../../exceptions/role_exceptions.dart';
 import '../../repositories/role_repository.dart';
 
@@ -16,9 +17,9 @@ class GetRoleMembersUseCase {
 
   /// Execute the use case
   ///
-  /// Returns list of role members with their details
+  /// Returns list of role members as typed entities
   /// Throws [RoleMembersFetchException] if fetch fails
-  Future<List<Map<String, dynamic>>> execute(String roleId) async {
+  Future<List<RoleMember>> execute(String roleId) async {
     try {
       final members = await _repository.getRoleMembers(roleId);
       return members;

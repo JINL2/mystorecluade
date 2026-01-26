@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_animations.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -24,6 +25,7 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 class RoleManagementSheet extends ConsumerStatefulWidget {
   final String roleId;
   final String roleName;
+  final String companyId;
   final String? description;
   final List<String> tags;
   final List<String> permissions;
@@ -35,6 +37,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
     super.key,
     required this.roleId,
     required this.roleName,
+    required this.companyId,
     this.description,
     required this.tags,
     required this.permissions,
@@ -47,6 +50,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
     BuildContext context, {
     required String roleId,
     required String roleName,
+    required String companyId,
     String? description,
     required List<String> tags,
     required List<String> permissions,
@@ -104,6 +108,7 @@ class RoleManagementSheet extends ConsumerStatefulWidget {
               child: RoleManagementSheet(
                 roleId: roleId,
                 roleName: roleName,
+                companyId: companyId,
                 description: description,
                 tags: tags,
                 permissions: permissions,
@@ -130,6 +135,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   final FocusNode _roleNameFocus = FocusNode();
   final FocusNode _descriptionFocus = FocusNode();
   bool _isLoading = false;
+  bool _isDeleting = false;
   bool _isEditingText = false;
   Set<String> _selectedPermissions = {};
   List<String> _selectedTags = [];
@@ -224,6 +230,7 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
               MembersTab(
                 roleId: widget.roleId,
                 roleName: widget.roleName,
+                companyId: widget.companyId,
                 canEdit: widget.canEdit,
               ),
             ],
@@ -238,6 +245,11 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
   }
 
   Widget _buildBottomAction() {
+    // Check if role is deletable (custom roles only, not Owner/Employee)
+    final isDeletableRole = !['owner', 'employee'].contains(
+      widget.roleName.toLowerCase(),
+    );
+
     return Container(
       decoration: const BoxDecoration(
         color: TossColors.background,
@@ -252,11 +264,26 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
             TossSpacing.space5,
             TossSpacing.space4,
           ),
-          child: TossButton.primary(
-            text: 'Save Changes',
-            fullWidth: true,
-            isLoading: _isLoading,
-            onPressed: _isLoading ? null : _saveChanges,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TossButton.primary(
+                text: 'Save Changes',
+                fullWidth: true,
+                isLoading: _isLoading,
+                onPressed: _isLoading || _isDeleting ? null : _saveChanges,
+              ),
+              // Delete button for custom roles only
+              if (isDeletableRole) ...[
+                const SizedBox(height: TossSpacing.space3),
+                TossButton.destructive(
+                  text: 'Delete Role',
+                  fullWidth: true,
+                  isLoading: _isDeleting,
+                  onPressed: _isLoading || _isDeleting ? null : _confirmDeleteRole,
+                ),
+              ],
+            ],
           ),
         ),
       ),
@@ -333,6 +360,95 @@ class _RoleManagementSheetState extends ConsumerState<RoleManagementSheet>
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  /// Show delete confirmation dialog
+  Future<void> _confirmDeleteRole() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => TossDialog.warning(
+        title: 'Delete Role?',
+        message:
+            'Are you sure you want to delete "${widget.roleName}"? '
+            'Members will be reassigned to the Employee role.',
+        primaryButtonText: 'Delete',
+        secondaryButtonText: 'Cancel',
+        onPrimaryPressed: () => context.pop(true),
+        onSecondaryPressed: () => context.pop(false),
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await _deleteRole();
+    }
+  }
+
+  /// Delete the role
+  Future<void> _deleteRole() async {
+    // Get current user ID for audit trail
+    final currentUserId = ref.read(currentUserIdProvider);
+    if (currentUserId == null) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Authentication Error',
+            message: 'Please log in again to delete this role.',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => context.pop(),
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() => _isDeleting = true);
+
+    try {
+      final roleActions = ref.read(roleActionsNotifierProvider.notifier);
+
+      await roleActions.deleteRole(
+        roleId: widget.roleId,
+        companyId: widget.companyId,
+        deletedBy: currentUserId,
+      );
+
+      if (mounted) {
+        // Close the management sheet
+        Navigator.pop(context);
+
+        // Show success dialog
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TossDialog.success(
+            title: 'Role Deleted',
+            message: '"${widget.roleName}" has been deleted successfully.',
+            primaryButtonText: 'Done',
+            onPrimaryPressed: () => context.pop(),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        await showDialog<void>(
+          context: context,
+          barrierDismissible: true,
+          builder: (context) => TossDialog.error(
+            title: 'Failed to Delete Role',
+            message: 'Could not delete role: $e',
+            primaryButtonText: 'OK',
+            onPrimaryPressed: () => context.pop(),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDeleting = false);
       }
     }
   }

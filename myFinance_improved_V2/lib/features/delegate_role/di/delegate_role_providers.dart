@@ -8,13 +8,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Data Layer
-import '../data/datasources/delegation_remote_data_source.dart';
 import '../data/datasources/role_remote_data_source.dart';
-import '../data/repositories/delegation_repository_impl.dart';
 import '../data/repositories/role_repository_impl.dart';
 
 // Domain Layer
-import '../domain/repositories/delegation_repository.dart';
 import '../domain/repositories/role_repository.dart';
 import '../domain/usecases/role/assign_user_to_role_usecase.dart';
 import '../domain/usecases/role/create_role_usecase.dart';
@@ -48,16 +45,6 @@ RoleRemoteDataSource roleRemoteDataSource(RoleRemoteDataSourceRef ref) {
   return RoleRemoteDataSource(client);
 }
 
-/// Delegation Remote DataSource
-/// Handles all delegation-related Supabase operations
-@riverpod
-DelegationRemoteDataSource delegationRemoteDataSource(
-  DelegationRemoteDataSourceRef ref,
-) {
-  final client = ref.watch(supabaseClientProvider);
-  return DelegationRemoteDataSource(client);
-}
-
 // ============================================================================
 // TIER 3: REPOSITORIES - Domain Interface Implementations
 // ============================================================================
@@ -68,14 +55,6 @@ DelegationRemoteDataSource delegationRemoteDataSource(
 RoleRepository roleRepository(RoleRepositoryRef ref) {
   final dataSource = ref.watch(roleRemoteDataSourceProvider);
   return RoleRepositoryImpl(dataSource);
-}
-
-/// Delegation Repository
-/// Implements domain DelegationRepository interface
-@riverpod
-DelegationRepository delegationRepository(DelegationRepositoryRef ref) {
-  final dataSource = ref.watch(delegationRemoteDataSourceProvider);
-  return DelegationRepositoryImpl(dataSource);
 }
 
 // ============================================================================

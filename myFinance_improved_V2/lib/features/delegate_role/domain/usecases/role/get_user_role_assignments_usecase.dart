@@ -18,22 +18,16 @@ class GetUserRoleAssignmentsUseCase {
   ///
   /// Returns a map of user IDs to their assigned role IDs
   /// Throws [RoleException] if fetch fails
+  ///
+  /// Note: companyId is now passed directly from the widget (which received it
+  /// from get_company_roles_optimized RPC), eliminating the need for getRoleById
   Future<Map<String, String?>> execute({
     required String roleId,
     required String companyId,
   }) async {
     try {
-      // Get the role to verify it exists and get company context
-      final role = await _repository.getRoleById(roleId);
-
-      // Verify role belongs to the specified company
-      if (role.companyId != companyId) {
-        throw const RoleValidationException(
-          'Role does not belong to the specified company',
-        );
-      }
-
       // Get all roles for this company
+      // companyId is passed directly, eliminating getRoleById query
       final allRoles = await _repository.getAllCompanyRoles(companyId, null);
 
       // Get all users in all roles for this company
@@ -42,18 +36,11 @@ class GetUserRoleAssignmentsUseCase {
       for (final companyRole in allRoles) {
         final members = await _repository.getRoleMembers(companyRole.roleId);
         for (final member in members) {
-          final userId = member['user_id'] as String?;
-          if (userId != null) {
-            assignments[userId] = companyRole.roleId;
-          }
+          assignments[member.userId] = companyRole.roleId;
         }
       }
 
       return assignments;
-    } on RoleValidationException {
-      rethrow;
-    } on RoleNotFoundException {
-      rethrow;
     } catch (e, stackTrace) {
       throw RoleMembersFetchException(
         'Failed to get user role assignments: $e',

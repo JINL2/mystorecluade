@@ -170,165 +170,24 @@ class _AllCompanyRolesProviderElement
   CompanyRolesParams get params => (origin as AllCompanyRolesProvider).params;
 }
 
-String _$roleByIdHash() => r'c0f04aff7d83a34cca39e773531a267a553f7714';
+String _$rolePermissionsHash() => r'77de17df8bf830b6265220ee30c2eefa23169073';
 
-/// Get role by ID
-///
-/// Copied from [roleById].
-@ProviderFor(roleById)
-const roleByIdProvider = RoleByIdFamily();
-
-/// Get role by ID
-///
-/// Copied from [roleById].
-class RoleByIdFamily extends Family<AsyncValue<Role>> {
-  /// Get role by ID
-  ///
-  /// Copied from [roleById].
-  const RoleByIdFamily();
-
-  /// Get role by ID
-  ///
-  /// Copied from [roleById].
-  RoleByIdProvider call(
-    String roleId,
-  ) {
-    return RoleByIdProvider(
-      roleId,
-    );
-  }
-
-  @override
-  RoleByIdProvider getProviderOverride(
-    covariant RoleByIdProvider provider,
-  ) {
-    return call(
-      provider.roleId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'roleByIdProvider';
-}
-
-/// Get role by ID
-///
-/// Copied from [roleById].
-class RoleByIdProvider extends AutoDisposeFutureProvider<Role> {
-  /// Get role by ID
-  ///
-  /// Copied from [roleById].
-  RoleByIdProvider(
-    String roleId,
-  ) : this._internal(
-          (ref) => roleById(
-            ref as RoleByIdRef,
-            roleId,
-          ),
-          from: roleByIdProvider,
-          name: r'roleByIdProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$roleByIdHash,
-          dependencies: RoleByIdFamily._dependencies,
-          allTransitiveDependencies: RoleByIdFamily._allTransitiveDependencies,
-          roleId: roleId,
-        );
-
-  RoleByIdProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.roleId,
-  }) : super.internal();
-
-  final String roleId;
-
-  @override
-  Override overrideWith(
-    FutureOr<Role> Function(RoleByIdRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: RoleByIdProvider._internal(
-        (ref) => create(ref as RoleByIdRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        roleId: roleId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<Role> createElement() {
-    return _RoleByIdProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is RoleByIdProvider && other.roleId == roleId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, roleId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin RoleByIdRef on AutoDisposeFutureProviderRef<Role> {
-  /// The parameter `roleId` of this provider.
-  String get roleId;
-}
-
-class _RoleByIdProviderElement extends AutoDisposeFutureProviderElement<Role>
-    with RoleByIdRef {
-  _RoleByIdProviderElement(super.provider);
-
-  @override
-  String get roleId => (origin as RoleByIdProvider).roleId;
-}
-
-String _$rolePermissionsHash() => r'5830fa0411fcf82386eb2d6a06725b350304ccdd';
-
-/// Get role permissions
+/// Get role permissions with typed entities
 ///
 /// Copied from [rolePermissions].
 @ProviderFor(rolePermissions)
 const rolePermissionsProvider = RolePermissionsFamily();
 
-/// Get role permissions
+/// Get role permissions with typed entities
 ///
 /// Copied from [rolePermissions].
-class RolePermissionsFamily extends Family<AsyncValue<Map<String, dynamic>>> {
-  /// Get role permissions
+class RolePermissionsFamily extends Family<AsyncValue<RolePermissionInfo>> {
+  /// Get role permissions with typed entities
   ///
   /// Copied from [rolePermissions].
   const RolePermissionsFamily();
 
-  /// Get role permissions
+  /// Get role permissions with typed entities
   ///
   /// Copied from [rolePermissions].
   RolePermissionsProvider call(
@@ -363,12 +222,12 @@ class RolePermissionsFamily extends Family<AsyncValue<Map<String, dynamic>>> {
   String? get name => r'rolePermissionsProvider';
 }
 
-/// Get role permissions
+/// Get role permissions with typed entities
 ///
 /// Copied from [rolePermissions].
 class RolePermissionsProvider
-    extends AutoDisposeFutureProvider<Map<String, dynamic>> {
-  /// Get role permissions
+    extends AutoDisposeFutureProvider<RolePermissionInfo> {
+  /// Get role permissions with typed entities
   ///
   /// Copied from [rolePermissions].
   RolePermissionsProvider(
@@ -404,7 +263,7 @@ class RolePermissionsProvider
 
   @override
   Override overrideWith(
-    FutureOr<Map<String, dynamic>> Function(RolePermissionsRef provider) create,
+    FutureOr<RolePermissionInfo> Function(RolePermissionsRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -421,7 +280,7 @@ class RolePermissionsProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<Map<String, dynamic>> createElement() {
+  AutoDisposeFutureProviderElement<RolePermissionInfo> createElement() {
     return _RolePermissionsProviderElement(this);
   }
 
@@ -441,13 +300,13 @@ class RolePermissionsProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin RolePermissionsRef on AutoDisposeFutureProviderRef<Map<String, dynamic>> {
+mixin RolePermissionsRef on AutoDisposeFutureProviderRef<RolePermissionInfo> {
   /// The parameter `roleId` of this provider.
   String get roleId;
 }
 
 class _RolePermissionsProviderElement
-    extends AutoDisposeFutureProviderElement<Map<String, dynamic>>
+    extends AutoDisposeFutureProviderElement<RolePermissionInfo>
     with RolePermissionsRef {
   _RolePermissionsProviderElement(super.provider);
 
@@ -455,170 +314,24 @@ class _RolePermissionsProviderElement
   String get roleId => (origin as RolePermissionsProvider).roleId;
 }
 
-String _$delegatableRolesHash() => r'677178a6980c3b882612fa12e0619f8a20d839de';
+String _$roleMembersHash() => r'be9ac9bb56501bf8b442e50dd31b053fef79b893';
 
-/// Get delegatable roles
-///
-/// Copied from [delegatableRoles].
-@ProviderFor(delegatableRoles)
-const delegatableRolesProvider = DelegatableRolesFamily();
-
-/// Get delegatable roles
-///
-/// Copied from [delegatableRoles].
-class DelegatableRolesFamily extends Family<AsyncValue<List<DelegatableRole>>> {
-  /// Get delegatable roles
-  ///
-  /// Copied from [delegatableRoles].
-  const DelegatableRolesFamily();
-
-  /// Get delegatable roles
-  ///
-  /// Copied from [delegatableRoles].
-  DelegatableRolesProvider call(
-    String companyId,
-  ) {
-    return DelegatableRolesProvider(
-      companyId,
-    );
-  }
-
-  @override
-  DelegatableRolesProvider getProviderOverride(
-    covariant DelegatableRolesProvider provider,
-  ) {
-    return call(
-      provider.companyId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'delegatableRolesProvider';
-}
-
-/// Get delegatable roles
-///
-/// Copied from [delegatableRoles].
-class DelegatableRolesProvider
-    extends AutoDisposeFutureProvider<List<DelegatableRole>> {
-  /// Get delegatable roles
-  ///
-  /// Copied from [delegatableRoles].
-  DelegatableRolesProvider(
-    String companyId,
-  ) : this._internal(
-          (ref) => delegatableRoles(
-            ref as DelegatableRolesRef,
-            companyId,
-          ),
-          from: delegatableRolesProvider,
-          name: r'delegatableRolesProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$delegatableRolesHash,
-          dependencies: DelegatableRolesFamily._dependencies,
-          allTransitiveDependencies:
-              DelegatableRolesFamily._allTransitiveDependencies,
-          companyId: companyId,
-        );
-
-  DelegatableRolesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.companyId,
-  }) : super.internal();
-
-  final String companyId;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<DelegatableRole>> Function(DelegatableRolesRef provider)
-        create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DelegatableRolesProvider._internal(
-        (ref) => create(ref as DelegatableRolesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        companyId: companyId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<DelegatableRole>> createElement() {
-    return _DelegatableRolesProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DelegatableRolesProvider && other.companyId == companyId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, companyId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DelegatableRolesRef
-    on AutoDisposeFutureProviderRef<List<DelegatableRole>> {
-  /// The parameter `companyId` of this provider.
-  String get companyId;
-}
-
-class _DelegatableRolesProviderElement
-    extends AutoDisposeFutureProviderElement<List<DelegatableRole>>
-    with DelegatableRolesRef {
-  _DelegatableRolesProviderElement(super.provider);
-
-  @override
-  String get companyId => (origin as DelegatableRolesProvider).companyId;
-}
-
-String _$roleMembersHash() => r'f98ff2a4c886b11f01f2e60db648e3240c3b8610';
-
-/// Get role members
+/// Get role members as typed entities
 ///
 /// Copied from [roleMembers].
 @ProviderFor(roleMembers)
 const roleMembersProvider = RoleMembersFamily();
 
-/// Get role members
+/// Get role members as typed entities
 ///
 /// Copied from [roleMembers].
-class RoleMembersFamily extends Family<AsyncValue<List<Map<String, dynamic>>>> {
-  /// Get role members
+class RoleMembersFamily extends Family<AsyncValue<List<RoleMember>>> {
+  /// Get role members as typed entities
   ///
   /// Copied from [roleMembers].
   const RoleMembersFamily();
 
-  /// Get role members
+  /// Get role members as typed entities
   ///
   /// Copied from [roleMembers].
   RoleMembersProvider call(
@@ -653,12 +366,11 @@ class RoleMembersFamily extends Family<AsyncValue<List<Map<String, dynamic>>>> {
   String? get name => r'roleMembersProvider';
 }
 
-/// Get role members
+/// Get role members as typed entities
 ///
 /// Copied from [roleMembers].
-class RoleMembersProvider
-    extends AutoDisposeFutureProvider<List<Map<String, dynamic>>> {
-  /// Get role members
+class RoleMembersProvider extends AutoDisposeFutureProvider<List<RoleMember>> {
+  /// Get role members as typed entities
   ///
   /// Copied from [roleMembers].
   RoleMembersProvider(
@@ -694,8 +406,7 @@ class RoleMembersProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<Map<String, dynamic>>> Function(RoleMembersRef provider)
-        create,
+    FutureOr<List<RoleMember>> Function(RoleMembersRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -712,7 +423,7 @@ class RoleMembersProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<Map<String, dynamic>>> createElement() {
+  AutoDisposeFutureProviderElement<List<RoleMember>> createElement() {
     return _RoleMembersProviderElement(this);
   }
 
@@ -732,14 +443,13 @@ class RoleMembersProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin RoleMembersRef
-    on AutoDisposeFutureProviderRef<List<Map<String, dynamic>>> {
+mixin RoleMembersRef on AutoDisposeFutureProviderRef<List<RoleMember>> {
   /// The parameter `roleId` of this provider.
   String get roleId;
 }
 
 class _RoleMembersProviderElement
-    extends AutoDisposeFutureProviderElement<List<Map<String, dynamic>>>
+    extends AutoDisposeFutureProviderElement<List<RoleMember>>
     with RoleMembersRef {
   _RoleMembersProviderElement(super.provider);
 
@@ -916,300 +626,6 @@ final allFeaturesWithCategoriesProvider =
 // ignore: unused_element
 typedef AllFeaturesWithCategoriesRef
     = AutoDisposeFutureProviderRef<List<Map<String, dynamic>>>;
-String _$activeDelegationsHash() => r'62f536f1ebe053f35afa00b625b5a087b1770d9b';
-
-/// Get active delegations
-///
-/// Copied from [activeDelegations].
-@ProviderFor(activeDelegations)
-const activeDelegationsProvider = ActiveDelegationsFamily();
-
-/// Get active delegations
-///
-/// Copied from [activeDelegations].
-class ActiveDelegationsFamily extends Family<AsyncValue<List<RoleDelegation>>> {
-  /// Get active delegations
-  ///
-  /// Copied from [activeDelegations].
-  const ActiveDelegationsFamily();
-
-  /// Get active delegations
-  ///
-  /// Copied from [activeDelegations].
-  ActiveDelegationsProvider call(
-    ActiveDelegationsParams params,
-  ) {
-    return ActiveDelegationsProvider(
-      params,
-    );
-  }
-
-  @override
-  ActiveDelegationsProvider getProviderOverride(
-    covariant ActiveDelegationsProvider provider,
-  ) {
-    return call(
-      provider.params,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'activeDelegationsProvider';
-}
-
-/// Get active delegations
-///
-/// Copied from [activeDelegations].
-class ActiveDelegationsProvider
-    extends AutoDisposeFutureProvider<List<RoleDelegation>> {
-  /// Get active delegations
-  ///
-  /// Copied from [activeDelegations].
-  ActiveDelegationsProvider(
-    ActiveDelegationsParams params,
-  ) : this._internal(
-          (ref) => activeDelegations(
-            ref as ActiveDelegationsRef,
-            params,
-          ),
-          from: activeDelegationsProvider,
-          name: r'activeDelegationsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$activeDelegationsHash,
-          dependencies: ActiveDelegationsFamily._dependencies,
-          allTransitiveDependencies:
-              ActiveDelegationsFamily._allTransitiveDependencies,
-          params: params,
-        );
-
-  ActiveDelegationsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.params,
-  }) : super.internal();
-
-  final ActiveDelegationsParams params;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<RoleDelegation>> Function(ActiveDelegationsRef provider)
-        create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ActiveDelegationsProvider._internal(
-        (ref) => create(ref as ActiveDelegationsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        params: params,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<RoleDelegation>> createElement() {
-    return _ActiveDelegationsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is ActiveDelegationsProvider && other.params == params;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, params.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ActiveDelegationsRef
-    on AutoDisposeFutureProviderRef<List<RoleDelegation>> {
-  /// The parameter `params` of this provider.
-  ActiveDelegationsParams get params;
-}
-
-class _ActiveDelegationsProviderElement
-    extends AutoDisposeFutureProviderElement<List<RoleDelegation>>
-    with ActiveDelegationsRef {
-  _ActiveDelegationsProviderElement(super.provider);
-
-  @override
-  ActiveDelegationsParams get params =>
-      (origin as ActiveDelegationsProvider).params;
-}
-
-String _$delegationHistoryHash() => r'0b600b86573b8c0a5d01b5e15597876f4085d083';
-
-/// Get delegation history
-///
-/// Copied from [delegationHistory].
-@ProviderFor(delegationHistory)
-const delegationHistoryProvider = DelegationHistoryFamily();
-
-/// Get delegation history
-///
-/// Copied from [delegationHistory].
-class DelegationHistoryFamily
-    extends Family<AsyncValue<List<DelegationAudit>>> {
-  /// Get delegation history
-  ///
-  /// Copied from [delegationHistory].
-  const DelegationHistoryFamily();
-
-  /// Get delegation history
-  ///
-  /// Copied from [delegationHistory].
-  DelegationHistoryProvider call(
-    String companyId,
-  ) {
-    return DelegationHistoryProvider(
-      companyId,
-    );
-  }
-
-  @override
-  DelegationHistoryProvider getProviderOverride(
-    covariant DelegationHistoryProvider provider,
-  ) {
-    return call(
-      provider.companyId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'delegationHistoryProvider';
-}
-
-/// Get delegation history
-///
-/// Copied from [delegationHistory].
-class DelegationHistoryProvider
-    extends AutoDisposeFutureProvider<List<DelegationAudit>> {
-  /// Get delegation history
-  ///
-  /// Copied from [delegationHistory].
-  DelegationHistoryProvider(
-    String companyId,
-  ) : this._internal(
-          (ref) => delegationHistory(
-            ref as DelegationHistoryRef,
-            companyId,
-          ),
-          from: delegationHistoryProvider,
-          name: r'delegationHistoryProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$delegationHistoryHash,
-          dependencies: DelegationHistoryFamily._dependencies,
-          allTransitiveDependencies:
-              DelegationHistoryFamily._allTransitiveDependencies,
-          companyId: companyId,
-        );
-
-  DelegationHistoryProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.companyId,
-  }) : super.internal();
-
-  final String companyId;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<DelegationAudit>> Function(DelegationHistoryRef provider)
-        create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DelegationHistoryProvider._internal(
-        (ref) => create(ref as DelegationHistoryRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        companyId: companyId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<List<DelegationAudit>> createElement() {
-    return _DelegationHistoryProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is DelegationHistoryProvider && other.companyId == companyId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, companyId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DelegationHistoryRef
-    on AutoDisposeFutureProviderRef<List<DelegationAudit>> {
-  /// The parameter `companyId` of this provider.
-  String get companyId;
-}
-
-class _DelegationHistoryProviderElement
-    extends AutoDisposeFutureProviderElement<List<DelegationAudit>>
-    with DelegationHistoryRef {
-  _DelegationHistoryProviderElement(super.provider);
-
-  @override
-  String get companyId => (origin as DelegationHistoryProvider).companyId;
-}
-
 String _$rolePageNotifierHash() => r'd10df24d0ece53904ca015c4d1d373f17f842899';
 
 /// Role Page State Notifier
@@ -1267,7 +683,7 @@ final roleManagementNotifierProvider = AutoDisposeNotifierProvider<
 
 typedef _$RoleManagementNotifier = AutoDisposeNotifier<RoleManagementState>;
 String _$roleActionsNotifierHash() =>
-    r'17de7a14659490c790ef09fb7a64c9f7fc548906';
+    r'833ca006b5faad9f4fd41a9a1bcb981e8bb78df6';
 
 /// Role Actions Notifier for mutations
 ///
@@ -1285,24 +701,5 @@ final roleActionsNotifierProvider =
 );
 
 typedef _$RoleActionsNotifier = AutoDisposeNotifier<AsyncValue<void>>;
-String _$delegationActionsNotifierHash() =>
-    r'5f933b7afdd129d55f7fc1c8853c46091fbed826';
-
-/// Delegation Actions Notifier for mutations
-///
-/// Copied from [DelegationActionsNotifier].
-@ProviderFor(DelegationActionsNotifier)
-final delegationActionsNotifierProvider = AutoDisposeNotifierProvider<
-    DelegationActionsNotifier, AsyncValue<void>>.internal(
-  DelegationActionsNotifier.new,
-  name: r'delegationActionsNotifierProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$delegationActionsNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$DelegationActionsNotifier = AutoDisposeNotifier<AsyncValue<void>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

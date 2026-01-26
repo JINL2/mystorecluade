@@ -3,7 +3,7 @@ import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../models/delegatable_role_model.dart';
+import '../../domain/value_objects/role_priority.dart';
 import '../models/role_model.dart';
 
 /// Remote data source for Role management
@@ -37,22 +37,12 @@ class RoleRemoteDataSource {
     }
   }
 
-  /// Get a single role by ID
-  Future<RoleModel> getRoleById(String roleId) async {
-    try {
-      final response = await _supabase
-          .from('roles')
-          .select('*')
-          .eq('role_id', roleId)
-          .single();
+  // getRoleById removed - data already available from get_company_roles_optimized RPC
+  // All callers now receive companyId directly via widget parameters
 
-      return RoleModel.fromJson(response);
-    } catch (e) {
-      throw Exception('Failed to get role: $e');
-    }
-  }
-
-  /// Create a new role
+  /// Create a new role using RPC
+  /// RPC: delegate_role_manage_role (action: 'create')
+  /// Replaces: 1 INSERT query
   Future<String> createRole({
     required String companyId,
     required String roleName,
@@ -61,29 +51,30 @@ class RoleRemoteDataSource {
     List<String>? tags,
   }) async {
     try {
-      final response = await _supabase
-          .from('roles')
-          .insert({
-            'company_id': companyId,
-            'role_name': roleName,
-            'role_type': roleType,
-            'description': description,
-            'tags': tags ?? [],
-          })
-          .select()
-          .single();
-
-      return response['role_id'] as String;
-    } on PostgrestException catch (e) {
-      // Data layer only handles database errors, not business validation
-      // Business rules are enforced in Domain layer (UseCases/Validators)
-      throw Exception('Database error: ${e.message}');
+      final result = await _supabase.rpc<Map<String, dynamic>>(
+        'delegate_role_manage_role',
+        params: {
+          'p_action': 'create',
+          'p_company_id': companyId,
+          'p_role_name': roleName,
+          'p_role_type': roleType,
+          'p_description': description,
+          'p_tags': tags ?? [],
+        },
+      );
+      if (result['success'] == true) {
+        return result['role_id'] as String;
+      } else {
+        throw Exception(result['message'] ?? 'Failed to create role');
+      }
     } catch (e) {
       throw Exception('Failed to create role: $e');
     }
   }
 
-  /// Update role details (name, description, tags)
+  /// Update role details (name, description, tags) using RPC
+  /// RPC: delegate_role_manage_role (action: 'update')
+  /// Replaces: 1 UPDATE query
   Future<void> updateRoleDetails({
     required String roleId,
     required String roleName,
@@ -91,281 +82,135 @@ class RoleRemoteDataSource {
     List<String>? tags,
   }) async {
     try {
-      final updateData = <String, dynamic>{
-        'role_name': roleName,
-        'description': description,
-        'updated_at': DateTimeUtils.nowUtc(),
-      };
+      final result = await _supabase.rpc<Map<String, dynamic>>(
+        'delegate_role_manage_role',
+        params: {
+          'p_action': 'update',
+          'p_role_id': roleId,
+          'p_role_name': roleName,
+          'p_description': description,
+          if (tags != null) 'p_tags': tags,
+        },
+      );
 
-      if (tags != null) {
-        updateData['tags'] = tags;
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to update role');
       }
-
-      await _supabase.from('roles').update(updateData).eq('role_id', roleId);
-    } on PostgrestException catch (e) {
-      // Data layer only handles database errors, not business validation
-      throw Exception('Database error: ${e.message}');
     } catch (e) {
       throw Exception('Failed to update role details: $e');
     }
   }
 
-  /// Delete a role
-  Future<void> deleteRole(String roleId, String companyId) async {
+  /// Delete a role using RPC (soft delete)
+  /// RPC: delegate_role_manage_role (action: 'delete')
+  /// Replaces: 5 queries (Employee lookup, user_roles select, user reassignment, permissions delete, role delete)
+  /// v2.0: Now requires deletedBy for audit trail
+  Future<void> deleteRole({
+    required String roleId,
+    required String companyId,
+    required String deletedBy,
+  }) async {
     try {
-      // First, find a default role to reassign users to (e.g., Employee role)
-      final defaultRolesResponse = await _supabase
-          .from('roles')
-          .select('role_id')
-          .eq('company_id', companyId)
-          .eq('role_name', 'Employee')
-          .limit(1);
+      final result = await _supabase.rpc<Map<String, dynamic>>(
+        'delegate_role_manage_role',
+        params: {
+          'p_action': 'delete',
+          'p_role_id': roleId,
+          'p_company_id': companyId,
+          'p_deleted_by': deletedBy,
+        },
+      );
 
-      String? defaultRoleId;
-      if (defaultRolesResponse.isNotEmpty) {
-        defaultRoleId = defaultRolesResponse.first['role_id'] as String?;
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to delete role');
       }
-
-      // Get users currently assigned to this role
-      final usersWithRole = await _supabase
-          .from('user_roles')
-          .select('user_id')
-          .eq('role_id', roleId);
-
-      // Handle user reassignment
-      if (usersWithRole.isNotEmpty) {
-        if (defaultRoleId != null) {
-          // Reassign users to Employee role
-          for (final userRole in usersWithRole) {
-            await _supabase
-                .from('user_roles')
-                .update({'role_id': defaultRoleId})
-                .eq('role_id', roleId)
-                .eq('user_id', userRole['user_id'] as Object);
-          }
-        } else {
-          // If no Employee role exists, remove user role assignments
-          await _supabase.from('user_roles').delete().eq('role_id', roleId);
-        }
-      }
-
-      // Delete role permissions
-      await _supabase.from('role_permissions').delete().eq('role_id', roleId);
-
-      // Delete the role
-      await _supabase.from('roles').delete().eq('role_id', roleId);
     } catch (e) {
       throw Exception('Failed to delete role: $e');
     }
   }
 
   /// Get role permissions with all available features categorized
+  /// RPC: delegate_role_get_role_permissions
+  /// Replaces: 2 calls (role_permissions SELECT + get_categories_with_features RPC)
+  /// Performance: Single RPC returns both current permissions and all categories
   Future<Map<String, dynamic>> getRolePermissions(String roleId) async {
     try {
-      // Get current permissions for the role
-      final permissionsResponse = await _supabase
-          .from('role_permissions')
-          .select('feature_id')
-          .eq('role_id', roleId);
+      final result = await _supabase.rpc<Map<String, dynamic>>(
+        'delegate_role_get_role_permissions',
+        params: {'p_role_id': roleId},
+      );
 
-      final currentPermissions = (permissionsResponse as List)
-          .map((p) => p['feature_id'] as String)
-          .toSet();
-
-      // Get all features with categories using RPC
-      final categories = await _supabase.rpc<List<dynamic>>('get_categories_with_features');
+      // Extract current permissions as Set<String> for O(1) lookup
+      final permissionsList =
+          (result['current_permissions'] as List<dynamic>?) ?? <dynamic>[];
+      final currentPermissions =
+          permissionsList.map((p) => p.toString()).toSet();
 
       return {
         'currentPermissions': currentPermissions,
-        'categories': categories,
+        'categories': result['categories'] ?? <dynamic>[],
       };
     } catch (e) {
       return {
         'currentPermissions': <String>{},
-        'categories': [],
+        'categories': <dynamic>[],
       };
     }
   }
 
-  /// Update role permissions
+  /// Update role permissions using RPC
+  /// RPC: delegate_role_update_permissions
+  /// Replaces: 2 queries (DELETE + INSERT)
   Future<void> updateRolePermissions(
     String roleId,
     Set<String> newPermissions,
   ) async {
     try {
-      // First, delete all existing permissions for the role
-      await _supabase.from('role_permissions').delete().eq('role_id', roleId);
+      final result = await _supabase.rpc<Map<String, dynamic>>(
+        'delegate_role_update_permissions',
+        params: {
+          'p_role_id': roleId,
+          'p_permissions': newPermissions.toList(),
+        },
+      );
 
-      // Then, insert the new permissions
-      if (newPermissions.isNotEmpty) {
-        final permissionInserts = newPermissions
-            .map((featureId) => {
-                  'role_id': roleId,
-                  'feature_id': featureId,
-                },)
-            .toList();
-
-        await _supabase.from('role_permissions').insert(permissionInserts);
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to update permissions');
       }
     } catch (e) {
       throw Exception('Failed to update role permissions: $e');
     }
   }
 
-  /// Get roles that can be delegated by current user
-  ///
-  /// Performance optimized: Uses 2 queries instead of 1+N
-  Future<List<DelegatableRoleModel>> getDelegatableRoles(
-    String companyId,
-    String currentUserRole,
-  ) async {
-    try {
-      // Step 1: Fetch all roles for the company
-      final rolesResponse =
-          await _supabase.from('roles').select('*').eq('company_id', companyId);
-
-      final roles = rolesResponse as List;
-      if (roles.isEmpty) return [];
-
-      // Step 2: Fetch ALL permissions for ALL roles in a single query
-      final roleIds = roles.map((r) => r['role_id'] as String).toList();
-      final permissionsResponse = await _supabase
-          .from('role_permissions')
-          .select('role_id, feature_id')
-          .inFilter('role_id', roleIds);
-
-      // Step 3: Group permissions by role_id
-      final permissionsByRole = <String, List<String>>{};
-      for (final perm in permissionsResponse as List) {
-        final roleId = perm['role_id'] as String;
-        final featureId = perm['feature_id'] as String;
-        permissionsByRole.putIfAbsent(roleId, () => []).add(featureId);
-      }
-
-      // Step 4: Build delegatable roles list (no more DB queries)
-      final canDelegateRoles = <DelegatableRoleModel>[];
-      final normalizedCurrentRole = currentUserRole.toLowerCase();
-
-      for (final role in roles) {
-        final roleId = role['role_id'] as String;
-        final roleName = role['role_name'] as String;
-        final roleType = role['role_type'] as String? ?? '';
-
-        bool canDelegate = false;
-        String description = '';
-
-        // Determine if current user can delegate this role
-        if (normalizedCurrentRole == 'owner') {
-          canDelegate = true;
-          description = 'Full delegation rights as Owner';
-        } else if (normalizedCurrentRole == 'manager') {
-          // Managers can only delegate to employees
-          if (roleName.toLowerCase() == 'employee') {
-            canDelegate = true;
-            description = 'Can delegate Employee role';
-          }
-        }
-
-        if (canDelegate) {
-          canDelegateRoles.add(DelegatableRoleModel(
-            roleId: roleId,
-            roleName: roleName,
-            description: description.isEmpty
-                ? 'Role type: $roleType'
-                : description,
-            permissions: permissionsByRole[roleId] ?? [],
-            canDelegate: canDelegate,
-          ));
-        }
-      }
-
-      return canDelegateRoles;
-    } catch (e, stackTrace) {
-      // Log error to Sentry for production monitoring
-      await SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'DataSource: Failed to get delegatable roles',
-        extra: {
-          'company_id': companyId,
-          'current_user_role': currentUserRole,
-          'layer': 'data_source',
-          'method': 'getDelegatableRoles',
-        },
-        level: SentryLevel.error,
-      );
-      return [];
-    }
-  }
-
-  /// Get role members
+  /// Get role members using RPC
+  /// RPC: delegate_role_get_members
+  /// Replaces: 2 queries (user_roles SELECT + users SELECT)
   Future<List<Map<String, dynamic>>> getRoleMembers(String roleId) async {
     try {
-      // Get user IDs from user_roles table
-      final userRolesResponse = await _supabase
-          .from('user_roles')
-          .select('user_id, created_at')
-          .eq('role_id', roleId)
-          .eq('is_deleted', false);
+      final response = await _supabase.rpc<List<dynamic>>(
+        'delegate_role_get_members',
+        params: {'p_role_id': roleId},
+      );
 
-      if (userRolesResponse.isEmpty) {
-        return [];
-      }
-
-      // Extract user IDs with safe type handling
-      final userRoles = userRolesResponse as List;
-      final userIds = userRoles
-          .map((item) {
-            if (item is Map<String, dynamic>) {
-              return item['user_id'] as String?;
-            }
-            return null;
-          })
-          .whereType<String>()
-          .toList();
-
-      if (userIds.isEmpty) return [];
-
-      // Get user details from users table
-      final usersResponse = await _supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email')
-          .inFilter('user_id', userIds);
-
-      final members = <Map<String, dynamic>>[];
-      final users = usersResponse as List;
-
-      for (final userData in users) {
-        if (userData is! Map<String, dynamic>) continue;
-
-        // Find the corresponding user_role entry to get created_at
-        final userId = userData['user_id'] as String?;
-        if (userId == null) continue;
-
-        final userRole = userRoles.firstWhere(
-          (role) => role is Map && role['user_id'] == userId,
-          orElse: () => <String, dynamic>{},
-        ) as Map<String, dynamic>;
-
-        final firstName = userData['first_name'] as String? ?? '';
-        final lastName = userData['last_name'] as String? ?? '';
+      return response.map((dynamic item) {
+        final data = item as Map<String, dynamic>;
+        final firstName = data['first_name'] as String? ?? '';
+        final lastName = data['last_name'] as String? ?? '';
         final fullName = '$firstName $lastName'.trim();
 
-        // Convert created_at from UTC to local time
-        final createdAtUtc = userRole['created_at'] as String?;
-        final createdAtLocal = createdAtUtc != null
-            ? DateTimeUtils.toLocalSafe(createdAtUtc)
+        // Convert assigned_at from UTC to local time
+        final assignedAtUtc = data['assigned_at'] as String?;
+        final assignedAtLocal = assignedAtUtc != null
+            ? DateTimeUtils.toLocalSafe(assignedAtUtc)
             : null;
 
-        members.add({
-          'user_id': userId,
+        return {
+          'user_id': data['user_id'] as String,
           'name': fullName.isEmpty ? 'Unknown User' : fullName,
-          'email': userData['email'] as String? ?? 'No email',
-          'created_at': createdAtLocal?.toIso8601String(),
-        });
-      }
-
-      return members;
+          'email': data['email'] as String? ?? 'No email',
+          'created_at': assignedAtLocal?.toIso8601String(),
+        };
+      }).toList();
     } catch (e, stackTrace) {
       // Log error to Sentry for production monitoring
       await SentryConfig.captureException(
@@ -383,94 +228,43 @@ class RoleRemoteDataSource {
     }
   }
 
-  /// Assign user to role
+  /// Assign user to role using RPC
+  /// RPC: delegate_role_assign_user
+  /// Replaces: 5 queries (role lookup, duplicate check, company roles, existing roles, insert)
   Future<void> assignUserToRole({
     required String userId,
     required String roleId,
     required String companyId,
   }) async {
     try {
-      // Get the company_id for this role
-      final roleData = await _supabase
-          .from('roles')
-          .select('company_id')
-          .eq('role_id', roleId)
-          .single()
-          .timeout(const Duration(seconds: 10));
+      final result = await _supabase.rpc<Map<String, dynamic>>(
+        'delegate_role_assign_user',
+        params: {
+          'p_user_id': userId,
+          'p_role_id': roleId,
+          'p_company_id': companyId,
+        },
+      );
 
-      final roleCompanyId = roleData['company_id'] as String;
-
-      // Check if user already has this exact role
-      final existingExactRole = await _supabase
-          .from('user_roles')
-          .select('user_role_id')
-          .eq('user_id', userId)
-          .eq('role_id', roleId as Object)
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-
-      // Business validation moved to Domain layer (AssignUserToRoleUseCase)
-      // Data layer just performs the operation
-      if (existingExactRole.isNotEmpty) {
-        throw Exception('Database constraint: User already has this role');
+      if (result['success'] != true) {
+        throw Exception(result['message'] ?? 'Failed to assign user to role');
       }
-
-      // Get all roles for this company to find any existing role
-      final companyRoles = await _supabase
-          .from('roles')
-          .select('role_id')
-          .eq('company_id', roleCompanyId as Object)
-          .timeout(const Duration(seconds: 10));
-
-      final roleIds = companyRoles.map((r) => r['role_id']).toList();
-
-      // Check if user has any role in this company
-      final existingUserRoles = await _supabase
-          .from('user_roles')
-          .select('user_role_id, role_id')
-          .eq('user_id', userId)
-          .inFilter('role_id', roleIds)
-          .eq('is_deleted', false)
-          .timeout(const Duration(seconds: 10));
-
-      // Insert new role (trigger will handle deactivating old role if exists)
-      await _supabase.from('user_roles').insert({
-        'user_id': userId,
-        'role_id': roleId,
-        'created_at': DateTimeUtils.nowUtc(),
-        'updated_at': DateTimeUtils.nowUtc(),
-        'is_deleted': false,
-      }).timeout(const Duration(seconds: 15));
     } catch (e) {
       throw Exception('Failed to assign user to role: $e');
     }
   }
 
   /// Get company users with roles using RPC
-  /// RPC: get_company_users_with_roles
+  /// RPC: delegate_role_get_company_users_with_roles
+  /// Replaces: 2 queries (company owner lookup + get_company_users_with_roles)
+  /// Performance: Single RPC returns all data including is_owner flag
   Future<List<Map<String, dynamic>>> getCompanyUsersWithRoles(
     String companyId,
   ) async {
     try {
-      // First, get the company owner information
-      String? companyOwnerId;
-      try {
-        final companyResponse = await _supabase
-            .from('companies')
-            .select('owner_id')
-            .eq('company_id', companyId)
-            .limit(1);
-
-        if (companyResponse.isNotEmpty) {
-          companyOwnerId = companyResponse.first['owner_id'] as String?;
-        }
-      } catch (e) {
-        // Silently handle error - owner detection will fall back to role-based logic
-      }
-
-      // Use RPC function for reliable role lookup
+      // Single RPC returns all user data including owner status
       final response = await _supabase.rpc<List<dynamic>>(
-        'get_company_users_with_roles',
+        'delegate_role_get_company_users_with_roles',
         params: {'p_company_id': companyId},
       );
 
@@ -478,9 +272,6 @@ class RoleRemoteDataSource {
       final seenUsers = <String>{}; // Track unique users
 
       for (final item in response) {
-        final firstName = item['first_name'] as String? ?? '';
-        final lastName = item['last_name'] as String? ?? '';
-        final fullName = '$firstName $lastName'.trim();
         final userId = item['user_id'] as String;
 
         // Skip duplicate users
@@ -489,24 +280,23 @@ class RoleRemoteDataSource {
         }
         seenUsers.add(userId);
 
-        // Handle comma-separated role names from STRING_AGG
-        String roleNames = (item['role_name'] as String?) ?? 'No Role';
-        String role = roleNames;
+        final firstName = item['first_name'] as String? ?? '';
+        final lastName = item['last_name'] as String? ?? '';
+        final fullName = '$firstName $lastName'.trim();
+        final isOwner = item['is_owner'] as bool? ?? false;
 
-        // If user is company owner, always show as Owner
-        if (companyOwnerId == userId) {
+        // Determine role - Owner flag comes directly from RPC
+        String role;
+        if (isOwner) {
           role = 'Owner';
-        } else if (roleNames.contains(',')) {
-          // Multiple roles - take the highest priority role
-          final roles = roleNames.split(',').map((r) => r.trim()).toList();
-          if (roles.contains('Owner')) {
-            role = 'Owner';
-          } else if (roles.contains('Manager')) {
-            role = 'Manager';
-          } else if (roles.contains('Employee')) {
-            role = 'Employee';
+        } else {
+          final roleNames = (item['role_name'] as String?) ?? 'No Role';
+          if (roleNames.contains(',')) {
+            // Multiple roles - use domain RolePriority to get highest priority
+            final roles = roleNames.split(',').map((r) => r.trim()).toList();
+            role = RolePriority.getHighestPriority(roles) ?? roles.first;
           } else {
-            role = roles.first; // Take first role if no priority match
+            role = roleNames;
           }
         }
 
@@ -616,8 +406,8 @@ class RoleRemoteDataSource {
   /// RPC: get_categories_with_features
   Future<List<Map<String, dynamic>>> getAllFeaturesWithCategories() async {
     try {
-      final categories = await _supabase.rpc('get_categories_with_features');
-      return (categories as List).cast<Map<String, dynamic>>();
+      final categories = await _supabase.rpc<List<dynamic>>('get_categories_with_features');
+      return categories.cast<Map<String, dynamic>>();
     } catch (e) {
       return [];
     }
