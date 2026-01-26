@@ -15,8 +15,8 @@ import '../models/vault_real_model.dart';
 class CashLocationDataSource {
   final _supabase = Supabase.instance.client;
 
-  /// Get all cash locations (all types) for client-side filtering
-  /// Uses v_cash_location view to get cash amounts for cash location page
+  /// Get all cash locations (all types) with balance information
+  /// Uses RPC to get cash amounts for cash location page
   /// [storeId] is optional - if null, returns all stores
   /// [locationType] is optional - if provided, filters by location type (cash, bank, vault)
   Future<List<CashLocationModel>> getAllCashLocations({
@@ -25,25 +25,16 @@ class CashLocationDataSource {
     String? locationType,
   }) async {
     try {
-      var query = _supabase
-          .from('v_cash_location')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false);
+      final response = await _supabase.rpc<List<dynamic>>(
+        'cash_location_get_cash_locations_with_balance',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_location_type': locationType,
+        },
+      );
 
-      // Apply optional filters
-      if (storeId != null) {
-        query = query.eq('store_id', storeId);
-      }
-      if (locationType != null) {
-        query = query.eq('location_type', locationType);
-      }
-
-      final response = await query
-          .order('location_type')
-          .order('location_name');
-
-      return (response as List)
+      return response
           .map((json) => CashLocationModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } catch (e, stackTrace) {
@@ -58,15 +49,17 @@ class CashLocationDataSource {
   }
 
   /// Get single cash location by ID with full details
+  /// Uses RPC: cash_location_get_info (BY ID mode)
   Future<CashLocationDetailModel?> getCashLocationById({
     required String locationId,
   }) async {
     try {
-      final response = await _supabase
-          .from('cash_locations')
-          .select('*')
-          .eq('cash_location_id', locationId)
-          .maybeSingle();
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'cash_location_get_info',
+        params: {
+          'p_cash_location_id': locationId,
+        },
+      );
 
       if (response == null) return null;
 
@@ -83,6 +76,7 @@ class CashLocationDataSource {
   }
 
   /// Get single cash location by name and type
+  /// Uses RPC: cash_location_get_info (BY NAME mode)
   Future<CashLocationDetailModel?> getCashLocationByName({
     required String locationName,
     required String locationType,
@@ -90,14 +84,15 @@ class CashLocationDataSource {
     required String storeId,
   }) async {
     try {
-      final response = await _supabase
-          .from('cash_locations')
-          .select('*')
-          .eq('location_name', locationName)
-          .eq('location_type', locationType)
-          .eq('company_id', companyId)
-          .eq('store_id', storeId)
-          .maybeSingle();
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'cash_location_get_info',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_location_name': locationName,
+          'p_location_type': locationType,
+        },
+      );
 
       if (response == null) return null;
 
@@ -110,35 +105,6 @@ class CashLocationDataSource {
         extra: {'locationName': locationName, 'locationType': locationType},
       );
       throw Exception('Failed to load cash location: ${e.toString()}');
-    }
-  }
-
-  /// Get cash locations using RPC for selectors
-  /// This method is for cash location selectors in forms
-  /// Returns all data - filtering should be done in domain/use case layer
-  Future<List<CashLocationRPCResponse>> getCashLocationsForSelector({
-    required String companyId,
-  }) async {
-    try {
-      final response = await _supabase.rpc<List<dynamic>>(
-        'get_cash_locations',
-        params: {
-          'p_company_id': companyId,
-        },
-      );
-
-      // Simply convert to models - no business logic filtering
-      return response
-          .map((json) => CashLocationRPCResponse.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashLocation: Failed to load cash locations for selector',
-        extra: {'companyId': companyId},
-      );
-      throw Exception('Failed to load cash locations: ${e.toString()}');
     }
   }
 
@@ -353,6 +319,7 @@ class CashLocationDataSource {
   }
 
   /// Create a new cash location
+  /// Uses RPC: cash_location_manage_cash_location (INSERT mode)
   Future<void> createCashLocation({
     required String companyId,
     required String storeId,
@@ -370,36 +337,28 @@ class CashLocationDataSource {
     String? accountType,
   }) async {
     try {
-      final data = <String, dynamic>{
-        'company_id': companyId,
-        'store_id': storeId,
-        'location_name': locationName,
-        'location_type': locationType,
-      };
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'cash_location_manage_cash_location',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_location_name': locationName,
+          'p_location_type': locationType,
+          'p_bank_name': bankName,
+          'p_bank_account': accountNumber,
+          'p_currency_id': currencyId,
+          'p_location_info': locationInfo,
+          'p_beneficiary_name': beneficiaryName,
+          'p_bank_address': bankAddress,
+          'p_swift_code': swiftCode,
+          'p_bank_branch': bankBranch,
+          'p_account_type': accountType,
+        },
+      );
 
-      if (bankName != null) data['bank_name'] = bankName;
-      if (accountNumber != null) data['bank_account'] = accountNumber;
-      if (currencyId != null) data['currency_id'] = currencyId;
-      if (locationInfo != null) data['location_info'] = locationInfo;
-
-      // Trade/International banking fields
-      if (beneficiaryName != null && beneficiaryName.isNotEmpty) {
-        data['beneficiary_name'] = beneficiaryName;
+      if (response['success'] != true) {
+        throw Exception(response['message'] ?? 'Unknown error');
       }
-      if (bankAddress != null && bankAddress.isNotEmpty) {
-        data['bank_address'] = bankAddress;
-      }
-      if (swiftCode != null && swiftCode.isNotEmpty) {
-        data['swift_code'] = swiftCode;
-      }
-      if (bankBranch != null && bankBranch.isNotEmpty) {
-        data['bank_branch'] = bankBranch;
-      }
-      if (accountType != null && accountType.isNotEmpty) {
-        data['account_type'] = accountType;
-      }
-
-      await _supabase.from('cash_locations').insert(data);
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -412,6 +371,7 @@ class CashLocationDataSource {
   }
 
   /// Update cash location details
+  /// Uses RPC: cash_location_manage_cash_location (UPDATE mode)
   Future<void> updateCashLocation({
     required String locationId,
     required String name,
@@ -427,27 +387,25 @@ class CashLocationDataSource {
     String? accountType,
   }) async {
     try {
-      final updateData = <String, dynamic>{
-        'location_name': name,
-      };
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'cash_location_manage_cash_location',
+        params: {
+          'p_cash_location_id': locationId,
+          'p_location_name': name,
+          'p_note': note,
+          'p_bank_name': bankName,
+          'p_bank_account': accountNumber,
+          'p_beneficiary_name': beneficiaryName,
+          'p_bank_address': bankAddress,
+          'p_swift_code': swiftCode,
+          'p_bank_branch': bankBranch,
+          'p_account_type': accountType,
+        },
+      );
 
-      // Add optional fields only if provided
-      if (note != null) updateData['note'] = note;
-      if (description != null) updateData['description'] = description;
-      if (bankName != null) updateData['bank_name'] = bankName;
-      if (accountNumber != null) updateData['bank_account'] = accountNumber;
-
-      // Trade/International banking fields
-      if (beneficiaryName != null) updateData['beneficiary_name'] = beneficiaryName;
-      if (bankAddress != null) updateData['bank_address'] = bankAddress;
-      if (swiftCode != null) updateData['swift_code'] = swiftCode;
-      if (bankBranch != null) updateData['bank_branch'] = bankBranch;
-      if (accountType != null) updateData['account_type'] = accountType;
-
-      await _supabase
-          .from('cash_locations')
-          .update(updateData)
-          .eq('cash_location_id', locationId);
+      if (response['success'] != true) {
+        throw Exception(response['message'] ?? 'Unknown error');
+      }
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -463,7 +421,7 @@ class CashLocationDataSource {
   Future<void> deleteCashLocation(String locationId) async {
     try {
       // Use RPC to delete cash location
-      await _supabase.rpc(
+      await _supabase.rpc<void>(
         'delete_cash_location',
         params: {
           'p_cash_location_id': locationId,
@@ -481,20 +439,22 @@ class CashLocationDataSource {
   }
 
   /// Get the current main account for a location type
+  /// Uses RPC: cash_location_get_info (BY MAIN mode)
   Future<CashLocationDetailModel?> getMainAccount({
     required String companyId,
     required String storeId,
     required String locationType,
   }) async {
     try {
-      final response = await _supabase
-          .from('cash_locations')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('store_id', storeId)
-          .eq('location_type', locationType)
-          .eq('main_cash_location', true)
-          .maybeSingle();
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'cash_location_get_info',
+        params: {
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_location_type': locationType,
+          'p_main_only': true,
+        },
+      );
 
       if (response == null) return null;
 
@@ -511,17 +471,23 @@ class CashLocationDataSource {
   }
 
   /// Update a single account's main status (simple CRUD, no business logic)
+  /// Uses RPC: cash_location_manage_cash_location (UPDATE mode)
   Future<void> updateAccountMainStatus({
     required String locationId,
     required bool isMain,
   }) async {
     try {
-      await _supabase
-          .from('cash_locations')
-          .update({
-            'main_cash_location': isMain,
-          })
-          .eq('cash_location_id', locationId);
+      final response = await _supabase.rpc<Map<String, dynamic>>(
+        'cash_location_manage_cash_location',
+        params: {
+          'p_cash_location_id': locationId,
+          'p_main_cash_location': isMain,
+        },
+      );
+
+      if (response['success'] != true) {
+        throw Exception(response['message'] ?? 'Unknown error');
+      }
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -530,29 +496,6 @@ class CashLocationDataSource {
         extra: {'locationId': locationId, 'isMain': isMain},
       );
       throw Exception('Failed to update account main status: ${e.toString()}');
-    }
-  }
-
-  /// Batch update multiple accounts' main status
-  Future<void> batchUpdateMainStatus({
-    required List<String> locationIds,
-    required List<bool> isMainValues,
-  }) async {
-    try {
-      for (var i = 0; i < locationIds.length; i++) {
-        await updateAccountMainStatus(
-          locationId: locationIds[i],
-          isMain: isMainValues[i],
-        );
-      }
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashLocation: Failed to batch update main status',
-        extra: {'locationCount': locationIds.length},
-      );
-      throw Exception('Failed to batch update main status: ${e.toString()}');
     }
   }
 }

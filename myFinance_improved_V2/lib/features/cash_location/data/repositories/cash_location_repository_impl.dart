@@ -281,15 +281,4 @@ class CashLocationRepositoryImpl implements CashLocationRepository {
       isMain: isMain,
     );
   }
-
-  @override
-  Future<void> batchUpdateMainStatus({
-    required List<String> locationIds,
-    required List<bool> isMainValues,
-  }) async {
-    await dataSource.batchUpdateMainStatus(
-      locationIds: locationIds,
-      isMainValues: isMainValues,
-    );
-  }
 }

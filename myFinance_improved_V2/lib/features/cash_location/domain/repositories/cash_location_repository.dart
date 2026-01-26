@@ -139,10 +139,4 @@ abstract class CashLocationRepository {
     required String locationId,
     required bool isMain,
   });
-
-  /// Batch update multiple accounts' main status
-  Future<void> batchUpdateMainStatus({
-    required List<String> locationIds,
-    required List<bool> isMainValues,
-  });
 }
