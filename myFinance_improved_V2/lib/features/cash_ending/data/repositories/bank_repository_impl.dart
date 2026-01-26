@@ -42,28 +42,6 @@ class BankRepositoryImpl extends BaseRepository implements BankRepository {
   }
 
   @override
-  Future<List<BankBalance>> getBankBalanceHistory({
-    required String locationId,
-    int limit = 10,
-  }) async {
-    return executeWithErrorHandling(
-      () async {
-        // Call remote datasource
-        final data = await _remoteDataSource.getBankBalanceHistory(
-          locationId: locationId,
-          limit: limit,
-        );
-
-        // Convert JSON to DTOs then to entities
-        return data
-            .map((json) => BankBalanceDto.fromJson(json).toEntity())
-            .toList();
-      },
-      operationName: 'getBankBalanceHistory',
-    );
-  }
-
-  @override
   Future<BalanceSummary> getBalanceSummary({
     required String locationId,
   }) async {

@@ -4,7 +4,7 @@ import 'vault_recount_dto.dart';
 
 /// Multi-Currency Recount DTO
 ///
-/// Maps to universal RPC: insert_amount_multi_currency with p_vault_transaction_type='recount'
+/// Maps to universal RPC: cash_ending_insert_amount_multi_currency with p_vault_transaction_type='recount'
 /// Handles multiple currencies in a single RPC call
 ///
 /// Note: This is a simple DTO class (not freezed) because it's only used internally
@@ -28,7 +28,7 @@ class MultiCurrencyRecountDto {
 
   /// Convert to RPC parameters for universal multi-currency RPC
   ///
-  /// ✅ Uses insert_amount_multi_currency with p_vault_transaction_type='recount'
+  /// ✅ Uses cash_ending_insert_amount_multi_currency with p_vault_transaction_type='recount'
   /// RECOUNT: Stock method - quantity
   Map<String, dynamic> toRpcParams() {
     // Build currencies array for RPC (multiple currencies)

@@ -14,15 +14,6 @@ abstract class CashEndingRepository {
   /// Throws CashEndingException on failure
   Future<CashEnding> saveCashEnding(CashEnding cashEnding);
 
-  /// Get recent cash ending history for a location
-  ///
-  /// Returns list of cash ending records ordered by date descending
-  /// Returns empty list if no records found
-  Future<List<CashEnding>> getCashEndingHistory({
-    required String locationId,
-    int limit = 10,
-  });
-
   /// Get balance summary (Journal vs Real) for a location
   ///
   /// Returns balance comparison data showing:
@@ -32,14 +23,5 @@ abstract class CashEndingRepository {
   /// Throws CashEndingException on failure
   Future<BalanceSummary> getBalanceSummary({
     required String locationId,
-  });
-
-  /// Get balance summary for multiple locations
-  ///
-  /// Useful for dashboard or overview screens
-  /// Returns list of balance summaries
-  /// Throws CashEndingException on failure
-  Future<List<BalanceSummary>> getMultipleBalanceSummary({
-    required List<String> locationIds,
   });
 }

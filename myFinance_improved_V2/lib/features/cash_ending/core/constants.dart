@@ -15,22 +15,14 @@ class CashEndingConstants {
   /// Universal Multi-Currency RPC (Cash, Vault, Bank)
   /// Supports multi-currency in one call with Entry-based workflow
   /// Handles IN, OUT, and RECOUNT transaction types
-  static const String rpcInsertAmountMultiCurrency = 'insert_amount_multi_currency';
+  static const String rpcInsertAmountMultiCurrency = 'cash_ending_insert_amount_multi_currency';
 
   /// RPC function for getting location stock flow (UTC version)
   static const String rpcGetLocationStockFlow = 'get_location_stock_flow_utc';
 
-  /// RPC function for getting cash location balance summary (STOCK-BASED, UTC)
-  /// Uses stock data from cash_amount_entries.balance_after
-  static const String rpcGetBalanceSummaryV2 = 'get_cash_location_balance_summary_v2_utc';
-
-  /// RPC function for getting multiple locations balance summary (UTC)
-  static const String rpcGetMultipleBalanceSummary =
-      'get_multiple_locations_balance_summary_utc';
-
-  /// RPC function for getting company-wide balance summary (UTC)
-  static const String rpcGetCompanyBalanceSummary =
-      'get_company_balance_summary_utc';
+  /// RPC function for getting cash location balance summary
+  /// Compares journal balance (book) vs actual balance (physical count)
+  static const String rpcGetBalanceSummary = 'cash_ending_get_cash_location_balance_summary';
 
   // ============================================================================
   // Pagination Configuration
@@ -38,22 +30,6 @@ class CashEndingConstants {
 
   /// Default page size for pagination
   static const int defaultPageSize = 20;
-
-  /// Default offset for pagination
-  static const int defaultOffset = 0;
-
-  // ============================================================================
-  // Tab Indices
-  // ============================================================================
-
-  /// Cash tab index
-  static const int cashTabIndex = 0;
-
-  /// Bank tab index
-  static const int bankTabIndex = 1;
-
-  /// Vault tab index
-  static const int vaultTabIndex = 2;
 
   // ============================================================================
   // Location Type String Values (for API compatibility)

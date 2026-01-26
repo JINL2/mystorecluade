@@ -8,7 +8,7 @@ part 'bank_balance_dto.g.dart';
 
 /// Bank Balance DTO (Multi-Currency)
 ///
-/// Maps to universal RPC: insert_amount_multi_currency
+/// Maps to universal RPC: cash_ending_insert_amount_multi_currency
 /// Handles JSON serialization/deserialization and RPC parameter formatting
 @freezed
 class BankBalanceDto with _$BankBalanceDto {
@@ -30,7 +30,7 @@ class BankBalanceDto with _$BankBalanceDto {
 
   /// Convert to RPC parameters for universal multi-currency RPC
   ///
-  /// ✅ Uses insert_amount_multi_currency with Entry-based workflow
+  /// ✅ Uses cash_ending_insert_amount_multi_currency with Entry-based workflow
   /// Bank uses total_amount (no denominations)
   Map<String, dynamic> toRpcParams() {
     // Build currencies array for RPC

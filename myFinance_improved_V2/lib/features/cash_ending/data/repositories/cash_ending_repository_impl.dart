@@ -42,28 +42,6 @@ class CashEndingRepositoryImpl extends BaseRepository
   }
 
   @override
-  Future<List<CashEnding>> getCashEndingHistory({
-    required String locationId,
-    int limit = 10,
-  }) async {
-    return executeWithErrorHandling(
-      () async {
-        // Call remote datasource
-        final data = await _remoteDataSource.getCashEndingHistory(
-          locationId: locationId,
-          limit: limit,
-        );
-
-        // Convert JSON to DTOs then to entities
-        return data
-            .map((json) => CashEndingDto.fromJson(json).toEntity())
-            .toList();
-      },
-      operationName: 'getCashEndingHistory',
-    );
-  }
-
-  @override
   Future<BalanceSummary> getBalanceSummary({
     required String locationId,
   }) async {
@@ -79,30 +57,6 @@ class CashEndingRepositoryImpl extends BaseRepository
         return dto.toEntity();
       },
       operationName: 'getBalanceSummary',
-    );
-  }
-
-  @override
-  Future<List<BalanceSummary>> getMultipleBalanceSummary({
-    required List<String> locationIds,
-  }) async {
-    return executeWithErrorHandling(
-      () async {
-        // Call remote datasource
-        final data = await _remoteDataSource.getMultipleBalanceSummary(
-          locationIds: locationIds,
-        );
-
-        // Extract locations array from response
-        final locationsJson = data['locations'] as List<dynamic>? ?? [];
-
-        // Convert each location to BalanceSummary entity
-        return locationsJson
-            .map((json) => BalanceSummaryDto.fromJson(json as Map<String, dynamic>))
-            .map((dto) => dto.toEntity())
-            .toList();
-      },
-      operationName: 'getMultipleBalanceSummary',
     );
   }
 }

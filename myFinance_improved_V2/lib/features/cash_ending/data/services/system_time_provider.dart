@@ -13,15 +13,4 @@ class SystemTimeProvider implements TimeProvider {
   DateTime now() {
     return DateTime.now().toUtc();
   }
-
-  @override
-  DateTime nowLocal() {
-    return DateTime.now();
-  }
-
-  @override
-  DateTime today() {
-    final now = DateTime.now();
-    return DateTime(now.year, now.month, now.day);
-  }
 }

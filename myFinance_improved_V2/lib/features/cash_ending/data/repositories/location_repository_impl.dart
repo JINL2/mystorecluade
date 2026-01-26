@@ -1,11 +1,9 @@
 // lib/features/cash_ending/data/repositories/location_repository_impl.dart
 
 import '../../domain/entities/location.dart';
-import '../../domain/entities/store.dart';
 import '../../domain/repositories/location_repository.dart';
 import '../datasources/location_remote_datasource.dart';
 import '../models/freezed/location_dto.dart';
-import '../models/freezed/store_dto.dart';
 import 'base_repository.dart';
 
 /// Repository Implementation for Locations (Data Layer)
@@ -13,6 +11,10 @@ import 'base_repository.dart';
 /// Implements the domain repository interface.
 /// Coordinates between datasource (Supabase) and domain entities.
 /// Handles data transformation and error mapping using BaseRepository.
+///
+/// NOTE: Store data is available from AppState (loaded at app startup via
+/// get_user_companies_with_salary RPC). Use appState.user['companies'][n]['stores']
+/// instead of making a separate network call.
 class LocationRepositoryImpl extends BaseRepository
     implements LocationRepository {
   final LocationRemoteDataSource _remoteDataSource;
@@ -20,26 +22,6 @@ class LocationRepositoryImpl extends BaseRepository
   LocationRepositoryImpl({
     LocationRemoteDataSource? remoteDataSource,
   }) : _remoteDataSource = remoteDataSource ?? LocationRemoteDataSource();
-
-  @override
-  Future<List<Store>> getStores(String companyId) async {
-    return executeWithErrorHandling(
-      () async {
-        if (companyId.isEmpty) {
-          return [];
-        }
-
-        // Call remote datasource
-        final data = await _remoteDataSource.getStores(companyId);
-
-        // Convert JSON to DTOs then to entities
-        return data
-            .map((json) => StoreDto.fromJson(json).toEntity())
-            .toList();
-      },
-      operationName: 'getStores',
-    );
-  }
 
   @override
   Future<List<Location>> getLocationsByType({

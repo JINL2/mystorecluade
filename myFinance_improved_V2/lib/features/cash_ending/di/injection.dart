@@ -39,8 +39,6 @@ import '../domain/usecases/get_current_user_usecase.dart';
 import '../domain/usecases/get_stock_flows_usecase.dart';
 import '../domain/usecases/load_currencies_usecase.dart';
 import '../domain/usecases/load_locations_usecase.dart';
-import '../domain/usecases/load_recent_cash_endings_usecase.dart';
-import '../domain/usecases/load_stores_usecase.dart';
 import '../domain/usecases/recount_vault_usecase.dart';
 import '../domain/usecases/save_bank_balance_usecase.dart';
 import '../domain/usecases/save_cash_ending_usecase.dart';
@@ -185,22 +183,10 @@ final getStockFlowsUseCaseProvider = Provider<GetStockFlowsUseCase>((ref) {
   return GetStockFlowsUseCase(stockFlowRepository);
 });
 
-/// Provider for LoadStoresUseCase
-final loadStoresUseCaseProvider = Provider<LoadStoresUseCase>((ref) {
-  final locationRepository = ref.watch(locationRepositoryProvider);
-  return LoadStoresUseCase(locationRepository);
-});
-
 /// Provider for LoadLocationsUseCase
 final loadLocationsUseCaseProvider = Provider<LoadLocationsUseCase>((ref) {
   final locationRepository = ref.watch(locationRepositoryProvider);
   return LoadLocationsUseCase(locationRepository);
-});
-
-/// Provider for LoadRecentCashEndingsUseCase
-final loadRecentCashEndingsUseCaseProvider = Provider<LoadRecentCashEndingsUseCase>((ref) {
-  final cashEndingRepository = ref.watch(cashEndingRepositoryProvider);
-  return LoadRecentCashEndingsUseCase(cashEndingRepository);
 });
 
 /// Provider for CreateErrorAdjustmentUseCase

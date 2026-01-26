@@ -8,7 +8,7 @@ part 'vault_recount_dto.g.dart';
 
 /// Vault Recount DTO
 ///
-/// Maps to universal RPC: insert_amount_multi_currency with p_vault_transaction_type='recount'
+/// Maps to universal RPC: cash_ending_insert_amount_multi_currency with p_vault_transaction_type='recount'
 /// Handles JSON serialization/deserialization and RPC parameter formatting
 @freezed
 class VaultRecountDto with _$VaultRecountDto {
@@ -30,7 +30,7 @@ class VaultRecountDto with _$VaultRecountDto {
 
   /// Convert to RPC parameters for universal multi-currency RPC
   ///
-  /// ✅ Uses insert_amount_multi_currency with p_vault_transaction_type='recount'
+  /// ✅ Uses cash_ending_insert_amount_multi_currency with p_vault_transaction_type='recount'
   /// RECOUNT: Stock method - quantity
   Map<String, dynamic> toRpcParams() {
     // Build currencies array for RPC (single currency for VaultRecount)

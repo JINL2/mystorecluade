@@ -13,10 +13,4 @@ abstract class TimeProvider {
   ///
   /// Returns current time in UTC
   DateTime now();
-
-  /// Get current DateTime in local time zone
-  DateTime nowLocal();
-
-  /// Get current date (without time)
-  DateTime today();
 }

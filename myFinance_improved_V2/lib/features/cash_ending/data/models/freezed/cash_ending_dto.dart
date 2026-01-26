@@ -29,7 +29,7 @@ class CashEndingDto with _$CashEndingDto {
   factory CashEndingDto.fromJson(Map<String, dynamic> json) =>
       _$CashEndingDtoFromJson(json);
 
-  /// Convert to RPC parameters for Supabase (insert_amount_multi_currency)
+  /// Convert to RPC parameters for Supabase (cash_ending_insert_amount_multi_currency)
   ///
   /// ✅ Universal Multi-Currency RPC format with Entry-based workflow
   Map<String, dynamic> toRpcParams() {

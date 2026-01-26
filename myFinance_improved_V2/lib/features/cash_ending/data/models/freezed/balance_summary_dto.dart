@@ -8,7 +8,7 @@ part 'balance_summary_dto.g.dart';
 
 /// DTO for Balance Summary (Journal vs Real comparison)
 ///
-/// This represents the data returned from get_cash_location_balance_summary RPC.
+/// This represents the data returned from cash_ending_get_cash_location_balance_summary RPC.
 /// It shows the comparison between Journal (book balance) and Real (actual cash count).
 @freezed
 class BalanceSummaryDto with _$BalanceSummaryDto {

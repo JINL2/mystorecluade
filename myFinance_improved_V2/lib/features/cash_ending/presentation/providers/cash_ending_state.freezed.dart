@@ -28,9 +28,6 @@ mixin _$CashEndingState {
   /// Error message to display
   String? get errorMessage => throw _privateConstructorUsedError;
 
-  /// Success message to display
-  String? get successMessage => throw _privateConstructorUsedError;
-
   /// Reset all input fields flag (increments on each reset request)
   int get resetInputsCounter =>
       throw _privateConstructorUsedError; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -103,10 +100,7 @@ mixin _$CashEndingState {
   List<Currency> get currencies => throw _privateConstructorUsedError;
 
   /// Base currency for Grand Total calculation
-  Currency? get baseCurrency => throw _privateConstructorUsedError;
-
-  /// Recent cash ending history for selected location
-  List<CashEnding> get recentCashEndings =>
+  Currency? get baseCurrency =>
       throw _privateConstructorUsedError; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Loading State - Loading states for each operation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -125,9 +119,6 @@ mixin _$CashEndingState {
   /// Loading currencies
   bool get isLoadingCurrencies => throw _privateConstructorUsedError;
 
-  /// Loading recent cash endings
-  bool get isLoadingRecentEndings => throw _privateConstructorUsedError;
-
   /// Create a copy of CashEndingState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -145,7 +136,6 @@ abstract class $CashEndingStateCopyWith<$Res> {
       {int currentTabIndex,
       bool isSaving,
       String? errorMessage,
-      String? successMessage,
       int resetInputsCounter,
       String? selectedStoreId,
       String? selectedCashLocationId,
@@ -167,13 +157,11 @@ abstract class $CashEndingStateCopyWith<$Res> {
       List<Location> vaultLocations,
       List<Currency> currencies,
       Currency? baseCurrency,
-      List<CashEnding> recentCashEndings,
       bool isLoadingStores,
       bool isLoadingCashLocations,
       bool isLoadingBankLocations,
       bool isLoadingVaultLocations,
-      bool isLoadingCurrencies,
-      bool isLoadingRecentEndings});
+      bool isLoadingCurrencies});
 
   $CurrencyCopyWith<$Res>? get baseCurrency;
 }
@@ -196,7 +184,6 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
     Object? currentTabIndex = null,
     Object? isSaving = null,
     Object? errorMessage = freezed,
-    Object? successMessage = freezed,
     Object? resetInputsCounter = null,
     Object? selectedStoreId = freezed,
     Object? selectedCashLocationId = freezed,
@@ -218,13 +205,11 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
     Object? vaultLocations = null,
     Object? currencies = null,
     Object? baseCurrency = freezed,
-    Object? recentCashEndings = null,
     Object? isLoadingStores = null,
     Object? isLoadingCashLocations = null,
     Object? isLoadingBankLocations = null,
     Object? isLoadingVaultLocations = null,
     Object? isLoadingCurrencies = null,
-    Object? isLoadingRecentEndings = null,
   }) {
     return _then(_value.copyWith(
       currentTabIndex: null == currentTabIndex
@@ -238,10 +223,6 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      successMessage: freezed == successMessage
-          ? _value.successMessage
-          : successMessage // ignore: cast_nullable_to_non_nullable
               as String?,
       resetInputsCounter: null == resetInputsCounter
           ? _value.resetInputsCounter
@@ -327,10 +308,6 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
           ? _value.baseCurrency
           : baseCurrency // ignore: cast_nullable_to_non_nullable
               as Currency?,
-      recentCashEndings: null == recentCashEndings
-          ? _value.recentCashEndings
-          : recentCashEndings // ignore: cast_nullable_to_non_nullable
-              as List<CashEnding>,
       isLoadingStores: null == isLoadingStores
           ? _value.isLoadingStores
           : isLoadingStores // ignore: cast_nullable_to_non_nullable
@@ -350,10 +327,6 @@ class _$CashEndingStateCopyWithImpl<$Res, $Val extends CashEndingState>
       isLoadingCurrencies: null == isLoadingCurrencies
           ? _value.isLoadingCurrencies
           : isLoadingCurrencies // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isLoadingRecentEndings: null == isLoadingRecentEndings
-          ? _value.isLoadingRecentEndings
-          : isLoadingRecentEndings // ignore: cast_nullable_to_non_nullable
               as bool,
     ) as $Val);
   }
@@ -385,7 +358,6 @@ abstract class _$$CashEndingStateImplCopyWith<$Res>
       {int currentTabIndex,
       bool isSaving,
       String? errorMessage,
-      String? successMessage,
       int resetInputsCounter,
       String? selectedStoreId,
       String? selectedCashLocationId,
@@ -407,13 +379,11 @@ abstract class _$$CashEndingStateImplCopyWith<$Res>
       List<Location> vaultLocations,
       List<Currency> currencies,
       Currency? baseCurrency,
-      List<CashEnding> recentCashEndings,
       bool isLoadingStores,
       bool isLoadingCashLocations,
       bool isLoadingBankLocations,
       bool isLoadingVaultLocations,
-      bool isLoadingCurrencies,
-      bool isLoadingRecentEndings});
+      bool isLoadingCurrencies});
 
   @override
   $CurrencyCopyWith<$Res>? get baseCurrency;
@@ -435,7 +405,6 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
     Object? currentTabIndex = null,
     Object? isSaving = null,
     Object? errorMessage = freezed,
-    Object? successMessage = freezed,
     Object? resetInputsCounter = null,
     Object? selectedStoreId = freezed,
     Object? selectedCashLocationId = freezed,
@@ -457,13 +426,11 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
     Object? vaultLocations = null,
     Object? currencies = null,
     Object? baseCurrency = freezed,
-    Object? recentCashEndings = null,
     Object? isLoadingStores = null,
     Object? isLoadingCashLocations = null,
     Object? isLoadingBankLocations = null,
     Object? isLoadingVaultLocations = null,
     Object? isLoadingCurrencies = null,
-    Object? isLoadingRecentEndings = null,
   }) {
     return _then(_$CashEndingStateImpl(
       currentTabIndex: null == currentTabIndex
@@ -477,10 +444,6 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      successMessage: freezed == successMessage
-          ? _value.successMessage
-          : successMessage // ignore: cast_nullable_to_non_nullable
               as String?,
       resetInputsCounter: null == resetInputsCounter
           ? _value.resetInputsCounter
@@ -566,10 +529,6 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
           ? _value.baseCurrency
           : baseCurrency // ignore: cast_nullable_to_non_nullable
               as Currency?,
-      recentCashEndings: null == recentCashEndings
-          ? _value._recentCashEndings
-          : recentCashEndings // ignore: cast_nullable_to_non_nullable
-              as List<CashEnding>,
       isLoadingStores: null == isLoadingStores
           ? _value.isLoadingStores
           : isLoadingStores // ignore: cast_nullable_to_non_nullable
@@ -590,10 +549,6 @@ class __$$CashEndingStateImplCopyWithImpl<$Res>
           ? _value.isLoadingCurrencies
           : isLoadingCurrencies // ignore: cast_nullable_to_non_nullable
               as bool,
-      isLoadingRecentEndings: null == isLoadingRecentEndings
-          ? _value.isLoadingRecentEndings
-          : isLoadingRecentEndings // ignore: cast_nullable_to_non_nullable
-              as bool,
     ));
   }
 }
@@ -605,7 +560,6 @@ class _$CashEndingStateImpl extends _CashEndingState {
       {this.currentTabIndex = 0,
       this.isSaving = false,
       this.errorMessage,
-      this.successMessage,
       this.resetInputsCounter = 0,
       this.selectedStoreId,
       this.selectedCashLocationId,
@@ -627,13 +581,11 @@ class _$CashEndingStateImpl extends _CashEndingState {
       final List<Location> vaultLocations = const [],
       final List<Currency> currencies = const [],
       this.baseCurrency,
-      final List<CashEnding> recentCashEndings = const [],
       this.isLoadingStores = false,
       this.isLoadingCashLocations = false,
       this.isLoadingBankLocations = false,
       this.isLoadingVaultLocations = false,
-      this.isLoadingCurrencies = false,
-      this.isLoadingRecentEndings = false})
+      this.isLoadingCurrencies = false})
       : _selectedCashCurrencyIds = selectedCashCurrencyIds,
         _selectedVaultCurrencyIds = selectedVaultCurrencyIds,
         _stores = stores,
@@ -641,7 +593,6 @@ class _$CashEndingStateImpl extends _CashEndingState {
         _bankLocations = bankLocations,
         _vaultLocations = vaultLocations,
         _currencies = currencies,
-        _recentCashEndings = recentCashEndings,
         super._();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -660,10 +611,6 @@ class _$CashEndingStateImpl extends _CashEndingState {
   /// Error message to display
   @override
   final String? errorMessage;
-
-  /// Success message to display
-  @override
-  final String? successMessage;
 
   /// Reset all input fields flag (increments on each reset request)
   @override
@@ -825,20 +772,6 @@ class _$CashEndingStateImpl extends _CashEndingState {
   /// Base currency for Grand Total calculation
   @override
   final Currency? baseCurrency;
-
-  /// Recent cash ending history for selected location
-  final List<CashEnding> _recentCashEndings;
-
-  /// Recent cash ending history for selected location
-  @override
-  @JsonKey()
-  List<CashEnding> get recentCashEndings {
-    if (_recentCashEndings is EqualUnmodifiableListView)
-      return _recentCashEndings;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_recentCashEndings);
-  }
-
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Loading State - Loading states for each operation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -867,14 +800,9 @@ class _$CashEndingStateImpl extends _CashEndingState {
   @JsonKey()
   final bool isLoadingCurrencies;
 
-  /// Loading recent cash endings
-  @override
-  @JsonKey()
-  final bool isLoadingRecentEndings;
-
   @override
   String toString() {
-    return 'CashEndingState(currentTabIndex: $currentTabIndex, isSaving: $isSaving, errorMessage: $errorMessage, successMessage: $successMessage, resetInputsCounter: $resetInputsCounter, selectedStoreId: $selectedStoreId, selectedCashLocationId: $selectedCashLocationId, cashLocationJournalAmount: $cashLocationJournalAmount, isLoadingJournalAmount: $isLoadingJournalAmount, selectedBankLocationId: $selectedBankLocationId, bankLocationJournalAmount: $bankLocationJournalAmount, isLoadingBankJournalAmount: $isLoadingBankJournalAmount, selectedVaultLocationId: $selectedVaultLocationId, vaultLocationJournalAmount: $vaultLocationJournalAmount, vaultLocationRealAmount: $vaultLocationRealAmount, isLoadingVaultJournalAmount: $isLoadingVaultJournalAmount, selectedCashCurrencyIds: $selectedCashCurrencyIds, selectedBankCurrencyId: $selectedBankCurrencyId, selectedVaultCurrencyIds: $selectedVaultCurrencyIds, stores: $stores, cashLocations: $cashLocations, bankLocations: $bankLocations, vaultLocations: $vaultLocations, currencies: $currencies, baseCurrency: $baseCurrency, recentCashEndings: $recentCashEndings, isLoadingStores: $isLoadingStores, isLoadingCashLocations: $isLoadingCashLocations, isLoadingBankLocations: $isLoadingBankLocations, isLoadingVaultLocations: $isLoadingVaultLocations, isLoadingCurrencies: $isLoadingCurrencies, isLoadingRecentEndings: $isLoadingRecentEndings)';
+    return 'CashEndingState(currentTabIndex: $currentTabIndex, isSaving: $isSaving, errorMessage: $errorMessage, resetInputsCounter: $resetInputsCounter, selectedStoreId: $selectedStoreId, selectedCashLocationId: $selectedCashLocationId, cashLocationJournalAmount: $cashLocationJournalAmount, isLoadingJournalAmount: $isLoadingJournalAmount, selectedBankLocationId: $selectedBankLocationId, bankLocationJournalAmount: $bankLocationJournalAmount, isLoadingBankJournalAmount: $isLoadingBankJournalAmount, selectedVaultLocationId: $selectedVaultLocationId, vaultLocationJournalAmount: $vaultLocationJournalAmount, vaultLocationRealAmount: $vaultLocationRealAmount, isLoadingVaultJournalAmount: $isLoadingVaultJournalAmount, selectedCashCurrencyIds: $selectedCashCurrencyIds, selectedBankCurrencyId: $selectedBankCurrencyId, selectedVaultCurrencyIds: $selectedVaultCurrencyIds, stores: $stores, cashLocations: $cashLocations, bankLocations: $bankLocations, vaultLocations: $vaultLocations, currencies: $currencies, baseCurrency: $baseCurrency, isLoadingStores: $isLoadingStores, isLoadingCashLocations: $isLoadingCashLocations, isLoadingBankLocations: $isLoadingBankLocations, isLoadingVaultLocations: $isLoadingVaultLocations, isLoadingCurrencies: $isLoadingCurrencies)';
   }
 
   @override
@@ -888,8 +816,6 @@ class _$CashEndingStateImpl extends _CashEndingState {
                 other.isSaving == isSaving) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
-            (identical(other.successMessage, successMessage) ||
-                other.successMessage == successMessage) &&
             (identical(other.resetInputsCounter, resetInputsCounter) ||
                 other.resetInputsCounter == resetInputsCounter) &&
             (identical(other.selectedStoreId, selectedStoreId) ||
@@ -932,14 +858,13 @@ class _$CashEndingStateImpl extends _CashEndingState {
                 .equals(other._vaultLocations, _vaultLocations) &&
             const DeepCollectionEquality()
                 .equals(other._currencies, _currencies) &&
-            (identical(other.baseCurrency, baseCurrency) || other.baseCurrency == baseCurrency) &&
-            const DeepCollectionEquality().equals(other._recentCashEndings, _recentCashEndings) &&
+            (identical(other.baseCurrency, baseCurrency) ||
+                other.baseCurrency == baseCurrency) &&
             (identical(other.isLoadingStores, isLoadingStores) || other.isLoadingStores == isLoadingStores) &&
             (identical(other.isLoadingCashLocations, isLoadingCashLocations) || other.isLoadingCashLocations == isLoadingCashLocations) &&
             (identical(other.isLoadingBankLocations, isLoadingBankLocations) || other.isLoadingBankLocations == isLoadingBankLocations) &&
             (identical(other.isLoadingVaultLocations, isLoadingVaultLocations) || other.isLoadingVaultLocations == isLoadingVaultLocations) &&
-            (identical(other.isLoadingCurrencies, isLoadingCurrencies) || other.isLoadingCurrencies == isLoadingCurrencies) &&
-            (identical(other.isLoadingRecentEndings, isLoadingRecentEndings) || other.isLoadingRecentEndings == isLoadingRecentEndings));
+            (identical(other.isLoadingCurrencies, isLoadingCurrencies) || other.isLoadingCurrencies == isLoadingCurrencies));
   }
 
   @override
@@ -948,7 +873,6 @@ class _$CashEndingStateImpl extends _CashEndingState {
         currentTabIndex,
         isSaving,
         errorMessage,
-        successMessage,
         resetInputsCounter,
         selectedStoreId,
         selectedCashLocationId,
@@ -970,13 +894,11 @@ class _$CashEndingStateImpl extends _CashEndingState {
         const DeepCollectionEquality().hash(_vaultLocations),
         const DeepCollectionEquality().hash(_currencies),
         baseCurrency,
-        const DeepCollectionEquality().hash(_recentCashEndings),
         isLoadingStores,
         isLoadingCashLocations,
         isLoadingBankLocations,
         isLoadingVaultLocations,
-        isLoadingCurrencies,
-        isLoadingRecentEndings
+        isLoadingCurrencies
       ]);
 
   /// Create a copy of CashEndingState
@@ -994,7 +916,6 @@ abstract class _CashEndingState extends CashEndingState {
       {final int currentTabIndex,
       final bool isSaving,
       final String? errorMessage,
-      final String? successMessage,
       final int resetInputsCounter,
       final String? selectedStoreId,
       final String? selectedCashLocationId,
@@ -1016,13 +937,11 @@ abstract class _CashEndingState extends CashEndingState {
       final List<Location> vaultLocations,
       final List<Currency> currencies,
       final Currency? baseCurrency,
-      final List<CashEnding> recentCashEndings,
       final bool isLoadingStores,
       final bool isLoadingCashLocations,
       final bool isLoadingBankLocations,
       final bool isLoadingVaultLocations,
-      final bool isLoadingCurrencies,
-      final bool isLoadingRecentEndings}) = _$CashEndingStateImpl;
+      final bool isLoadingCurrencies}) = _$CashEndingStateImpl;
   const _CashEndingState._() : super._();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1039,10 +958,6 @@ abstract class _CashEndingState extends CashEndingState {
   /// Error message to display
   @override
   String? get errorMessage;
-
-  /// Success message to display
-  @override
-  String? get successMessage;
 
   /// Reset all input fields flag (increments on each reset request)
   @override
@@ -1135,12 +1050,8 @@ abstract class _CashEndingState extends CashEndingState {
 
   /// Base currency for Grand Total calculation
   @override
-  Currency? get baseCurrency;
-
-  /// Recent cash ending history for selected location
-  @override
-  List<CashEnding>
-      get recentCashEndings; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Currency?
+      get baseCurrency; // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // Loading State - Loading states for each operation
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   /// Loading stores
@@ -1162,10 +1073,6 @@ abstract class _CashEndingState extends CashEndingState {
   /// Loading currencies
   @override
   bool get isLoadingCurrencies;
-
-  /// Loading recent cash endings
-  @override
-  bool get isLoadingRecentEndings;
 
   /// Create a copy of CashEndingState
   /// with the given fields replaced by the non-null parameter values.

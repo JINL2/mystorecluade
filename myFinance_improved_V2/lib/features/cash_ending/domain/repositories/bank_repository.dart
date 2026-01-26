@@ -14,15 +14,6 @@ abstract class BankRepository {
   /// Throws exception on failure
   Future<void> saveBankBalance(BankBalance balance);
 
-  /// Get recent bank balance history for a location
-  ///
-  /// Returns list of bank balance records ordered by date descending
-  /// Returns empty list if no records found
-  Future<List<BankBalance>> getBankBalanceHistory({
-    required String locationId,
-    int limit = 10,
-  });
-
   /// Get balance summary (Journal vs Real) for bank location
   ///
   /// Returns balance comparison showing:

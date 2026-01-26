@@ -35,15 +35,6 @@ abstract class VaultRepository {
   /// Throws exception on failure
   Future<Map<String, dynamic>> recountVault(VaultRecount recount);
 
-  /// Get recent vault transaction history for a location
-  ///
-  /// Returns list of vault transactions ordered by date descending
-  /// Returns empty list if no records found
-  Future<List<VaultTransaction>> getVaultTransactionHistory({
-    required String locationId,
-    int limit = 10,
-  });
-
   /// Get balance summary (Journal vs Real) for vault location
   ///
   /// Returns balance comparison showing:

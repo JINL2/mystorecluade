@@ -1,7 +1,6 @@
 // lib/features/cash_ending/presentation/providers/cash_ending_state.dart
 
 import 'package:freezed_annotation/freezed_annotation.dart';
-import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/currency.dart';
 import '../../domain/entities/location.dart';
 import '../../domain/entities/store.dart';
@@ -26,9 +25,6 @@ class CashEndingState with _$CashEndingState {
 
     /// Error message to display
     String? errorMessage,
-
-    /// Success message to display
-    String? successMessage,
 
     /// Reset all input fields flag (increments on each reset request)
     @Default(0) int resetInputsCounter,
@@ -106,9 +102,6 @@ class CashEndingState with _$CashEndingState {
     /// Base currency for Grand Total calculation
     Currency? baseCurrency,
 
-    /// Recent cash ending history for selected location
-    @Default([]) List<CashEnding> recentCashEndings,
-
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     // Loading State - Loading states for each operation
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -126,9 +119,6 @@ class CashEndingState with _$CashEndingState {
 
     /// Loading currencies
     @Default(false) bool isLoadingCurrencies,
-
-    /// Loading recent cash endings
-    @Default(false) bool isLoadingRecentEndings,
   }) = _CashEndingState;
 
   const CashEndingState._();
@@ -172,7 +162,6 @@ class CashEndingState with _$CashEndingState {
       isLoadingBankLocations ||
       isLoadingVaultLocations ||
       isLoadingCurrencies ||
-      isLoadingRecentEndings ||
       isSaving;
 
   /// Calculate Grand Total across all currencies

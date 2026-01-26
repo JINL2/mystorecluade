@@ -69,28 +69,6 @@ class VaultRepositoryImpl extends BaseRepository implements VaultRepository {
   }
 
   @override
-  Future<List<VaultTransaction>> getVaultTransactionHistory({
-    required String locationId,
-    int limit = 10,
-  }) async {
-    return executeWithErrorHandling(
-      () async {
-        // Call remote datasource
-        final data = await _remoteDataSource.getVaultTransactionHistory(
-          locationId: locationId,
-          limit: limit,
-        );
-
-        // Convert JSON to DTOs then to entities
-        return data
-            .map((json) => VaultTransactionDto.fromJson(json).toEntity())
-            .toList();
-      },
-      operationName: 'getVaultTransactionHistory',
-    );
-  }
-
-  @override
   Future<BalanceSummary> getBalanceSummary({
     required String locationId,
   }) async {

@@ -74,7 +74,8 @@ class _CashEndingPageState extends ConsumerState<CashEndingPage>
     final storeId = appState.storeChoosen;
 
     if (companyId.isNotEmpty) {
-      ref.read(cashEndingProvider.notifier).loadStores(companyId);
+      // Load stores from AppState (already fetched at app startup via get_user_companies_with_salary RPC)
+      ref.read(cashEndingProvider.notifier).loadStoresFromAppState(appState);
       ref.read(cashEndingProvider.notifier).loadCurrencies(companyId);
 
       if (storeId.isNotEmpty) {

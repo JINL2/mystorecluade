@@ -2,11 +2,14 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// Remote Data Source for Currencies and Denominations
+/// Remote Data Source for Currencies
 ///
 /// This is the ONLY place where Supabase client is used for currency operations.
-/// Handles all database queries for currencies and denominations.
+/// Handles all database queries for currencies.
 /// Returns raw JSON data (Map<String, dynamic>).
+///
+/// NOTE: Denominations are included in get_company_currencies_with_exchange_rates
+/// RPC response as JSONB. No separate query needed.
 class CurrencyRemoteDataSource {
   final SupabaseClient _client;
 
@@ -24,7 +27,7 @@ class CurrencyRemoteDataSource {
   /// [companyId] - Company ID
   /// [rateDate] - Optional date for historical exchange rates
   ///
-  /// Returns list of currency data with exchange rates
+  /// Returns list of currency data with exchange rates and denominations
   /// Throws exception on error
   Future<List<Map<String, dynamic>>> getCompanyCurrenciesWithExchangeRates({
     required String companyId,
@@ -38,25 +41,6 @@ class CurrencyRemoteDataSource {
             DateTime.now().toIso8601String().split('T')[0],
       },
     );
-
-    return List<Map<String, dynamic>>.from(response);
-  }
-
-  /// Get denominations for company and currency
-  ///
-  /// Returns list of denomination records ordered by value descending
-  /// Throws exception on error
-  Future<List<Map<String, dynamic>>> getDenominationsByCurrency({
-    required String companyId,
-    required String currencyId,
-  }) async {
-    final response = await _client
-        .from('currency_denominations')
-        .select('*')
-        .eq('company_id', companyId)
-        .eq('currency_id', currencyId)
-        .eq('is_deleted', false)
-        .order('value', ascending: false);
 
     return List<Map<String, dynamic>>.from(response);
   }

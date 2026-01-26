@@ -8,7 +8,7 @@ part 'vault_transaction_dto.g.dart';
 
 /// Vault Transaction DTO (Multi-Currency)
 ///
-/// Maps to universal RPC: insert_amount_multi_currency
+/// Maps to universal RPC: cash_ending_insert_amount_multi_currency
 /// Handles JSON serialization/deserialization and RPC parameter formatting
 @freezed
 class VaultTransactionDto with _$VaultTransactionDto {
@@ -31,7 +31,7 @@ class VaultTransactionDto with _$VaultTransactionDto {
 
   /// Convert to RPC parameters for universal multi-currency RPC
   ///
-  /// ✅ Uses insert_amount_multi_currency with Entry-based workflow
+  /// ✅ Uses cash_ending_insert_amount_multi_currency with Entry-based workflow
   /// ✅ ALL Vault transactions send QUANTITY (RPC calculates amount)
   Map<String, dynamic> toRpcParams({String? transactionType}) {
     // Determine vault transaction type

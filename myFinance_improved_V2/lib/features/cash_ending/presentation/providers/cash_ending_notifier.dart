@@ -5,16 +5,16 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/providers/app_state.dart';
 import '../../../../core/monitoring/sentry_config.dart';
 import '../../core/constants.dart';
 import '../../domain/entities/cash_ending.dart';
 import '../../domain/entities/location.dart';
+import '../../domain/entities/store.dart';
 import '../../domain/exceptions/cash_ending_exception.dart';
 import '../../domain/usecases/get_balance_summary_usecase.dart';
 import '../../domain/usecases/load_currencies_usecase.dart';
 import '../../domain/usecases/load_locations_usecase.dart';
-import '../../domain/usecases/load_recent_cash_endings_usecase.dart';
-import '../../domain/usecases/load_stores_usecase.dart';
 import '../../domain/usecases/save_cash_ending_usecase.dart';
 import '../../domain/usecases/select_store_usecase.dart';
 import 'cash_ending_state.dart';
@@ -30,64 +30,92 @@ import 'cash_ending_state.dart';
 /// ✅ 100% UseCase-based (Clean Architecture compliant)
 class CashEndingNotifier extends StateNotifier<CashEndingState> {
   // UseCases - all business logic delegated here
-  final LoadStoresUseCase _loadStoresUseCase;
   final LoadCurrenciesUseCase _loadCurrenciesUseCase;
   final LoadLocationsUseCase _loadLocationsUseCase;
   final SelectStoreUseCase _selectStoreUseCase;
-  final LoadRecentCashEndingsUseCase _loadRecentCashEndingsUseCase;
   final SaveCashEndingUseCase _saveCashEndingUseCase;
   final GetCashBalanceSummaryUseCase? _getCashBalanceSummaryUseCase;
   final GetBankBalanceSummaryUseCase? _getBankBalanceSummaryUseCase;
   final GetVaultBalanceSummaryUseCase? _getVaultBalanceSummaryUseCase;
 
   CashEndingNotifier({
-    required LoadStoresUseCase loadStoresUseCase,
     required LoadCurrenciesUseCase loadCurrenciesUseCase,
     required LoadLocationsUseCase loadLocationsUseCase,
     required SelectStoreUseCase selectStoreUseCase,
-    required LoadRecentCashEndingsUseCase loadRecentCashEndingsUseCase,
     required SaveCashEndingUseCase saveCashEndingUseCase,
     GetCashBalanceSummaryUseCase? getCashBalanceSummaryUseCase,
     GetBankBalanceSummaryUseCase? getBankBalanceSummaryUseCase,
     GetVaultBalanceSummaryUseCase? getVaultBalanceSummaryUseCase,
-  })  : _loadStoresUseCase = loadStoresUseCase,
-        _loadCurrenciesUseCase = loadCurrenciesUseCase,
+  })  : _loadCurrenciesUseCase = loadCurrenciesUseCase,
         _loadLocationsUseCase = loadLocationsUseCase,
         _selectStoreUseCase = selectStoreUseCase,
-        _loadRecentCashEndingsUseCase = loadRecentCashEndingsUseCase,
         _saveCashEndingUseCase = saveCashEndingUseCase,
         _getCashBalanceSummaryUseCase = getCashBalanceSummaryUseCase,
         _getBankBalanceSummaryUseCase = getBankBalanceSummaryUseCase,
         _getVaultBalanceSummaryUseCase = getVaultBalanceSummaryUseCase,
         super(const CashEndingState());
 
-  /// Load stores for a company
+  /// Load stores from AppState (no network call needed)
   ///
-  /// ✅ Uses LoadStoresUseCase (business logic in Domain)
-  Future<void> loadStores(String companyId) async {
-    state = state.copyWith(isLoadingStores: true, errorMessage: null);
+  /// Stores are already loaded at app startup via get_user_companies_with_salary RPC.
+  /// This method extracts stores for the current company from AppState.
+  void loadStoresFromAppState(AppState appState) {
+    final currentCompanyId = appState.companyChoosen;
+    final companies = appState.user['companies'] as List<dynamic>? ?? [];
 
-    try {
-      // ✅ UseCase handles business logic
-      final stores = await _loadStoresUseCase.execute(companyId);
-
-      state = state.copyWith(
-        stores: stores,
-        isLoadingStores: false,
-      );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashEndingNotifier.loadStores failed',
-        extra: {'companyId': companyId},
-      );
-
-      state = state.copyWith(
-        isLoadingStores: false,
-        errorMessage: e is CashEndingException ? e.message : 'Failed to load stores',
-      );
+    // Find current company
+    Map<String, dynamic>? company;
+    for (final c in companies) {
+      if (c is Map<String, dynamic> && c['company_id'] == currentCompanyId) {
+        company = c;
+        break;
+      }
     }
+
+    if (company == null) {
+      // Fallback: use current store from AppState
+      state = state.copyWith(
+        stores: [
+          Store(
+            storeId: appState.storeChoosen,
+            storeName: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
+          ),
+        ],
+        isLoadingStores: false,
+      );
+      return;
+    }
+
+    final storesList = company['stores'] as List<dynamic>? ?? [];
+
+    if (storesList.isEmpty) {
+      // Fallback: use current store from AppState
+      state = state.copyWith(
+        stores: [
+          Store(
+            storeId: appState.storeChoosen,
+            storeName: appState.storeName.isNotEmpty ? appState.storeName : 'Main Store',
+          ),
+        ],
+        isLoadingStores: false,
+      );
+      return;
+    }
+
+    // Convert to Store entities
+    final stores = storesList.map((store) {
+      final storeMap = store as Map<String, dynamic>;
+      return Store(
+        storeId: storeMap['store_id'] as String? ?? '',
+        storeName: storeMap['store_name'] as String? ?? 'Unknown Store',
+        storeCode: storeMap['store_code'] as String?,
+      );
+    }).toList();
+
+    state = state.copyWith(
+      stores: stores,
+      isLoadingStores: false,
+    );
   }
 
   /// Load locations by type (cash, bank, vault)
@@ -170,37 +198,6 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     }
   }
 
-  /// Load recent cash endings for a location
-  ///
-  /// ✅ Uses LoadRecentCashEndingsUseCase (Clean Architecture compliant)
-  Future<void> loadRecentCashEndings(String locationId) async {
-    state = state.copyWith(isLoadingRecentEndings: true, errorMessage: null);
-
-    try {
-      final recentEndings = await _loadRecentCashEndingsUseCase.execute(
-        locationId: locationId,
-        limit: 10,
-      );
-
-      state = state.copyWith(
-        recentCashEndings: recentEndings,
-        isLoadingRecentEndings: false,
-      );
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashEndingNotifier.loadRecentCashEndings failed',
-        extra: {'locationId': locationId},
-      );
-
-      state = state.copyWith(
-        isLoadingRecentEndings: false,
-        errorMessage: e is CashEndingException ? e.message : 'Failed to load recent cash endings',
-      );
-    }
-  }
-
   /// Save cash ending
   ///
   /// ✅ Uses SaveCashEndingUseCase (includes validation logic)
@@ -212,13 +209,7 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
       state = state.copyWith(
         isSaving: false,
-        successMessage: 'Cash ending saved successfully',
       );
-
-      // Reload recent cash endings for the location
-      if (cashEnding.locationId.isNotEmpty) {
-        await loadRecentCashEndings(cashEnding.locationId);
-      }
 
       return true;
     } catch (e, stackTrace) {
@@ -238,11 +229,6 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
 
       return false;
     }
-  }
-
-  /// Update selected store
-  void setSelectedStore(String? storeId) {
-    state = state.copyWith(selectedStoreId: storeId);
   }
 
   /// Select store and auto-load all locations
@@ -510,17 +496,12 @@ class CashEndingNotifier extends StateNotifier<CashEndingState> {
     state = state.copyWith(currentTabIndex: tabIndex);
   }
 
-  void clearError() {
-    state = state.copyWith(errorMessage: null, successMessage: null);
-  }
-
   void resetAfterSubmit() {
     state = state.copyWith(
       selectedCashLocationId: null,
       selectedBankLocationId: null,
       selectedVaultLocationId: null,
       errorMessage: null,
-      successMessage: null,
     );
   }
 
