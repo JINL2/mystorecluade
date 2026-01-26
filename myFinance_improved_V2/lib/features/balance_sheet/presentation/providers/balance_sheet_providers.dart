@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import '../../../../core/domain/entities/store.dart';
 import '../../di/balance_sheet_injection.dart';
 import '../../domain/entities/balance_sheet.dart';
 import '../../domain/entities/income_statement.dart';
@@ -96,13 +95,6 @@ Future<IncomeStatement> incomeStatement(Ref ref, IncomeStatementParams params) a
     timezone: params.timezone,
     storeId: params.storeId,
   );
-}
-
-/// Stores provider
-@riverpod
-Future<List<Store>> stores(Ref ref, String companyId) async {
-  final repository = ref.read(balanceSheetRepositoryProvider);
-  return await repository.getStores(companyId);
 }
 
 /// Currency provider

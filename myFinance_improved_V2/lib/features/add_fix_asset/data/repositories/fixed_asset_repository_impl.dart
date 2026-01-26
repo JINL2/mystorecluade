@@ -28,21 +28,24 @@ class FixedAssetRepositoryImpl implements FixedAssetRepository {
   }
 
   @override
-  Future<void> createFixedAsset(FixedAsset asset) async {
+  Future<String> createFixedAsset(FixedAsset asset, {required String timezone}) async {
     try {
       if (!asset.isValid) {
         throw Exception('Invalid asset data');
       }
 
       final model = FixedAssetModel.fromEntity(asset);
-      await _dataSource.createFixedAsset(model);
+      return await _dataSource.createFixedAsset(
+        model: model,
+        timezone: timezone,
+      );
     } catch (e) {
       throw Exception('Failed to create fixed asset: $e');
     }
   }
 
   @override
-  Future<void> updateFixedAsset(FixedAsset asset) async {
+  Future<void> updateFixedAsset(FixedAsset asset, {required String timezone}) async {
     try {
       if (asset.assetId == null) {
         throw Exception('Asset ID is required for update');
@@ -53,16 +56,27 @@ class FixedAssetRepositoryImpl implements FixedAssetRepository {
       }
 
       final model = FixedAssetModel.fromEntity(asset);
-      await _dataSource.updateFixedAsset(model);
+      await _dataSource.updateFixedAsset(
+        model: model,
+        timezone: timezone,
+      );
     } catch (e) {
       throw Exception('Failed to update fixed asset: $e');
     }
   }
 
   @override
-  Future<void> deleteFixedAsset(String assetId) async {
+  Future<void> deleteFixedAsset({
+    required String assetId,
+    required String companyId,
+    required String timezone,
+  }) async {
     try {
-      await _dataSource.deleteFixedAsset(assetId);
+      await _dataSource.deleteFixedAsset(
+        assetId: assetId,
+        companyId: companyId,
+        timezone: timezone,
+      );
     } catch (e) {
       throw Exception('Failed to delete fixed asset: $e');
     }

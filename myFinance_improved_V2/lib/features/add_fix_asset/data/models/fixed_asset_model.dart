@@ -13,6 +13,7 @@ class FixedAssetModel {
   final int usefulLifeYears;
   final String companyId;
   final String? storeId;
+  final String? accountId;
   final String? createdAt;
 
   const FixedAssetModel({
@@ -24,6 +25,7 @@ class FixedAssetModel {
     required this.usefulLifeYears,
     required this.companyId,
     this.storeId,
+    this.accountId,
     this.createdAt,
   });
 
@@ -38,11 +40,12 @@ class FixedAssetModel {
       usefulLifeYears: ((json['useful_life_years'] ?? 0) as num).toInt(),
       companyId: json['company_id'] as String,
       storeId: json['store_id'] as String?,
+      accountId: json['account_id'] as String?,
       createdAt: json['created_at'] as String?,
     );
   }
 
-  /// Model → JSON
+  /// Model → JSON (for direct queries - deprecated)
   Map<String, dynamic> toJson() {
     return {
       if (assetId != null) 'asset_id': assetId,
@@ -53,6 +56,7 @@ class FixedAssetModel {
       'useful_life_years': usefulLifeYears,
       'company_id': companyId,
       'store_id': storeId,
+      if (accountId != null) 'account_id': accountId,
       if (createdAt != null) 'created_at': createdAt,
     };
   }
@@ -70,6 +74,7 @@ class FixedAssetModel {
       ),
       companyId: companyId,
       storeId: storeId,
+      accountId: accountId,
       createdAt: createdAt != null ? DateTimeUtils.toLocal(createdAt!) : null, // Convert UTC to local
     );
   }
@@ -85,6 +90,7 @@ class FixedAssetModel {
       usefulLifeYears: entity.financialInfo.usefulLifeYears,
       companyId: entity.companyId,
       storeId: entity.storeId,
+      accountId: entity.accountId,
       createdAt: entity.createdAt != null ? DateTimeUtils.toUtc(entity.createdAt!) : null, // Convert local to UTC
     );
   }

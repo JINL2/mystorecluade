@@ -1,4 +1,3 @@
-import '../../../../core/domain/entities/store.dart';
 import '../../domain/entities/balance_sheet.dart';
 import '../../domain/entities/income_statement.dart';
 import '../../domain/repositories/balance_sheet_repository.dart';
@@ -61,24 +60,6 @@ class BalanceSheetRepositoryImpl implements BalanceSheetRepository {
       return model.toEntity();
     } catch (e) {
       throw Exception('Failed to get income statement: ${e.toString()}');
-    }
-  }
-
-  @override
-  Future<List<Store>> getStores(String companyId) async {
-    try {
-      final rawData = await _dataSource.getStoresRaw(companyId);
-
-      return rawData.map((store) {
-        return Store(
-          id: store['store_id']?.toString() ?? '',
-          storeName: store['store_name']?.toString() ?? '',
-          storeCode: store['store_code']?.toString() ?? '',
-          companyId: companyId,
-        );
-      }).toList();
-    } catch (e) {
-      throw Exception('Failed to get stores: ${e.toString()}');
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/entities/fixed_asset.dart';
@@ -43,11 +44,11 @@ class FixedAssetNotifier extends StateNotifier<FixedAssetState> {
   }
 
   /// 고정자산 생성
-  Future<bool> createAsset(FixedAsset asset) async {
+  Future<bool> createAsset(FixedAsset asset, {required String timezone}) async {
     state = state.copyWith(isCreating: true, errorMessage: null);
 
     try {
-      await _repository.createFixedAsset(asset);
+      await _repository.createFixedAsset(asset, timezone: timezone);
 
       state = state.copyWith(isCreating: false);
 
@@ -68,11 +69,17 @@ class FixedAssetNotifier extends StateNotifier<FixedAssetState> {
   }
 
   /// 고정자산 수정
-  Future<bool> updateAsset(FixedAsset asset) async {
+  Future<bool> updateAsset(FixedAsset asset, {required String timezone}) async {
+    debugPrint('=== updateAsset called ===');
+    debugPrint('Asset ID: ${asset.assetId}');
+    debugPrint('Timezone: $timezone');
+
     state = state.copyWith(errorMessage: null);
 
     try {
-      await _repository.updateFixedAsset(asset);
+      debugPrint('Calling repository.updateFixedAsset...');
+      await _repository.updateFixedAsset(asset, timezone: timezone);
+      debugPrint('Repository call successful');
 
       // 로컬 상태에서 수정된 자산 업데이트
       final updatedAssets = state.assets.map((a) {
@@ -84,19 +91,29 @@ class FixedAssetNotifier extends StateNotifier<FixedAssetState> {
         errorMessage: null,
       );
 
+      debugPrint('updateAsset returning true');
       return true;
     } catch (e) {
+      debugPrint('updateAsset ERROR: $e');
       state = state.copyWith(errorMessage: e.toString());
       return false;
     }
   }
 
-  /// 고정자산 삭제
-  Future<bool> deleteAsset(String assetId) async {
+  /// 고정자산 삭제 (Soft Delete)
+  Future<bool> deleteAsset({
+    required String assetId,
+    required String companyId,
+    required String timezone,
+  }) async {
     state = state.copyWith(errorMessage: null);
 
     try {
-      await _repository.deleteFixedAsset(assetId);
+      await _repository.deleteFixedAsset(
+        assetId: assetId,
+        companyId: companyId,
+        timezone: timezone,
+      );
 
       // 로컬 상태에서 삭제된 자산 제거
       final updatedAssets = state.assets

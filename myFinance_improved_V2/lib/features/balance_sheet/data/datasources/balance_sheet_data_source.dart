@@ -216,43 +216,22 @@ class BalanceSheetDataSource {
     }
   }
 
-  /// Get stores for a company
-  Future<List<Map<String, dynamic>>> getStoresRaw(String companyId) async {
-    final response = await _client
-        .from('stores')
-        .select('store_id, store_name, store_code')
-        .eq('company_id', companyId)
-        .order('store_name');
-
-    return List<Map<String, dynamic>>.from(response);
-  }
-
-  /// Get currency for a company
+  /// Get currency for a company using get_base_currency RPC
   Future<Map<String, dynamic>> getCurrencyRaw(String companyId) async {
-    // Get company's base_currency_id
-    final companyResponse = await _client
-        .from('companies')
-        .select('base_currency_id')
-        .eq('company_id', companyId)
-        .single();
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_base_currency',
+      params: {'p_company_id': companyId},
+    );
 
-    final baseCurrencyId = companyResponse['base_currency_id'] as String?;
-
-    if (baseCurrencyId == null) {
-      // Return default currency
-      return {'currency_code': 'KRW', 'symbol': '₩'};
+    final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+    if (baseCurrency != null) {
+      return {
+        'currency_code': baseCurrency['currency_code'] as String? ?? 'KRW',
+        'symbol': baseCurrency['symbol'] as String? ?? '₩',
+      };
     }
 
-    // Get currency details
-    final currencyResponse = await _client
-        .from('currency_types')
-        .select('currency_code, symbol')
-        .eq('currency_id', baseCurrencyId)
-        .single();
-
-    return {
-      'currency_code': (currencyResponse['currency_code'] as String?) ?? 'KRW',
-      'symbol': (currencyResponse['symbol'] as String?) ?? '₩',
-    };
+    // Return default currency if RPC fails
+    return {'currency_code': 'KRW', 'symbol': '₩'};
   }
 }

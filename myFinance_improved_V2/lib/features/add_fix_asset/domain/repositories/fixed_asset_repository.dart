@@ -12,13 +12,17 @@ abstract class FixedAssetRepository {
   });
 
   /// 고정자산 추가
-  Future<void> createFixedAsset(FixedAsset asset);
+  Future<String> createFixedAsset(FixedAsset asset, {required String timezone});
 
   /// 고정자산 수정
-  Future<void> updateFixedAsset(FixedAsset asset);
+  Future<void> updateFixedAsset(FixedAsset asset, {required String timezone});
 
   /// 고정자산 삭제
-  Future<void> deleteFixedAsset(String assetId);
+  Future<void> deleteFixedAsset({
+    required String assetId,
+    required String companyId,
+    required String timezone,
+  });
 
   /// 회사 기본 통화 정보 조회 (currencyId, symbol 반환)
   Future<({String? currencyId, String symbol})> getBaseCurrencyInfo(

@@ -1,4 +1,3 @@
-import '../../../../core/domain/entities/store.dart';
 import '../entities/balance_sheet.dart';
 import '../entities/income_statement.dart';
 import '../value_objects/currency.dart';
@@ -26,9 +25,6 @@ abstract class BalanceSheetRepository {
     required String timezone,
     String? storeId,
   });
-
-  /// Get stores for a company
-  Future<List<Store>> getStores(String companyId);
 
   /// Get currency for a company
   Future<Currency> getCurrency(String companyId);

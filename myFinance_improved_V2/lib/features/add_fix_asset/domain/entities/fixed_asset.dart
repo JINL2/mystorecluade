@@ -10,6 +10,7 @@ class FixedAsset {
   final AssetFinancialInfo financialInfo;
   final String companyId;
   final String? storeId; // null = headquarters
+  final String? accountId; // 계정 ID (고정자산 계정)
   final DateTime? createdAt;
 
   const FixedAsset({
@@ -19,6 +20,7 @@ class FixedAsset {
     required this.financialInfo,
     required this.companyId,
     this.storeId,
+    this.accountId,
     this.createdAt,
   });
 
@@ -50,6 +52,7 @@ class FixedAsset {
     AssetFinancialInfo? financialInfo,
     String? companyId,
     String? storeId,
+    String? accountId,
     DateTime? createdAt,
   }) {
     return FixedAsset(
@@ -59,6 +62,7 @@ class FixedAsset {
       financialInfo: financialInfo ?? this.financialInfo,
       companyId: companyId ?? this.companyId,
       storeId: storeId ?? this.storeId,
+      accountId: accountId ?? this.accountId,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -73,7 +77,8 @@ class FixedAsset {
         other.acquisitionDate == acquisitionDate &&
         other.financialInfo == financialInfo &&
         other.companyId == companyId &&
-        other.storeId == storeId;
+        other.storeId == storeId &&
+        other.accountId == accountId;
   }
 
   @override
@@ -83,6 +88,7 @@ class FixedAsset {
         acquisitionDate.hashCode ^
         financialInfo.hashCode ^
         companyId.hashCode ^
-        storeId.hashCode;
+        storeId.hashCode ^
+        accountId.hashCode;
   }
 }

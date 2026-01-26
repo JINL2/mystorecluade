@@ -35,26 +35,84 @@ class FixedAssetDataSource {
         .toList();
   }
 
-  /// 고정자산 추가
-  Future<void> createFixedAsset(FixedAssetModel model) async {
-    await _supabase.from('fixed_assets').insert(model.toJson());
+  /// 고정자산 추가 (RPC 사용)
+  Future<String> createFixedAsset({
+    required FixedAssetModel model,
+    required String timezone,
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'add_fix_asset_manage_fixed_asset',
+      params: {
+        'p_operation': 'insert',
+        'p_company_id': model.companyId,
+        'p_store_id': model.storeId,
+        'p_account_id': model.accountId,
+        'p_asset_name': model.assetName,
+        'p_acquisition_date': model.acquisitionDate,
+        'p_acquisition_cost': model.acquisitionCost,
+        'p_salvage_value': model.salvageValue,
+        'p_useful_life_years': model.usefulLifeYears,
+        'p_timezone': timezone,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to create asset');
+    }
+
+    return response['asset_id'] as String;
   }
 
-  /// 고정자산 수정
-  Future<void> updateFixedAsset(FixedAssetModel model) async {
+  /// 고정자산 수정 (RPC 사용)
+  Future<void> updateFixedAsset({
+    required FixedAssetModel model,
+    required String timezone,
+  }) async {
     if (model.assetId == null) {
       throw Exception('Asset ID is required for update');
     }
 
-    await _supabase
-        .from('fixed_assets')
-        .update(model.toJson())
-        .eq('asset_id', model.assetId!);
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'add_fix_asset_manage_fixed_asset',
+      params: {
+        'p_operation': 'update',
+        'p_asset_id': model.assetId,
+        'p_company_id': model.companyId,
+        'p_store_id': model.storeId,
+        'p_account_id': model.accountId,
+        'p_asset_name': model.assetName,
+        'p_acquisition_date': model.acquisitionDate,
+        'p_acquisition_cost': model.acquisitionCost,
+        'p_salvage_value': model.salvageValue,
+        'p_useful_life_years': model.usefulLifeYears,
+        'p_timezone': timezone,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to update asset');
+    }
   }
 
-  /// 고정자산 삭제
-  Future<void> deleteFixedAsset(String assetId) async {
-    await _supabase.from('fixed_assets').delete().eq('asset_id', assetId);
+  /// 고정자산 삭제 (RPC 사용 - Soft Delete)
+  Future<void> deleteFixedAsset({
+    required String assetId,
+    required String companyId,
+    required String timezone,
+  }) async {
+    final response = await _supabase.rpc<Map<String, dynamic>>(
+      'add_fix_asset_manage_fixed_asset',
+      params: {
+        'p_operation': 'delete',
+        'p_asset_id': assetId,
+        'p_company_id': companyId,
+        'p_timezone': timezone,
+      },
+    );
+
+    if (response['success'] != true) {
+      throw Exception(response['message'] ?? 'Failed to delete asset');
+    }
   }
 
   /// 회사 기본 통화 정보 조회 (RPC 사용)

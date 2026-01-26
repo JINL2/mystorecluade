@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../../../app/providers/auth_providers.dart';
+import '../../../../core/utils/datetime_utils.dart';
 import '../../../../shared/themes/toss_border_radius.dart';
 import '../../../../shared/themes/toss_colors.dart';
 import '../../../../shared/themes/toss_spacing.dart';
@@ -227,13 +228,13 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
           asset: asset,
           currencySymbol: assetState.currencySymbol,
           onEdit: () => _showEditAssetBottomSheet(asset, assetState.currencySymbol),
-          onDelete: () => _deleteAsset(asset.assetId!),
+          onDelete: () => _deleteAsset(assetId: asset.assetId!, companyId: asset.companyId),
         );
       },
     );
   }
 
-  Future<void> _deleteAsset(String assetId) async {
+  Future<void> _deleteAsset({required String assetId, required String companyId}) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -254,7 +255,12 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
     );
 
     if (confirmed == true && mounted) {
-      final success = await ref.read(fixedAssetProvider.notifier).deleteAsset(assetId);
+      final timezone = DateTimeUtils.getLocalTimezone();
+      final success = await ref.read(fixedAssetProvider.notifier).deleteAsset(
+        assetId: assetId,
+        companyId: companyId,
+        timezone: timezone,
+      );
 
       if (mounted) {
         if (success) {
@@ -306,7 +312,8 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         currencySymbol: assetState.currencySymbol,
         onSave: (asset) async {
           try {
-            final success = await ref.read(fixedAssetProvider.notifier).createAsset(asset);
+            final timezone = DateTimeUtils.getLocalTimezone();
+            final success = await ref.read(fixedAssetProvider.notifier).createAsset(asset, timezone: timezone);
 
             if (mounted && success) {
               Navigator.pop(context);
@@ -362,7 +369,8 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         currencySymbol: currencySymbol,
         onSave: (updatedAsset) async {
           try {
-            final success = await ref.read(fixedAssetProvider.notifier).updateAsset(updatedAsset);
+            final timezone = DateTimeUtils.getLocalTimezone();
+            final success = await ref.read(fixedAssetProvider.notifier).updateAsset(updatedAsset, timezone: timezone);
 
             if (mounted && success) {
               Navigator.pop(context);

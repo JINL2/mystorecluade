@@ -25,13 +25,6 @@ abstract class CurrencyRepository {
     DateTime? rateDate,
   });
 
-  /// Get all active currencies for a company (LEGACY)
-  ///
-  /// Returns list of currencies with their denominations
-  /// Returns empty list if no currencies found
-  @Deprecated('Use getCompanyCurrenciesWithExchangeRates instead')
-  Future<List<Currency>> getCompanyCurrencies(String companyId);
-
   /// Get denominations for a specific currency
   ///
   /// Returns list of denominations ordered by value descending
@@ -40,10 +33,4 @@ abstract class CurrencyRepository {
     required String companyId,
     required String currencyId,
   });
-
-  /// Get all currency types available in the system
-  ///
-  /// This fetches the master list of currency types (KRW, USD, etc.)
-  /// Returns empty list if none found
-  Future<List<Currency>> getAllCurrencyTypes();
 }
