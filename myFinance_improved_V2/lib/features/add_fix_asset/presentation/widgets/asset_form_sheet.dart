@@ -53,6 +53,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
 
   // Original values for dirty state tracking (edit mode only)
   String? _originalName;
+  String? _originalCost;
   String? _originalSalvage;
   String? _originalUsefulLife;
   FixedAssetType? _originalAssetType;
@@ -63,15 +64,6 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
 
     if (widget.mode == AssetFormMode.edit && widget.existingAsset != null) {
       final asset = widget.existingAsset!;
-
-      // DEBUG: Log asset data being loaded
-      debugPrint('=== Edit Mode Init ===');
-      debugPrint('Asset ID: ${asset.assetId}');
-      debugPrint('Asset Name: ${asset.assetName}');
-      debugPrint('Acquisition Cost: ${asset.financialInfo.acquisitionCost}');
-      debugPrint('Salvage Value: ${asset.financialInfo.salvageValue}');
-      debugPrint('Useful Life: ${asset.financialInfo.usefulLifeYears}');
-      debugPrint('Account ID: ${asset.accountId}');
 
       _nameController = TextEditingController(text: asset.assetName);
       _costController = TextEditingController(
@@ -93,16 +85,10 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
 
       // Store original values for dirty state tracking
       _originalName = asset.assetName;
+      _originalCost = asset.financialInfo.acquisitionCost.toStringAsFixed(0);
       _originalSalvage = asset.financialInfo.salvageValue.toStringAsFixed(0);
       _originalUsefulLife = asset.financialInfo.usefulLifeYears.toString();
       _originalAssetType = _selectedAssetType;
-
-      // DEBUG: Log original values
-      debugPrint('=== Original Values Stored ===');
-      debugPrint('Original Name: $_originalName');
-      debugPrint('Original Salvage: $_originalSalvage');
-      debugPrint('Original Useful Life: $_originalUsefulLife');
-      debugPrint('Original Asset Type: $_originalAssetType');
     } else {
       _nameController = TextEditingController();
       _costController = TextEditingController();
@@ -126,18 +112,12 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
     if (widget.mode != AssetFormMode.edit) return true; // Always enabled for create
 
     final nameChanged = _nameController.text.trim() != _originalName;
+    final costChanged = _costController.text != _originalCost;
     final salvageChanged = _salvageController.text != _originalSalvage;
     final usefulLifeChanged = _usefulLifeController.text != _originalUsefulLife;
     final assetTypeChanged = _selectedAssetType != _originalAssetType;
 
-    // DEBUG: Log comparison
-    debugPrint('=== _hasChanges Check ===');
-    debugPrint('Name: "${_nameController.text.trim()}" vs "$_originalName" = $nameChanged');
-    debugPrint('Salvage: "${_salvageController.text}" vs "$_originalSalvage" = $salvageChanged');
-    debugPrint('UsefulLife: "${_usefulLifeController.text}" vs "$_originalUsefulLife" = $usefulLifeChanged');
-    debugPrint('AssetType: $_selectedAssetType vs $_originalAssetType = $assetTypeChanged');
-
-    return nameChanged || salvageChanged || usefulLifeChanged || assetTypeChanged;
+    return nameChanged || costChanged || salvageChanged || usefulLifeChanged || assetTypeChanged;
   }
 
   @override
@@ -556,7 +536,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
             icon: Icons.attach_money,
             controller: _costController,
             hint: '0',
-            enabled: !isEdit, // Disabled in edit mode
+            enabled: true, // Enabled in both create and edit mode
             prefix: '${widget.currencySymbol} ',
           ),
 
@@ -715,7 +695,8 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
           flex: 2,
           child: TossButton.primary(
             text: isEdit ? 'Save Changes' : 'Add Asset',
-            onPressed: canSave ? _handleSave : null,
+            onPressed: _handleSave,
+            isEnabled: canSave,
             leadingIcon: Icon(
               isEdit ? Icons.check_circle_outline : Icons.add_circle_outline,
               color: canSave ? TossColors.white : TossColors.gray400,
@@ -760,9 +741,6 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
   }
 
   Future<void> _handleSave() async {
-    debugPrint('=== _handleSave Called ===');
-    debugPrint('Mode: ${widget.mode}');
-
     // Validation
     if (_nameController.text.trim().isEmpty) {
       _showError('Please enter asset name');
@@ -770,7 +748,6 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
     }
 
     final cost = double.tryParse(_costController.text);
-    debugPrint('Parsed cost: $cost from "${_costController.text}"');
     if (cost == null || cost <= 0) {
       _showError('Please enter valid acquisition cost');
       return;
@@ -778,7 +755,6 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
 
     final salvage = double.tryParse(_salvageController.text) ?? 0;
     final years = int.tryParse(_usefulLifeController.text);
-    debugPrint('Parsed salvage: $salvage, years: $years');
     if (years == null || years <= 0) {
       _showError('Please enter valid useful life');
       return;
@@ -807,18 +783,7 @@ class _AssetFormSheetState extends State<AssetFormSheet> {
       createdAt: widget.existingAsset?.createdAt ?? DateTime.now(),
     );
 
-    debugPrint('=== Asset to save ===');
-    debugPrint('Asset ID: ${asset.assetId}');
-    debugPrint('Asset Name: ${asset.assetName}');
-    debugPrint('Acquisition Cost: ${asset.financialInfo.acquisitionCost}');
-    debugPrint('Salvage Value: ${asset.financialInfo.salvageValue}');
-    debugPrint('Useful Life: ${asset.financialInfo.usefulLifeYears}');
-    debugPrint('Account ID: ${asset.accountId}');
-    debugPrint('Calling widget.onSave...');
-
     await widget.onSave(asset);
-
-    debugPrint('widget.onSave completed');
   }
 
   void _showError(String message) {

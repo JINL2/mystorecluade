@@ -43,15 +43,12 @@ class _SafePopupMenuButtonState<T> extends State<SafePopupMenuButton<T>> {
       elevation: widget.elevation,
       child: widget.child,
       onSelected: (T value) async {
-        
-        // Close the popup menu first if it's still open
-        if (Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
-        }
-        
+        // PopupMenuButton automatically closes the popup when an item is selected.
+        // DO NOT call Navigator.pop() here - it will pop the entire page in GoRouter.
+
         // Use a small delay to ensure the popup is fully closed
         await Future<void>.delayed(TossAnimations.instant);
-        
+
         // Check if widget is still mounted before calling onSelected
         if (mounted) {
           widget.onSelected(value);

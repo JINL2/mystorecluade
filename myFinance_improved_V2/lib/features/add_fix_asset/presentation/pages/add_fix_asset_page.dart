@@ -264,23 +264,31 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
       if (mounted) {
         if (success) {
-          await showDialog<bool>(
+          await showDialog<void>(
             context: context,
             barrierDismissible: false,
-            builder: (context) => TossDialog.success(
+            useRootNavigator: true,
+            builder: (dialogContext) => TossDialog.success(
               title: 'Asset Deleted',
               message: 'Asset deleted successfully',
               primaryButtonText: 'OK',
+              onPrimaryPressed: () {
+                Navigator.of(dialogContext, rootNavigator: true).pop();
+              },
             ),
           );
         } else {
-          await showDialog<bool>(
+          await showDialog<void>(
             context: context,
             barrierDismissible: true,
-            builder: (context) => TossDialog.error(
+            useRootNavigator: true,
+            builder: (dialogContext) => TossDialog.error(
               title: 'Delete Failed',
               message: 'Failed to delete asset',
               primaryButtonText: 'OK',
+              onPrimaryPressed: () {
+                Navigator.of(dialogContext, rootNavigator: true).pop();
+              },
             ),
           );
         }
@@ -301,11 +309,15 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
 
     if (user == null) return;
 
+    // Capture notifier before showing bottom sheet to avoid "ref after disposed" error
+    final notifier = ref.read(fixedAssetProvider.notifier);
+    final stateReader = ref.read;
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
-      builder: (context) => AssetFormSheet(
+      builder: (sheetContext) => AssetFormSheet(
         mode: AssetFormMode.create,
         companyId: appState.companyChoosen,
         storeId: assetState.selectedStoreId,
@@ -313,43 +325,63 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         onSave: (asset) async {
           try {
             final timezone = DateTimeUtils.getLocalTimezone();
-            final success = await ref.read(fixedAssetProvider.notifier).createAsset(asset, timezone: timezone);
+            final success = await notifier.createAsset(asset, timezone: timezone);
 
-            if (mounted && success) {
-              Navigator.pop(context);
-              await showDialog<bool>(
+            if (!sheetContext.mounted) return;
+
+            if (success) {
+              // Close bottom sheet first
+              Navigator.pop(sheetContext);
+
+              // createAsset already calls loadAssets internally, no need to reload
+
+              if (!mounted) return;
+
+              // Show success dialog - use rootNavigator to ensure only dialog is popped
+              await showDialog<void>(
                 context: context,
                 barrierDismissible: false,
-                builder: (context) => TossDialog.success(
+                useRootNavigator: true,
+                builder: (dialogContext) => TossDialog.success(
                   title: 'Asset Added',
                   message: 'Asset added successfully',
                   primaryButtonText: 'OK',
+                  onPrimaryPressed: () {
+                    Navigator.of(dialogContext, rootNavigator: true).pop();
+                  },
                 ),
               );
-            } else if (mounted && !success) {
-              final errorMsg = ref.read(fixedAssetProvider).errorMessage ?? 'Unknown error';
-              await showDialog<bool>(
-                context: context,
+            } else {
+              final errorMsg = stateReader(fixedAssetProvider).errorMessage ?? 'Unknown error';
+              await showDialog<void>(
+                context: sheetContext,
                 barrierDismissible: true,
-                builder: (context) => TossDialog.error(
+                useRootNavigator: true,
+                builder: (dialogContext) => TossDialog.error(
                   title: 'Failed to Add Asset',
                   message: errorMsg,
                   primaryButtonText: 'OK',
+                  onPrimaryPressed: () {
+                    Navigator.of(dialogContext, rootNavigator: true).pop();
+                  },
                 ),
               );
             }
           } catch (e) {
-            if (mounted) {
-              await showDialog<bool>(
-                context: context,
-                barrierDismissible: true,
-                builder: (context) => TossDialog.error(
-                  title: 'Failed to Add Asset',
-                  message: e.toString(),
-                  primaryButtonText: 'OK',
-                ),
-              );
-            }
+            if (!sheetContext.mounted) return;
+            await showDialog<void>(
+              context: sheetContext,
+              barrierDismissible: true,
+              useRootNavigator: true,
+              builder: (dialogContext) => TossDialog.error(
+                title: 'Failed to Add Asset',
+                message: e.toString(),
+                primaryButtonText: 'OK',
+                onPrimaryPressed: () {
+                  Navigator.of(dialogContext, rootNavigator: true).pop();
+                },
+              ),
+            );
           }
         },
       ),
@@ -357,11 +389,14 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
   }
 
   void _showEditAssetBottomSheet(FixedAsset asset, String currencySymbol) {
+    // Capture notifier before showing bottom sheet to avoid "ref after disposed" error
+    final notifier = ref.read(fixedAssetProvider.notifier);
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: TossColors.transparent,
       isScrollControlled: true,
-      builder: (context) => AssetFormSheet(
+      builder: (sheetContext) => AssetFormSheet(
         mode: AssetFormMode.edit,
         existingAsset: asset,
         companyId: asset.companyId,
@@ -370,43 +405,44 @@ class _AddFixAssetPageState extends ConsumerState<AddFixAssetPage> {
         onSave: (updatedAsset) async {
           try {
             final timezone = DateTimeUtils.getLocalTimezone();
-            final success = await ref.read(fixedAssetProvider.notifier).updateAsset(updatedAsset, timezone: timezone);
+            final success = await notifier.updateAsset(updatedAsset, timezone: timezone);
 
-            if (mounted && success) {
-              Navigator.pop(context);
-              await showDialog<bool>(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => TossDialog.success(
-                  title: 'Asset Updated',
-                  message: 'Asset updated successfully',
-                  primaryButtonText: 'OK',
-                ),
-              );
-            } else if (mounted && !success) {
-              final errorMsg = ref.read(fixedAssetProvider).errorMessage ?? 'Unknown error';
-              await showDialog<bool>(
-                context: context,
+            if (!sheetContext.mounted) return;
+
+            if (success) {
+              // Close bottom sheet only
+              // Note: updateAsset already updates local state, no need to reload
+              Navigator.pop(sheetContext);
+            } else {
+              await showDialog<void>(
+                context: sheetContext,
                 barrierDismissible: true,
-                builder: (context) => TossDialog.error(
+                useRootNavigator: true,
+                builder: (dialogContext) => TossDialog.error(
                   title: 'Failed to Update Asset',
-                  message: errorMsg,
+                  message: 'Failed to update asset. Please try again.',
                   primaryButtonText: 'OK',
+                  onPrimaryPressed: () {
+                    Navigator.of(dialogContext, rootNavigator: true).pop();
+                  },
                 ),
               );
             }
           } catch (e) {
-            if (mounted) {
-              await showDialog<bool>(
-                context: context,
-                barrierDismissible: true,
-                builder: (context) => TossDialog.error(
-                  title: 'Failed to Update Asset',
-                  message: e.toString(),
-                  primaryButtonText: 'OK',
-                ),
-              );
-            }
+            if (!sheetContext.mounted) return;
+            await showDialog<void>(
+              context: sheetContext,
+              barrierDismissible: true,
+              useRootNavigator: true,
+              builder: (dialogContext) => TossDialog.error(
+                title: 'Failed to Update Asset',
+                message: e.toString(),
+                primaryButtonText: 'OK',
+                onPrimaryPressed: () {
+                  Navigator.of(dialogContext, rootNavigator: true).pop();
+                },
+              ),
+            );
           }
         },
       ),
