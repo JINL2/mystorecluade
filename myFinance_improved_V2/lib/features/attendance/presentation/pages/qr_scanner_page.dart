@@ -18,6 +18,7 @@ import '../providers/monthly_attendance_providers.dart';
 import '../providers/qr_scanner_state.dart';
 import '../widgets/check_in_out/utils/attendance_helper_methods.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
+import 'qr_scanner/index.dart';
 
 class QRScannerPage extends ConsumerStatefulWidget {
   const QRScannerPage({super.key});
@@ -102,20 +103,6 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
     if (_cameraController != null && !_isCameraStopped) {
       await _cameraController!.stop();
       _isCameraStopped = true;
-    }
-  }
-
-  /// 카메라 에러 메시지 변환
-  String _getCameraErrorMessage(MobileScannerException error) {
-    switch (error.errorCode) {
-      case MobileScannerErrorCode.controllerUninitialized:
-        return 'Camera is not ready.\nPlease try again.';
-      case MobileScannerErrorCode.permissionDenied:
-        return 'Camera permission denied.\nPlease allow camera access in Settings.';
-      case MobileScannerErrorCode.unsupported:
-        return 'Camera is not supported on this device.';
-      default:
-        return 'Failed to initialize camera.\nPlease restart the app.';
     }
   }
 
@@ -227,7 +214,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
     required String userId,
   }) async {
     // 오늘 출석 상태 확인
-    final todayAttendance = await ref.read(todayMonthlyAttendanceProvider.future);
+    final todayAttendance =
+        await ref.read(todayMonthlyAttendanceProvider.future);
 
     final notifier = ref.read(monthlyCheckNotifierProvider.notifier);
 
@@ -259,7 +247,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
       }
     } else if (todayAttendance?.status == 'completed') {
       // 이미 완료됨
-      await _showErrorDialog('You have already completed attendance for today.');
+      await _showErrorDialog(
+          'You have already completed attendance for today.');
       // 카메라 재시작하여 다시 스캔 가능하도록
       ref.read(qrScannerNotifierProvider.notifier).reset();
       await _restartCameraIfNeeded();
@@ -272,9 +261,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
           // ✅ Provider invalidate (UI 즉시 업데이트)
           _invalidateMonthlyProviders();
 
-          final message = result.isLate
-              ? 'Check-in Complete (Late)'
-              : 'Check-in Complete';
+          final message =
+              result.isLate ? 'Check-in Complete (Late)' : 'Check-in Complete';
 
           _showSuccessDialog(message, {
             'success': true,
@@ -288,9 +276,11 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
 
           // RPC 에러 코드에 따른 친절한 메시지
           if (result.error == 'NOT_WORKDAY') {
-            errorMessage = 'Today is not a workday.\nCheck your schedule template.';
+            errorMessage =
+                'Today is not a workday.\nCheck your schedule template.';
           } else if (result.error == 'NO_TEMPLATE') {
-            errorMessage = 'No work schedule assigned.\nPlease contact your manager.';
+            errorMessage =
+                'No work schedule assigned.\nPlease contact your manager.';
           } else if (result.error == 'ALREADY_CHECKED_IN') {
             errorMessage = 'You have already checked in today.';
           }
@@ -359,47 +349,15 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
           MobileScanner(
             controller: cameraController,
             errorBuilder: (context, error) {
-              // 카메라 에러 시 사용자에게 피드백 제공
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(TossSpacing.space4),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.camera_alt_outlined,
-                        size: 64,
-                        color: TossColors.gray400,
-                      ),
-                      const SizedBox(height: TossSpacing.space4),
-                      Text(
-                        'Camera Error',
-                        style: TossTextStyles.h3.copyWith(
-                          color: TossColors.white,
-                        ),
-                      ),
-                      const SizedBox(height: TossSpacing.space2),
-                      Text(
-                        _getCameraErrorMessage(error),
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.gray300,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: TossSpacing.space4),
-                      TossButton.primary(
-                        text: 'Retry',
-                        onPressed: () async {
-                          // 컨트롤러 재생성 시도
-                          _cameraController?.dispose();
-                          _cameraController = null;
-                          _isCameraStopped = false;
-                          setState(() {});
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+              return CameraErrorWidget(
+                error: error,
+                onRetry: () async {
+                  // 컨트롤러 재생성 시도
+                  _cameraController?.dispose();
+                  _cameraController = null;
+                  _isCameraStopped = false;
+                  setState(() {});
+                },
               );
             },
             onDetect: (capture) async {
@@ -472,7 +430,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                 // ========================================
                 // 급여 타입에 따라 분기
                 // ========================================
-                final salaryType = await ref.read(userSalaryTypeProvider.future);
+                final salaryType =
+                    await ref.read(userSalaryTypeProvider.future);
 
                 if (salaryType == 'monthly') {
                   // ========================================
@@ -508,7 +467,7 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                   requestTime: currentTime,
                   userId: userId,
                   companyId: companyId,
-                  storeId: storeId,  // QR에서 읽은 store_id 사용
+                  storeId: storeId, // QR에서 읽은 store_id 사용
                   timezone: timezone,
                 );
 
@@ -519,7 +478,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                 );
 
                 // Find the closest shift's request ID
-                final shiftRequestId = AttendanceHelpers.findClosestShiftRequestId(
+                final shiftRequestId =
+                    AttendanceHelpers.findClosestShiftRequestId(
                   shiftCards,
                   now: now,
                 );
@@ -553,7 +513,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
 
                 // Check if the RPC call was successful
                 if (!result.success) {
-                  throw Exception(result.message ?? 'Failed to update shift request');
+                  throw Exception(
+                      result.message ?? 'Failed to update shift request');
                 }
 
                 // Add a small delay for UX
@@ -581,7 +542,8 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
                 }
               } catch (e) {
                 // Show error and allow retry
-                await _showErrorDialog('Failed to process QR code: ${e.toString()}');
+                await _showErrorDialog(
+                    'Failed to process QR code: ${e.toString()}');
                 // 카메라 재시작하여 다시 스캔 가능하도록
                 ref.read(qrScannerNotifierProvider.notifier).reset();
                 await _restartCameraIfNeeded();
@@ -589,104 +551,10 @@ class _QRScannerPageState extends ConsumerState<QRScannerPage>
             },
           ),
 
-          // Scanner overlay
-          Container(
-            decoration: BoxDecoration(
-              color: TossColors.black.withValues(alpha: TossOpacity.scrim),
-            ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Container(
-                    width: 280,
-                    height: 280,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: TossColors.primary,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(TossBorderRadius.xl),
-                    ),
-                  ),
-                ),
-
-                // Instructions
-                Positioned(
-                  bottom: 100,
-                  left: 0,
-                  right: 0,
-                  child: Column(
-                    children: [
-                      if (scannerState.isProcessing)
-                        const TossLoadingView()
-                      else
-                        Text(
-                          'Scan QR Code',
-                          style: TossTextStyles.h3.copyWith(
-                            color: TossColors.white,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      const SizedBox(height: TossSpacing.space2),
-                      Text(
-                        scannerState.isProcessing
-                            ? 'Processing...'
-                            : 'Position the QR code within the frame',
-                        style: TossTextStyles.body.copyWith(
-                          color: TossColors.white.withValues(alpha: TossOpacity.modalBackdrop),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Mask with cutout
-          ClipPath(
-            clipper: _ScannerOverlayClipper(),
-            child: Container(
-              color: TossColors.black.withValues(alpha: TossOpacity.scrim),
-            ),
-          ),
+          // Scanner overlay with mask
+          ScannerOverlayWidget(isProcessing: scannerState.isProcessing),
         ],
       ),
     );
   }
-}
-
-// Custom clipper for scanner overlay with cutout
-class _ScannerOverlayClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    final path = Path()..fillType = PathFillType.evenOdd;
-
-    // Add outer rectangle
-    path.addRect(Rect.fromLTWH(0, 0, size.width, size.height));
-
-    // Calculate center cutout position
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    const cutoutSize = 280.0;
-    const borderRadius = 16.0;
-
-    // Add rounded rectangle cutout
-    path.addRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(centerX, centerY),
-          width: cutoutSize,
-          height: cutoutSize,
-        ),
-        const Radius.circular(borderRadius),
-      ),
-    );
-
-    return path;
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }

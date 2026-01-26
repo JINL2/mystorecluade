@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../core/utils/datetime_utils.dart';
@@ -18,6 +18,8 @@ import '../../../domain/usecases/get_manager_shift_cards.dart';
 import '../states/time_table_state.dart';
 import '../usecase/time_table_usecase_providers.dart';
 
+part 'manager_shift_cards_provider.g.dart';
+
 /// Manager Shift Cards Notifier
 ///
 /// Features:
@@ -25,18 +27,27 @@ import '../usecase/time_table_usecase_providers.dart';
 /// - Debug logging for data loading
 /// - Selective month clearing
 /// - Lazy loading with skip logic
-class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
-  final GetManagerShiftCards _getManagerShiftCardsUseCase;
-  final String _companyId;
-  final String _storeId;
-  final String _timezone;
+@riverpod
+class ManagerShiftCardsNotifier extends _$ManagerShiftCardsNotifier {
+  late final GetManagerShiftCards _getManagerShiftCardsUseCase;
+  late final String _companyId;
+  late final String _storeId;
+  late final String _timezone;
 
-  ManagerShiftCardsNotifier(
-    this._getManagerShiftCardsUseCase,
-    this._companyId,
-    this._storeId,
-    this._timezone,
-  ) : super(const ManagerShiftCardsState());
+  @override
+  ManagerShiftCardsState build(String storeId) {
+    _getManagerShiftCardsUseCase = ref.watch(getManagerShiftCardsUseCaseProvider);
+    // Use select to only rebuild when companyChoosen actually changes
+    _companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
+    _storeId = storeId;
+    // Use device local timezone instead of user DB timezone
+    _timezone = DateTimeUtils.getLocalTimezone();
+
+    // DEBUG: Provider being created/recreated
+    debugPrint('🔄 [managerCardsProvider] CREATED - storeId: $storeId, companyId: $_companyId');
+
+    return const ManagerShiftCardsState();
+  }
 
   /// Format number with comma separators (e.g., 150000 → "150,000")
   static String _formatNumber(int value) {
@@ -55,17 +66,13 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
   /// Safely update state - avoids "setState during build" errors
   /// by deferring state updates if called during widget build phase
   void _safeSetState(ManagerShiftCardsState newState) {
-    if (!mounted) return;
-
     // Check if we're in the middle of a build phase
     final phase = SchedulerBinding.instance.schedulerPhase;
     if (phase == SchedulerPhase.persistentCallbacks ||
         phase == SchedulerPhase.midFrameMicrotasks) {
       // Defer state update to after the current frame
       SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          state = newState;
-        }
+        state = newState;
       });
     } else {
       state = newState;
@@ -123,16 +130,20 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
       final newDataByMonth = Map<String, ManagerShiftCards>.from(state.dataByMonth);
       newDataByMonth[monthKey] = data;
 
-      _safeSetState(state.copyWith(
-        dataByMonth: newDataByMonth,
-        isLoading: false,
-      ));
+      _safeSetState(
+        state.copyWith(
+          dataByMonth: newDataByMonth,
+          isLoading: false,
+        ),
+      );
     } catch (e) {
       debugPrint('   ❌ [managerCardsProvider] Failed after retries: $e');
-      _safeSetState(state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      _safeSetState(
+        state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+        ),
+      );
     }
   }
 
@@ -164,7 +175,6 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
     required bool isApproved,
     required String shiftDate,
   }) {
-    if (!mounted) return;
 
     // Parse month from shiftDate (yyyy-MM-dd)
     final parts = shiftDate.split('-');
@@ -220,7 +230,6 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
     ManagerMemo? newManagerMemo,
     double? calculatedPaidHour,
   }) {
-    if (!mounted) return;
 
     // Parse month from shiftDate (yyyy-MM-dd)
     final parts = shiftDate.split('-');
@@ -337,28 +346,15 @@ class ManagerShiftCardsNotifier extends StateNotifier<ManagerShiftCardsState> {
   }
 }
 
-/// Manager Shift Cards Provider
+/// Manager Shift Cards Provider (Deprecated - use managerShiftCardsNotifierProvider instead)
 ///
-/// Usage:
+/// Usage (new @riverpod pattern):
 /// ```dart
-/// final cards = ref.watch(managerCardsProvider(storeId));
-/// await cards.notifier.loadMonth(month: DateTime.now());
+/// final cards = ref.watch(managerShiftCardsNotifierProvider(storeId));
+/// ref.read(managerShiftCardsNotifierProvider(storeId).notifier).loadMonth(month: DateTime.now());
 /// final monthData = cards.dataByMonth[monthKey];
 /// ```
-final managerCardsProvider = StateNotifierProvider.family<
-    ManagerShiftCardsNotifier,
-    ManagerShiftCardsState,
-    String>((ref, storeId) {
-  final useCase = ref.watch(getManagerShiftCardsUseCaseProvider);
-  // ✅ FIX: Use select to only rebuild when companyChoosen actually changes
-  // Previously used ref.watch(appStateProvider) which caused rebuilds on ANY appState change
-  // (e.g., storeChoosen, user data updates) leading to cache data loss
-  final companyId = ref.watch(appStateProvider.select((s) => s.companyChoosen));
-  // Use device local timezone instead of user DB timezone
-  final timezone = DateTimeUtils.getLocalTimezone();
-
-  // 🔍 DEBUG: Provider being created/recreated
-  debugPrint('🔄 [managerCardsProvider] CREATED - storeId: $storeId, companyId: $companyId');
-
-  return ManagerShiftCardsNotifier(useCase, companyId, storeId, timezone);
-});
+///
+/// Backward compatibility alias for migration period
+@Deprecated('Use managerShiftCardsNotifierProvider instead')
+const managerCardsProvider = managerShiftCardsNotifierProvider;

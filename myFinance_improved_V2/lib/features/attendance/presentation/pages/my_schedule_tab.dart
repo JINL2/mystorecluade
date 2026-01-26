@@ -14,8 +14,7 @@ import '../providers/attendance_providers.dart';
 import '../widgets/check_in_out/dialogs/report_issue_dialog.dart';
 import 'utils/schedule_date_utils.dart';
 import 'utils/schedule_shift_finder.dart';
-import '../../domain/entities/problem_details.dart';
-import 'dialogs/shift_detail_dialog.dart';
+import 'utils/schedule_problem_status_utils.dart';
 import 'widgets/schedule_header.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/sheets/trigger_bottom_sheet_common.dart';
@@ -597,79 +596,13 @@ class _MyScheduleTabState extends ConsumerState<MyScheduleTab>
     );
   }
 
-  /// Build problem status map from shift cards
-  /// Maps date string "yyyy-MM-dd" to ProblemStatus
+  /// Build problem status map from shift cards (delegated to utils)
   Map<String, ProblemStatus> _buildProblemStatusMap(List<ShiftCard> shiftCards) {
-    final Map<String, ProblemStatus> statusMap = {};
-
-    for (final card in shiftCards) {
-      if (!card.isApproved) continue;
-
-      // Parse shift date from shiftStartTime
-      final startDateTime = ScheduleDateUtils.parseShiftDateTime(card.shiftStartTime);
-      if (startDateTime == null) continue;
-
-      final dateKey = DateFormat('yyyy-MM-dd').format(startDateTime);
-      final pd = card.problemDetails;
-
-      // Determine status for this shift
-      // Priority: solved (green) > reported (orange) > unsolved problem (red) > has shift (blue)
-      // Logic flow:
-      // 1. is_solved = true -> Green (all problems resolved)
-      // 2. has_reported = true && is_solved = false -> Orange (reported, waiting)
-      // 3. problem_count > 0 && is_solved = false -> Red (unsolved problem)
-      // 4. No problems -> Blue (just has shift)
-      ProblemStatus shiftStatus;
-      if (pd != null && pd.isSolved && pd.problemCount > 0) {
-        // All problems solved -> Green
-        shiftStatus = ProblemStatus.solved;
-      } else if (pd != null && pd.hasReported && !pd.isSolved) {
-        // Reported but not solved yet -> Orange (waiting for manager review)
-        shiftStatus = ProblemStatus.unsolvedReport;
-      } else if (pd != null && pd.problemCount > 0 && !pd.isSolved) {
-        // Has unsolved problems (not reported) -> Red
-        shiftStatus = ProblemStatus.unsolvedProblem;
-      } else {
-        // Has shift, no problems -> Blue
-        shiftStatus = ProblemStatus.hasShift;
-      }
-
-      // Keep highest priority status for the date
-      // Priority: unsolvedProblem > unsolvedReport > solved > hasShift
-      final existing = statusMap[dateKey];
-      if (existing == null) {
-        statusMap[dateKey] = shiftStatus;
-      } else {
-        // Compare priority
-        final priorityOrder = [
-          ProblemStatus.unsolvedProblem, // highest
-          ProblemStatus.unsolvedReport,
-          ProblemStatus.solved,
-          ProblemStatus.hasShift, // lowest
-        ];
-        final existingPriority = priorityOrder.indexOf(existing);
-        final newPriority = priorityOrder.indexOf(shiftStatus);
-        if (newPriority < existingPriority) {
-          statusMap[dateKey] = shiftStatus;
-        }
-      }
-    }
-
-    return statusMap;
+    return ScheduleProblemStatusUtils.buildProblemStatusMap(shiftCards);
   }
 
-  /// Count unsolved problems (red status) from shift cards
-  /// These are shifts with problems that haven't been reported or solved
+  /// Count unsolved problems from shift cards (delegated to utils)
   int _countUnsolvedProblems(List<ShiftCard> shiftCards) {
-    int count = 0;
-    for (final card in shiftCards) {
-      if (!card.isApproved) continue;
-      final pd = card.problemDetails;
-      // Count shifts with unsolved problems (not reported, not solved)
-      if (pd != null && pd.problemCount > 0 && !pd.isSolved && !pd.hasReported) {
-        count++;
-      }
-    }
-    return count;
+    return ScheduleProblemStatusUtils.countUnsolvedProblems(shiftCards);
   }
 }
