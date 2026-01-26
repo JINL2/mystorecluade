@@ -120,26 +120,31 @@ class CashTransactionDataSource {
   }
 
   /// Get counterparties for a company
+  /// Uses RPC: get_counterparties_v2
+  /// Note: isInternal filter is applied client-side since RPC doesn't support it
   Future<List<CounterpartyModel>> getCounterparties({
     required String companyId,
     bool? isInternal,
   }) async {
     try {
-      var query = _client
-          .from('counterparties')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false);
+      final response = await _client.rpc<List<dynamic>>(
+        'get_counterparties_v2',
+        params: {
+          'p_company_id': companyId,
+          'p_counterparty_type': null,
+        },
+      );
 
-      if (isInternal != null) {
-        query = query.eq('is_internal', isInternal);
-      }
-
-      final response = await query.order('name');
-
-      return (response as List)
+      var models = response
           .map((json) => CounterpartyModel.fromJson(json as Map<String, dynamic>))
           .toList();
+
+      // Client-side filter for isInternal (RPC doesn't support this filter)
+      if (isInternal != null) {
+        models = models.where((m) => m.isInternal == isInternal).toList();
+      }
+
+      return models;
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -152,28 +157,29 @@ class CashTransactionDataSource {
   }
 
   /// Get self-counterparty for a company
-  /// This is the counterparty where company_id = linked_company_id
+  /// Uses RPC: get_counterparties_v2 and filters for linked_company_id = company_id
   /// Used for within-company transfers (same company, different stores)
   Future<CounterpartyModel?> getSelfCounterparty({
     required String companyId,
   }) async {
-
     try {
-      final response = await _client
-          .from('counterparties')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('linked_company_id', companyId)
-          .eq('is_deleted', false)
-          .eq('is_internal', true)
-          .limit(1)
-          .maybeSingle();
+      final response = await _client.rpc<List<dynamic>>(
+        'get_counterparties_v2',
+        params: {
+          'p_company_id': companyId,
+          'p_counterparty_type': null,
+        },
+      );
 
-      if (response == null) {
-        return null;
-      }
+      final models = response
+          .map((json) => CounterpartyModel.fromJson(json as Map<String, dynamic>))
+          .toList();
 
-      return CounterpartyModel.fromJson(response);
+      // Find self-counterparty: is_internal = true AND linked_company_id = company_id
+      final selfCounterparty = models.where((m) =>
+          m.isInternal == true && m.linkedCompanyId == companyId).firstOrNull;
+
+      return selfCounterparty;
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -428,6 +434,37 @@ class CashTransactionDataSource {
         'success': false,
         'error': e.toString(),
       };
+    }
+  }
+
+  /// Get base currency symbol for a company
+  /// Uses RPC: get_base_currency
+  /// Returns the currency symbol (e.g., '₩', '$', '₫')
+  Future<String> getBaseCurrencySymbol({
+    required String companyId,
+  }) async {
+    try {
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_base_currency',
+        params: {
+          'p_company_id': companyId,
+        },
+      );
+
+      final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+      if (baseCurrency == null) {
+        return '₩';
+      }
+
+      return baseCurrency['symbol'] as String? ?? '₩';
+    } catch (e, stackTrace) {
+      SentryConfig.captureException(
+        e,
+        stackTrace,
+        hint: 'CashControl: Failed to get base currency symbol',
+        extra: {'companyId': companyId},
+      );
+      return '₩';
     }
   }
 }

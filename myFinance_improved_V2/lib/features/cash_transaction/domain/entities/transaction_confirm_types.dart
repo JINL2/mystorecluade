@@ -1,4 +1,3 @@
-import 'package:image_picker/image_picker.dart';
 import 'cash_transaction_enums.dart';
 
 /// Transaction type for confirmation dialog
@@ -47,11 +46,23 @@ class TransactionConfirmData {
   });
 }
 
+/// Attachment file abstraction for Domain Layer
+/// Avoids direct dependency on image_picker (XFile)
+class AttachmentFile {
+  final String path;
+  final String? name;
+
+  const AttachmentFile({
+    required this.path,
+    this.name,
+  });
+}
+
 /// Result from confirmation dialog
 class TransactionConfirmResult {
   final bool confirmed;
   final String? memo;
-  final List<XFile> attachments;
+  final List<AttachmentFile> attachments;
   final DebtCategory? debtCategory; // For debt transactions
 
   const TransactionConfirmResult({

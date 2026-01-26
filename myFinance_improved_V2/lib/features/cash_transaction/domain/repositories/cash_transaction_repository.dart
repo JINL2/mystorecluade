@@ -40,7 +40,7 @@ abstract class CashTransactionRepository {
 
   /// Get counterparties for company
   ///
-  /// Queries: counterparties table
+  /// Uses RPC: get_counterparties_v2
   Future<List<Counterparty>> getCounterparties({
     required String companyId,
     String? query,
@@ -56,13 +56,21 @@ abstract class CashTransactionRepository {
 
   /// Get cash locations for store
   ///
-  /// Queries: cash_locations table
+  /// Uses RPC: get_cash_locations
   Future<List<CashLocation>> getCashLocations({
     required String storeId,
   });
 
   /// Get cash locations for company (all stores)
   Future<List<CashLocation>> getCashLocationsForCompany({
+    required String companyId,
+  });
+
+  /// Get base currency symbol for a company
+  ///
+  /// Uses RPC: get_base_currency
+  /// Returns the currency symbol (e.g., '₩', '$', '₫')
+  Future<String> getBaseCurrencySymbol({
     required String companyId,
   });
 

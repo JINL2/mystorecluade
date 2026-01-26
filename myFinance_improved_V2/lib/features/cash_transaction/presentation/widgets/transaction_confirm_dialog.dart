@@ -120,6 +120,11 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
   }
 
   void _onConfirm() {
+    // Convert XFile to AttachmentFile (Domain entity)
+    final attachmentFiles = _attachments
+        .map((xFile) => AttachmentFile(path: xFile.path, name: xFile.name))
+        .toList();
+
     Navigator.pop(
       context,
       TransactionConfirmResult(
@@ -127,7 +132,7 @@ class _TransactionConfirmDialogState extends State<TransactionConfirmDialog> {
         memo: _memoController.text.trim().isEmpty
             ? null
             : _memoController.text.trim(),
-        attachments: _attachments,
+        attachments: attachmentFiles,
         debtCategory: widget.data.type == ConfirmTransactionType.debt
             ? _selectedDebtCategory
             : null,

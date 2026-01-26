@@ -164,6 +164,13 @@ class CashTransactionRepositoryImpl implements CashTransactionRepository {
   }
 
   @override
+  Future<String> getBaseCurrencySymbol({
+    required String companyId,
+  }) async {
+    return dataSource.getBaseCurrencySymbol(companyId: companyId);
+  }
+
+  @override
   Future<String> createExpenseEntry({
     required String companyId,
     required String? storeId,

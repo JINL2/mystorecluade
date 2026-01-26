@@ -1,5 +1,4 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/datasources/cash_transaction_datasource.dart';
 import '../../data/repositories/cash_transaction_repository_impl.dart';
@@ -157,6 +156,7 @@ Future<List<CashLocation>> cashLocationsForStore(
 
 /// Company base currency symbol provider
 /// Returns the currency symbol for the company (e.g., '₩', '$', '₫')
+/// Uses RPC: get_base_currency (via Repository)
 @riverpod
 Future<String> companyCurrencySymbol(
   CompanyCurrencySymbolRef ref,
@@ -164,39 +164,6 @@ Future<String> companyCurrencySymbol(
 ) async {
   if (companyId.isEmpty) return '₩'; // Default fallback
 
-  try {
-    final client = Supabase.instance.client;
-
-    // Get company's base currency id
-    final companyResponse = await client
-        .from('companies')
-        .select('base_currency_id')
-        .eq('company_id', companyId)
-        .maybeSingle();
-
-    if (companyResponse == null) {
-      return '₩';
-    }
-
-    final baseCurrencyId = companyResponse['base_currency_id'] as String?;
-    if (baseCurrencyId == null) {
-      return '₩';
-    }
-
-    // Get currency symbol
-    final currencyResponse = await client
-        .from('currency_types')
-        .select('symbol')
-        .eq('currency_id', baseCurrencyId)
-        .maybeSingle();
-
-    if (currencyResponse == null) {
-      return '₩';
-    }
-
-    final symbol = currencyResponse['symbol'] as String? ?? '₩';
-    return symbol;
-  } catch (e) {
-    return '₩';
-  }
+  final repository = ref.watch(cashTransactionRepositoryProvider);
+  return repository.getBaseCurrencySymbol(companyId: companyId);
 }
