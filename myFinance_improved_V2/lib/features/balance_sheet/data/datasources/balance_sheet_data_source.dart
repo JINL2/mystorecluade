@@ -123,24 +123,6 @@ class BalanceSheetDataSource {
     return [];
   }
 
-  /// Get monthly P&L trend for charts
-  Future<List<Map<String, dynamic>>> getMonthlyPnlTrend({
-    required String companyId,
-    required int year,
-    String? storeId,
-  }) async {
-    final response = await _client.rpc('get_pnl_monthly', params: {
-      'p_company_id': companyId,
-      'p_year': year,
-      if (storeId != null) 'p_store_id': storeId,
-    });
-
-    if (response is List) {
-      return List<Map<String, dynamic>>.from(response);
-    }
-    return [];
-  }
-
   String _formatDate(DateTime date) => date.toIso8601String().split('T')[0];
 
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
