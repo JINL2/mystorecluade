@@ -96,17 +96,10 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
     String? linkedCompanyId,
   }) async {
     try {
-      // Internal counterparty는 isInternal/linkedCompanyId 변경 불가 (다른 필드는 수정 가능)
-      final existing = await getCounterPartyById(counterpartyId);
-      if (existing != null && existing.isInternal) {
-        // 기존 internal 상태 유지
-        isInternal = existing.isInternal;
-        linkedCompanyId = existing.linkedCompanyId;
-      }
-
+      // Note: RPC handles internal counterparty restrictions automatically
+      // (INTERNAL_NO_MODIFY error if trying to change is_internal/linked_company_id)
       final data = await _dataSource.updateCounterParty(
         counterpartyId: counterpartyId,
-        companyId: companyId,
         name: name,
         type: type.displayName,
         email: email?.isEmpty == true ? null : email,
@@ -138,15 +131,7 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
   @override
   Future<bool> deleteCounterParty(String counterpartyId) async {
     try {
-      // Internal counterparty는 시스템이 자동 관리하므로 삭제 불가
-      final existing = await getCounterPartyById(counterpartyId);
-      if (existing != null && existing.isInternal) {
-        throw Exception(
-          'Internal counterparties are system-managed and cannot be deleted',
-        );
-      }
-
-      // Validate before deletion - only check for unpaid debts
+      // Validate before deletion - check for unpaid debts
       final validation = await validateDeletion(counterpartyId);
 
       if (!validation.canDelete) {
@@ -159,7 +144,8 @@ class CounterPartyRepositoryImpl implements CounterPartyRepository {
         throw Exception('Cannot delete: ${validation.reason}');
       }
 
-      // Soft delete - data remains but hidden from UI
+      // Note: RPC handles internal counterparty check automatically
+      // (INTERNAL_NO_DELETE error if trying to delete internal counterparty)
       await _dataSource.deleteCounterParty(counterpartyId);
       return true;
     } catch (e) {

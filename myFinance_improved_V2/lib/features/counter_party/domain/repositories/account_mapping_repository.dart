@@ -20,7 +20,7 @@ abstract class AccountMappingRepository {
     String? createdBy,
   });
 
-  /// Delete (soft delete) an account mapping
+  /// Delete an account mapping (hard delete via RPC)
   Future<bool> deleteAccountMapping({
     required String mappingId,
   });

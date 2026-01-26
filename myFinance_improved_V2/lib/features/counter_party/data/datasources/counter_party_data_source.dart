@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Counter Party Data Source - Direct Supabase interaction
 /// Uses get_counterparties_v3 RPC for all READ operations
+/// Uses counter_party_manage_counter_party RPC for all WRITE operations (insert, update, delete)
 class CounterPartyDataSource {
   final SupabaseClient _client;
 
@@ -108,6 +109,7 @@ class CounterPartyDataSource {
   }
 
   /// Create counter party
+  /// Uses RPC: counter_party_manage_counter_party (mode: 'insert')
   Future<Map<String, dynamic>> createCounterParty({
     required String companyId,
     required String name,
@@ -118,52 +120,52 @@ class CounterPartyDataSource {
     String? notes,
     bool isInternal = false,
     String? linkedCompanyId,
+    String? createdBy,
   }) async {
-    // Check for duplicate internal counterparty before insert
-    if (isInternal && linkedCompanyId != null) {
-      final isDuplicate = await checkDuplicateInternalCounterparty(
-        companyId: companyId,
-        linkedCompanyId: linkedCompanyId,
-      );
-      if (isDuplicate) {
-        throw Exception(
-          'This internal company is already registered as a counterparty. '
-          'Each company can only have one counterparty linked to the same internal company.'
-        );
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'counter_party_manage_counter_party',
+      params: {
+        'p_mode': 'insert',
+        'p_company_id': companyId,
+        'p_name': name,
+        'p_type': type,
+        'p_email': email,
+        'p_phone': phone,
+        'p_address': address,
+        'p_notes': notes,
+        'p_is_internal': isInternal,
+        'p_linked_company_id': linkedCompanyId,
+        'p_created_by': createdBy,
+      },
+    );
+
+    if (response['success'] != true) {
+      final error = response['error'] as String?;
+      // Convert error codes to user-friendly messages
+      switch (error) {
+        case 'DUPLICATE_LINKED':
+          throw Exception(
+            'This internal company is already registered as a counterparty. '
+            'Each company can only have one counterparty linked to the same internal company.'
+          );
+        case 'MISSING_NAME':
+          throw Exception('Counterparty name is required.');
+        case 'MISSING_COMPANY_ID':
+          throw Exception('Company ID is required.');
+        case 'MISSING_LINKED_COMPANY':
+          throw Exception('Linked company ID is required for internal counterparties.');
+        default:
+          throw Exception(error ?? 'Failed to create counterparty');
       }
     }
 
-    try {
-      final response = await _client.from('counterparties').insert({
-        'company_id': companyId,
-        'name': name,
-        'type': type,
-        'email': email,
-        'phone': phone,
-        'address': address,
-        'notes': notes,
-        'is_internal': isInternal,
-        'linked_company_id': linkedCompanyId,
-        'created_at': DateTimeUtils.nowUtc(), // ✅ UTC로 저장
-      }).select().single();
-
-      return response;
-    } on PostgrestException catch (e) {
-      // Handle unique constraint violation
-      if (e.code == '23505' && e.message.contains('counterparties_company_linked_unique')) {
-        throw Exception(
-          'This internal company is already registered as a counterparty. '
-          'Each company can only have one counterparty linked to the same internal company.'
-        );
-      }
-      rethrow;
-    }
+    return response['data'] as Map<String, dynamic>;
   }
 
   /// Update counter party
+  /// Uses RPC: counter_party_manage_counter_party (mode: 'update')
   Future<Map<String, dynamic>> updateCounterParty({
     required String counterpartyId,
-    required String companyId,
     required String name,
     required String type,
     String? email,
@@ -173,54 +175,49 @@ class CounterPartyDataSource {
     bool isInternal = false,
     String? linkedCompanyId,
   }) async {
-    // Check for duplicate internal counterparty before update
-    if (isInternal && linkedCompanyId != null) {
-      final isDuplicate = await checkDuplicateInternalCounterparty(
-        companyId: companyId,
-        linkedCompanyId: linkedCompanyId,
-        excludeCounterpartyId: counterpartyId, // Exclude self
-      );
-      if (isDuplicate) {
-        throw Exception(
-          'This internal company is already registered as a counterparty. '
-          'Each company can only have one counterparty linked to the same internal company.'
-        );
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'counter_party_manage_counter_party',
+      params: {
+        'p_mode': 'update',
+        'p_counterparty_id': counterpartyId,
+        'p_name': name,
+        'p_type': type,
+        'p_email': email,
+        'p_phone': phone,
+        'p_address': address,
+        'p_notes': notes,
+        'p_is_internal': isInternal,
+        'p_linked_company_id': linkedCompanyId,
+      },
+    );
+
+    if (response['success'] != true) {
+      final error = response['error'] as String?;
+      // Convert error codes to user-friendly messages
+      switch (error) {
+        case 'DUPLICATE_LINKED':
+          throw Exception(
+            'This internal company is already registered as a counterparty. '
+            'Each company can only have one counterparty linked to the same internal company.'
+          );
+        case 'NOT_FOUND':
+          throw Exception('Counterparty not found.');
+        case 'ALREADY_DELETED':
+          throw Exception('This counterparty has already been deleted.');
+        case 'INTERNAL_NO_MODIFY':
+          throw Exception('Cannot modify internal status of system-managed counterparties.');
+        case 'MISSING_COUNTERPARTY_ID':
+          throw Exception('Counterparty ID is required.');
+        default:
+          throw Exception(error ?? 'Failed to update counterparty');
       }
     }
 
-    final updateData = {
-      'name': name,
-      'type': type,
-      'email': email,
-      'phone': phone,
-      'address': address,
-      'notes': notes,
-      'is_internal': isInternal,
-      'linked_company_id': linkedCompanyId,
-    };
-
-    try {
-      final response = await _client
-          .from('counterparties')
-          .update(updateData)
-          .eq('counterparty_id', counterpartyId)
-          .select()
-          .single();
-
-      return response;
-    } on PostgrestException catch (e) {
-      // Handle unique constraint violation
-      if (e.code == '23505' && e.message.contains('counterparties_company_linked_unique')) {
-        throw Exception(
-          'This internal company is already registered as a counterparty. '
-          'Each company can only have one counterparty linked to the same internal company.'
-        );
-      }
-      rethrow;
-    }
+    return response['data'] as Map<String, dynamic>;
   }
 
   /// Validate if counter party can be deleted
+  /// Uses RPC: can_delete_counterparty
   /// Returns validation result with debt and transaction info
   Future<Map<String, dynamic>> validateDeletion(String counterpartyId) async {
     final response = await _client.rpc<Map<String, dynamic>>(
@@ -232,11 +229,32 @@ class CounterPartyDataSource {
   }
 
   /// Soft delete counter party
+  /// Uses RPC: counter_party_manage_counter_party (mode: 'delete')
   Future<void> deleteCounterParty(String counterpartyId) async {
-    await _client.from('counterparties').update({
-      'is_deleted': true,
-      'updated_at': DateTimeUtils.nowUtc(), // ✅ UTC로 저장
-    }).eq('counterparty_id', counterpartyId);
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'counter_party_manage_counter_party',
+      params: {
+        'p_mode': 'delete',
+        'p_counterparty_id': counterpartyId,
+      },
+    );
+
+    if (response['success'] != true) {
+      final error = response['error'] as String?;
+      // Convert error codes to user-friendly messages
+      switch (error) {
+        case 'NOT_FOUND':
+          throw Exception('Counterparty not found.');
+        case 'ALREADY_DELETED':
+          throw Exception('This counterparty has already been deleted.');
+        case 'INTERNAL_NO_DELETE':
+          throw Exception('Internal counterparties are system-managed and cannot be deleted.');
+        case 'MISSING_COUNTERPARTY_ID':
+          throw Exception('Counterparty ID is required.');
+        default:
+          throw Exception(error ?? 'Failed to delete counterparty');
+      }
+    }
   }
 
 }
