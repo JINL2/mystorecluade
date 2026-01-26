@@ -79,46 +79,6 @@ class CashTransactionDataSource {
     }
   }
 
-  /// Get accounts by type with optional filtering
-  /// Uses RPC: get_accounts_by_type
-  /// Flexible filtering by account_type, code range, or search
-  Future<List<ExpenseAccountModel>> getAccountsByType({
-    required String companyId,
-    String? accountType,
-    String? codeFrom,
-    String? codeTo,
-    String? searchQuery,
-    int limit = 50,
-  }) async {
-
-    try {
-      final response = await _client.rpc<List<dynamic>>(
-        'get_accounts_by_type',
-        params: {
-          'p_company_id': companyId,
-          'p_account_type': accountType,
-          'p_code_from': codeFrom,
-          'p_code_to': codeTo,
-          'p_search_query': searchQuery,
-          'p_limit': limit,
-        },
-      );
-
-
-      return response
-          .map((json) => ExpenseAccountModel.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashControl: Failed to get accounts by type',
-        extra: {'companyId': companyId, 'accountType': accountType},
-      );
-      return [];
-    }
-  }
-
   /// Get counterparties for a company
   /// Uses RPC: get_counterparties_v3 (mode: 'list')
   /// Server-side filtering for isInternal
@@ -319,39 +279,6 @@ class CashTransactionDataSource {
         extra: {
           'myCompanyId': myCompanyId,
           'targetCompanyId': targetCompanyId,
-        },
-      );
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
-    }
-  }
-
-  /// Ensure within-company setup (self-counterparty + account mappings)
-  /// Uses RPC: ensure_within_company_setup
-  /// For Within Company transfers (같은 회사, 다른 가게)
-  /// Creates Inter-branch Receivable/Payable (1360/2360) mappings
-  Future<Map<String, dynamic>> ensureWithinCompanySetup({
-    required String companyId,
-  }) async {
-
-    try {
-      final response = await _client.rpc<Map<String, dynamic>>(
-        'ensure_within_company_setup',
-        params: {
-          'p_company_id': companyId,
-        },
-      );
-
-      return response;
-    } catch (e, stackTrace) {
-      SentryConfig.captureException(
-        e,
-        stackTrace,
-        hint: 'CashControl: Failed to ensure within-company setup',
-        extra: {
-          'companyId': companyId,
         },
       );
       return {

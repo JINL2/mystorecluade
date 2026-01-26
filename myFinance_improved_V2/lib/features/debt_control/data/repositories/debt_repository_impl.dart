@@ -1,9 +1,7 @@
 import '../../domain/entities/aging_analysis.dart';
 import '../../domain/entities/critical_alert.dart';
-import '../../domain/entities/debt_communication.dart';
 import '../../domain/entities/debt_overview.dart';
 import '../../domain/entities/kpi_metrics.dart';
-import '../../domain/entities/payment_plan.dart';
 import '../../domain/entities/perspective_summary.dart';
 import '../../domain/entities/prioritized_debt.dart';
 import '../../domain/repositories/debt_repository.dart';
@@ -139,47 +137,6 @@ class DebtRepositoryImpl implements DebtRepository {
   @override
   Future<void> markAlertAsRead(String alertId) async {
     await _dataSource.markAlertAsRead(alertId);
-  }
-
-  @override
-  Future<List<DebtCommunication>> getDebtCommunications(String debtId) async {
-    // TODO: Implement data source method
-    throw UnimplementedError('getDebtCommunications not yet implemented');
-  }
-
-  @override
-  Future<void> createDebtCommunication(DebtCommunication communication) async {
-    // TODO: Implement data source method
-    throw UnimplementedError('createDebtCommunication not yet implemented');
-  }
-
-  @override
-  Future<List<PaymentPlan>> getPaymentPlans(String debtId) async {
-    // TODO: Implement data source method
-    throw UnimplementedError('getPaymentPlans not yet implemented');
-  }
-
-  @override
-  Future<void> createPaymentPlan(PaymentPlan paymentPlan) async {
-    // TODO: Implement data source method
-    throw UnimplementedError('createPaymentPlan not yet implemented');
-  }
-
-  @override
-  Future<void> updatePaymentPlanStatus(String planId, String status) async {
-    // TODO: Implement data source method
-    throw UnimplementedError('updatePaymentPlanStatus not yet implemented');
-  }
-
-  @override
-  Future<DebtAnalytics> getDebtAnalytics({
-    required String companyId,
-    String? storeId,
-    DateTime? fromDate,
-    DateTime? toDate,
-  }) async {
-    // TODO: Implement data source method
-    throw UnimplementedError('getDebtAnalytics not yet implemented');
   }
 
   String _getViewpointDescription(String viewpoint) {

@@ -45,39 +45,6 @@ class DebtControlState with _$DebtControlState {
   bool get hasDebts => debts.isNotEmpty;
 }
 
-/// Debt Detail State - UI state for individual debt detail view
-///
-/// Tracks state for debt detail page including communications and actions.
-@freezed
-class DebtDetailState with _$DebtDetailState {
-  const factory DebtDetailState({
-    PrioritizedDebt? debt,
-    @Default([]) List<dynamic> communications,
-    @Default([]) List<dynamic> paymentPlans,
-    @Default(false) bool isLoading,
-    @Default(false) bool isLoadingCommunications,
-    @Default(false) bool isLoadingPaymentPlans,
-    @Default(false) bool isPerformingAction,
-    String? errorMessage,
-    String? actionInProgress, // 'call', 'email', 'payment_plan', etc.
-  }) = _DebtDetailState;
-
-  const DebtDetailState._();
-
-  /// Check if any data is loading
-  bool get isAnyLoading =>
-      isLoading || isLoadingCommunications || isLoadingPaymentPlans;
-
-  /// Check if debt has payment plan
-  bool get hasPaymentPlan => debt?.hasPaymentPlan ?? false;
-
-  /// Check if debt is disputed
-  bool get isDisputed => debt?.isDisputed ?? false;
-
-  /// Check if action can be performed
-  bool get canPerformAction => !isPerformingAction && debt != null;
-}
-
 /// Perspective Selection State - UI state for viewpoint selection
 ///
 /// Manages the perspective/viewpoint selection (company, store, etc.)

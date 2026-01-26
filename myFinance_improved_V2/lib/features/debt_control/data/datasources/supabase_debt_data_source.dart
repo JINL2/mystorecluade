@@ -63,7 +63,7 @@ class SupabaseDebtDataSource {
 
     try {
       // Debug logging
-      _logger.d('Calling RPC get_debt_control_data_v2', {
+      _logger.d('Calling RPC get_debt_control_data_v3', {
         'companyId': companyId,
         'storeId': storeId,
         'filter': 'all', // Always fetch all data
@@ -74,7 +74,7 @@ class SupabaseDebtDataSource {
       // Pass storeId to get specific store detail when needed
       // Client-side filtering will be applied in repository/provider
       final response = await _client.rpc<Map<String, dynamic>>(
-        'get_debt_control_data_v2',
+        'get_debt_control_data_v3',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId, // Pass storeId to get specific store data
@@ -95,10 +95,10 @@ class SupabaseDebtDataSource {
       // Don't cache perspective or filter - we have ALL data in cached response
 
       // Extract the appropriate perspective from cached response
-      final v2Data = _cachedData!;
+      final cachedResponse = _cachedData!;
       final perspectiveData = perspective == 'store' && storeId != null
-        ? v2Data['store']
-        : v2Data['company'];
+        ? cachedResponse['store']
+        : cachedResponse['company'];
 
       final extractedPerspective = perspective == 'store' && storeId != null ? 'store' : 'company';
       _logger.d('Extracting perspective', {

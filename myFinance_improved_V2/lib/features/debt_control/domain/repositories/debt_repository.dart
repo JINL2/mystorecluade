@@ -1,9 +1,7 @@
 import '../entities/aging_analysis.dart';
 import '../entities/critical_alert.dart';
-import '../entities/debt_communication.dart';
 import '../entities/debt_overview.dart';
 import '../entities/kpi_metrics.dart';
-import '../entities/payment_plan.dart';
 import '../entities/perspective_summary.dart';
 import '../entities/prioritized_debt.dart';
 
@@ -66,27 +64,4 @@ abstract class DebtRepository {
 
   /// Mark alert as read
   Future<void> markAlertAsRead(String alertId);
-
-  /// Get debt communications for a specific debt
-  Future<List<DebtCommunication>> getDebtCommunications(String debtId);
-
-  /// Create debt communication
-  Future<void> createDebtCommunication(DebtCommunication communication);
-
-  /// Get payment plans for a specific debt
-  Future<List<PaymentPlan>> getPaymentPlans(String debtId);
-
-  /// Create payment plan
-  Future<void> createPaymentPlan(PaymentPlan paymentPlan);
-
-  /// Update payment plan status
-  Future<void> updatePaymentPlanStatus(String planId, String status);
-
-  /// Get debt analytics
-  Future<DebtAnalytics> getDebtAnalytics({
-    required String companyId,
-    String? storeId,
-    DateTime? fromDate,
-    DateTime? toDate,
-  });
 }
