@@ -12,6 +12,7 @@ import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
 import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
 import 'package:myfinance_improved/shared/widgets/organisms/pickers/toss_date_picker_dialog.dart';
 
+import '../../../../app/providers/app_state_provider.dart';
 import '../../../store_shift/presentation/providers/store_shift_providers.dart';
 import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
@@ -66,7 +67,11 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
   
   @override
   Widget build(BuildContext context) {
-    final currencies = ref.watch(currencyTypesProvider);
+    // Use unified provider for currencies
+    final settingDataAsync = ref.watch(
+      employeeSettingDataProvider(const EmployeeSettingDataParams()),
+    );
+    final currencies = settingDataAsync.whenData((data) => data.currencies);
     
     return GestureDetector(
       onTap: () {
@@ -566,8 +571,18 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
       setState(() => _isSaving = true);
 
       try {
+        // Get companyId from app state for RPC authorization
+        final appState = ref.read(appStateProvider);
+        final companyId = appState.companyChoosen;
+
+        if (companyId.isEmpty) {
+          throw Exception('No company selected. Please select a company first.');
+        }
+
         // ✅ Use Notifier instead of calling repository directly
         final success = await ref.read(employeeNotifierProvider.notifier).updateEmployeeSalary(
+          companyId: companyId,
+          userId: widget.employee.userId,
           salaryId: widget.employee.salaryId!,
           salaryAmount: amount,
           salaryType: _selectedPaymentType,
@@ -583,15 +598,20 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
         if (_selectedPaymentType == 'monthly') {
           final originalTemplateId = widget.employee.workScheduleTemplateId;
           if (_selectedTemplateId != originalTemplateId) {
-            final templateResult = await ref.read(assignWorkScheduleTemplateProvider)(
-              userId: widget.employee.userId,
-              templateId: _selectedTemplateId,
-            );
+            try {
+              final templateResult = await ref.read(assignWorkScheduleTemplateProvider)(
+                employeeUserId: widget.employee.userId,
+                templateId: _selectedTemplateId,
+              );
 
-            if (templateResult['success'] != true) {
+              // Show warning if assigning template to non-monthly employee
+              if (templateResult.hasWarning) {
+                debugPrint('Template assignment warning: ${templateResult.warning}');
+              }
+            } catch (e) {
               // Template assignment failed, but salary was updated
               // Show warning but don't fail the entire operation
-              debugPrint('Template assignment warning: ${templateResult['message']}');
+              debugPrint('Template assignment error: $e');
             }
           }
         }
@@ -613,7 +633,7 @@ class _SalaryEditModalState extends ConsumerState<SalaryEditModal> {
         ref.read(mutableEmployeeListProvider.notifier).updateEmployee(updatedEmployee);
 
         // Invalidate to sync with server in background (non-blocking)
-        ref.invalidate(employeeSalaryListProvider);
+        ref.invalidate(employeeSettingDataProvider);
 
         // Call the original callback to update local state with new values
         widget.onSave(

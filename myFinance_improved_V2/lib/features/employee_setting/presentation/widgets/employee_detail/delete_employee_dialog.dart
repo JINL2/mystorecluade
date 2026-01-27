@@ -12,9 +12,10 @@ import 'package:myfinance_improved/shared/widgets/index.dart';
 import '../../../data/repositories/repository_providers.dart';
 import '../../../domain/entities/employee_salary.dart';
 
+/// Dialog for confirming employee deletion
 class DeleteEmployeeDialog extends ConsumerStatefulWidget {
   final EmployeeSalary employee;
-  final void Function(bool deleteSalary) onConfirm;
+  final VoidCallback onConfirm;
 
   const DeleteEmployeeDialog({
     super.key,
@@ -27,7 +28,6 @@ class DeleteEmployeeDialog extends ConsumerStatefulWidget {
 }
 
 class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
-  bool _deleteSalary = true;
   bool _isLoading = true;
   Map<String, dynamic>? _validationData;
 
@@ -101,7 +101,7 @@ class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
               if (_validationData?['success'] == true)
                 TossButton.destructive(
                   text: 'Remove',
-                  onPressed: () => widget.onConfirm(_deleteSalary),
+                  onPressed: widget.onConfirm,
                 ),
             ],
     );
@@ -184,28 +184,31 @@ class _DeleteEmployeeDialogState extends ConsumerState<DeleteEmployeeDialog> {
 
         const SizedBox(height: TossSpacing.space4),
 
-        // Delete salary option
-        CheckboxListTile(
-          value: _deleteSalary,
-          onChanged: (value) => setState(() => _deleteSalary = value ?? true),
-          title: Text(
-            'Also delete salary information',
-            style: TossTextStyles.bodySmall.copyWith(
-              color: TossColors.gray900,
-            ),
+        // Salary preservation notice
+        Container(
+          padding: const EdgeInsets.all(TossSpacing.space3),
+          decoration: BoxDecoration(
+            color: TossColors.success.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            border: Border.all(color: TossColors.success.withValues(alpha: 0.3)),
           ),
-          subtitle: Text(
-            'Uncheck to preserve salary history',
-            style: TossTextStyles.caption.copyWith(
-              color: TossColors.gray500,
-            ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline, color: TossColors.success, size: TossSpacing.iconMD),
+              const SizedBox(width: TossSpacing.space2),
+              Expanded(
+                child: Text(
+                  'Salary history will be automatically preserved for audit purposes.',
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.success,
+                  ),
+                ),
+              ),
+            ],
           ),
-          contentPadding: EdgeInsets.zero,
-          controlAffinity: ListTileControlAffinity.leading,
-          activeColor: TossColors.primary,
         ),
 
-        const SizedBox(height: TossSpacing.space2),
+        const SizedBox(height: TossSpacing.space3),
 
         Text(
           'This action will soft-delete the employee\'s company connection. The user account will remain active for other companies.',

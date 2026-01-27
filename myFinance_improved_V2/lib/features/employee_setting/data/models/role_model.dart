@@ -51,6 +51,23 @@ class RoleModel extends Role {
     );
   }
 
+  /// Create model from RPC JSON response
+  /// RPC response doesn't include created_at/updated_at timestamps
+  factory RoleModel.fromRpcJson(Map<String, dynamic> json) {
+    return RoleModel(
+      roleId: json['role_id'] as String,
+      roleName: json['role_name'] as String? ?? '',
+      roleType: json['role_type'] as String? ?? 'custom',
+      companyId: json['company_id'] as String?,
+      parentRoleId: json['parent_role_id'] as String?,
+      description: json['description'] as String?,
+      tags: json['tags'] != null ? List<String>.from(json['tags'] as List) : null,
+      isDeletable: json['is_deletable'] as bool?,
+      createdAt: DateTime.now(), // RPC doesn't return timestamps
+      updatedAt: DateTime.now(),
+    );
+  }
+
   /// Convert model to JSON (for Supabase requests)
   Map<String, dynamic> toJson() {
     return {

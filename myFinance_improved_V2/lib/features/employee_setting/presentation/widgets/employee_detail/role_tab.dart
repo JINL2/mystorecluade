@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:myfinance_improved/app/providers/app_state.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -27,7 +28,8 @@ class RoleTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final hasRole = employee.roleName.isNotEmpty;
-    final isOwnerAsync = ref.watch(isCurrentUserOwnerProvider);
+    // Use appState for owner check (v1.1: isOwner removed from RPC response)
+    final isOwner = ref.watch(appStateProvider).isCurrentCompanyOwner;
 
     return Column(
       children: [
@@ -106,27 +108,20 @@ class RoleTab extends ConsumerWidget {
                 ),
 
                 // Delete Employee Button - Only visible to Owner
-                isOwnerAsync.when(
-                  data: (isOwner) {
-                    if (!isOwner) return const SizedBox.shrink();
-
-                    return Padding(
-                      padding: const EdgeInsets.only(top: TossSpacing.space3),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: TossButton.outlined(
-                          text: 'Remove Employee',
-                          onPressed: () => _showDeleteConfirmationDialog(context, ref),
-                          borderColor: TossColors.error,
-                          textColor: TossColors.error,
-                          fullWidth: true,
-                        ),
+                if (isOwner)
+                  Padding(
+                    padding: const EdgeInsets.only(top: TossSpacing.space3),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TossButton.outlined(
+                        text: 'Remove Employee',
+                        onPressed: () => _showDeleteConfirmationDialog(context, ref),
+                        borderColor: TossColors.error,
+                        textColor: TossColors.error,
+                        fullWidth: true,
                       ),
-                    );
-                  },
-                  loading: () => const SizedBox.shrink(),
-                  error: (_, __) => const SizedBox.shrink(),
-                ),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -140,15 +135,15 @@ class RoleTab extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => DeleteEmployeeDialog(
         employee: employee,
-        onConfirm: (deleteSalary) async {
+        onConfirm: () async {
           Navigator.of(dialogContext).pop();
-          await _executeDelete(context, ref, deleteSalary);
+          await _executeDelete(context, ref);
         },
       ),
     );
   }
 
-  Future<void> _executeDelete(BuildContext context, WidgetRef ref, bool deleteSalary) async {
+  Future<void> _executeDelete(BuildContext context, WidgetRef ref) async {
     final appState = ref.read(appStateProvider);
     final companyId = appState.companyChoosen;
     final repository = ref.read(employeeRepositoryProvider);
@@ -161,10 +156,12 @@ class RoleTab extends ConsumerWidget {
     );
 
     try {
-      final result = await repository.deleteEmployee(
+      // New RPC: employee_setting_delete_employee
+      // - Soft deletes: user_companies, user_stores, user_roles
+      // - Preserves: user_salaries (filtered by v_user_salary view automatically)
+      await repository.deleteEmployee(
         companyId: companyId,
         employeeUserId: employee.userId,
-        deleteSalary: deleteSalary,
       );
 
       // Hide loading indicator
@@ -172,35 +169,28 @@ class RoleTab extends ConsumerWidget {
         Navigator.of(context).pop();
       }
 
-      if (result['success'] == true) {
-        // Remove employee from mutable list immediately
-        final currentList = ref.read(mutableEmployeeListProvider);
-        if (currentList != null) {
-          final updatedList = currentList.where((e) => e.userId != employee.userId).toList();
-          ref.read(mutableEmployeeListProvider.notifier).update(updatedList);
-        }
+      // Remove employee from mutable list immediately
+      final currentList = ref.read(mutableEmployeeListProvider);
+      if (currentList != null) {
+        final updatedList = currentList.where((e) => e.userId != employee.userId).toList();
+        ref.read(mutableEmployeeListProvider.notifier).update(updatedList);
+      }
 
-        // Also invalidate the source provider to refresh from server
-        ref.invalidate(employeeSalaryListProvider);
+      // Also invalidate the source provider to refresh from server
+      ref.invalidate(employeeSettingDataProvider);
 
-        // Close the bottom sheet
-        if (context.mounted) {
-          Navigator.of(context).pop();
+      // Close the bottom sheet
+      if (context.mounted) {
+        Navigator.of(context).pop();
 
-          // Show success message
-          TossToast.success(context, '${employee.fullName} has been removed from the company.');
-        }
-      } else {
-        // Show error message
-        if (context.mounted) {
-          TossToast.error(context, (result['message'] as String?) ?? 'Failed to remove employee.');
-        }
+        // Show success message
+        TossToast.success(context, '${employee.fullName} has been removed from the company.');
       }
     } catch (e) {
       // Hide loading indicator
       if (context.mounted) {
         Navigator.of(context).pop();
-        TossToast.error(context, 'Error: $e');
+        TossToast.error(context, e.toString().replaceAll('Exception:', '').trim());
       }
     }
   }

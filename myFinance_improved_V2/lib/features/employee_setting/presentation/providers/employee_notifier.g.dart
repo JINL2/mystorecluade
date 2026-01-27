@@ -6,14 +6,14 @@ part of 'employee_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$employeeNotifierHash() => r'cc65ad69bf47c2b1839c5f90b111154c5e4a177f';
+String _$employeeNotifierHash() => r'af7608dc1212713c41edca28fa86c30de7182bb0';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Employee Notifier - 상태 관리 + UseCase 조율
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ///
 /// Hybrid 구조:
-/// - 단순 CRUD: Repository 직접 호출 (loadEmployees, searchEmployees)
+/// - 단순 CRUD: Repository getEmployeeSettingData() 호출
 /// - 복잡한 로직: UseCase 호출 (updateEmployeeSalary)
 ///
 /// Copied from [EmployeeNotifier].

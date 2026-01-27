@@ -4,10 +4,10 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../app/providers/app_state_provider.dart';
 import '../../data/repositories/repository_providers.dart';
-import '../../domain/entities/currency_type.dart';
 import '../../domain/entities/employee_salary.dart';
-import '../../domain/entities/role.dart';
+import '../../domain/entities/employee_setting_data.dart';
 import '../../domain/entities/shift_audit_log.dart';
+import '../../domain/value_objects/employee_update_request.dart';
 import '../../domain/usecases/search_and_sort_employees_usecase.dart' as usecase;
 import 'use_case_providers.dart';
 
@@ -18,123 +18,38 @@ export 'states/employee_state.dart';
 part 'employee_providers.g.dart';
 
 // ============================================================================
-// Repository Providers
-// ============================================================================
-// ✅ Moved to: data/repositories/repository_providers.dart
-// - employeeRepositoryProvider
-// - roleRepositoryProvider
-// Import them from the new location above
-
-// ============================================================================
 // Employee Data Providers (@riverpod)
 // ============================================================================
 
-/// Employee Salary List Provider
-@riverpod
-Future<List<EmployeeSalary>> employeeSalaryList(Ref ref) async {
-  final repository = ref.read(employeeRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
-
-  if (companyId.isEmpty) {
-    return [];
-  }
-
-  return await repository.getEmployeeSalaries(companyId);
-}
-
-/// Currency Types Provider
-@riverpod
-Future<List<CurrencyType>> currencyTypes(Ref ref) async {
-  try {
-    final repository = ref.read(employeeRepositoryProvider);
-    return await repository.getCurrencyTypes();
-  } catch (e) {
-    // Return default currencies on error (matching actual Supabase data)
-    return const [
-      CurrencyType(currencyCode: 'USD', currencyName: 'US Dollar', symbol: '\$'),
-      CurrencyType(currencyCode: 'EUR', currencyName: 'Euro', symbol: '€'),
-      CurrencyType(currencyCode: 'VND', currencyName: 'Vietnamese Dong', symbol: '₫'),
-      CurrencyType(currencyCode: 'KRW', currencyName: 'Korean Won', symbol: '₩'),
-    ];
-  }
-}
-
-/// Check if the current user is the owner of the selected company
-@riverpod
-Future<bool> isCurrentUserOwner(Ref ref) async {
-  try {
-    final repository = ref.read(employeeRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      return false;
-    }
-
-    return await repository.isCurrentUserOwner(companyId);
-  } catch (e) {
-    return false;
-  }
-}
-
-/// Roles Provider
-@riverpod
-Future<List<Role>> roles(Ref ref) async {
-  final repository = ref.read(roleRepositoryProvider);
-  final appState = ref.watch(appStateProvider);
-  final companyId = appState.companyChoosen;
-
-  if (companyId.isEmpty) {
-    // If no company selected, fetch all global roles
-    return await repository.getAllRoles();
-  }
-
-  // Fetch company-specific and global roles
-  return await repository.getRolesByCompany(companyId);
-}
-
 /// Employee Shift Audit Logs Provider with pagination support
+///
+/// Uses RPC: employee_setting_get_employee_shift_audit_logs
+/// Returns ShiftAuditLogsResult with logs and pagination metadata
 @riverpod
-Future<List<ShiftAuditLog>> employeeShiftAuditLogs(
+Future<ShiftAuditLogsResult> employeeShiftAuditLogs(
   Ref ref,
   EmployeeAuditLogParams params,
 ) async {
   try {
     final repository = ref.read(employeeRepositoryProvider);
 
-    if (params.userId.isEmpty || params.companyId.isEmpty) {
-      return [];
+    if (params.employeeUserId.isEmpty || params.companyId.isEmpty) {
+      return ShiftAuditLogsResult.empty();
     }
 
     return await repository.getEmployeeShiftAuditLogs(
-      userId: params.userId,
       companyId: params.companyId,
+      employeeUserId: params.employeeUserId,
       limit: params.limit,
       offset: params.offset,
     );
   } catch (e) {
-    return [];
+    return ShiftAuditLogsResult.empty();
   }
 }
 
-/// Real-time salary updates stream
-@Riverpod(keepAlive: true)
-Stream<List<EmployeeSalary>> salaryUpdatesStream(Ref ref) {
-  try {
-    final repository = ref.read(employeeRepositoryProvider);
-    final appState = ref.watch(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      return Stream.value([]);
-    }
-
-    return repository.watchEmployeeSalaries(companyId);
-  } catch (e) {
-    return Stream.value([]);
-  }
-}
+// ✅ REMOVED: salaryUpdatesStreamProvider - Supabase Realtime doesn't work with VIEWs
+// Use employeeSettingDataProvider + Riverpod invalidation instead
 
 // ============================================================================
 // UI State Notifiers (@riverpod)
@@ -297,7 +212,11 @@ AsyncValue<List<EmployeeSalary>> filteredEmployees(Ref ref) {
   final sortOption = ref.watch(employeeSortOptionProvider);
   final sortAscending = ref.watch(employeeSortDirectionProvider);
   final mutableEmployees = ref.watch(mutableEmployeeListProvider);
-  final employeesAsync = ref.watch(employeeSalaryListProvider);
+
+  // Use new unified provider instead of individual employeeSalaryListProvider
+  final employeesAsync = ref.watch(
+    employeeSettingDataProvider(const EmployeeSettingDataParams()),
+  );
 
   // Read UseCase once at Provider level
   final searchAndSortUseCase = ref.read(searchAndSortEmployeesUseCaseProvider);
@@ -326,13 +245,13 @@ AsyncValue<List<EmployeeSalary>> filteredEmployees(Ref ref) {
   }
 
   return employeesAsync.when(
-    data: (employees) {
+    data: (data) {
       // Also populate the mutable list for future updates
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(mutableEmployeeListProvider.notifier).update(employees);
+        ref.read(mutableEmployeeListProvider.notifier).update(data.employees);
       });
 
-      return AsyncData(processEmployees(employees));
+      return AsyncData(processEmployees(data.employees));
     },
     loading: () => const AsyncLoading(),
     error: (error, stack) => AsyncError(error, stack),
@@ -344,13 +263,18 @@ AsyncValue<List<EmployeeSalary>> filteredEmployees(Ref ref) {
 // ============================================================================
 
 /// Assign or unassign a work schedule template to an employee
+///
+/// Uses RPC: employee_setting_assign_work_schedule_template
+/// - Owner-only permission (companies.owner_id = auth.uid())
+/// - Pass null for templateId to unassign the current template
+/// - Returns warning for non-monthly salary types
 @riverpod
-Future<Map<String, dynamic>> Function({
-  required String userId,
+Future<WorkScheduleAssignResult> Function({
+  required String employeeUserId,
   String? templateId,
 }) assignWorkScheduleTemplate(Ref ref) {
   return ({
-    required String userId,
+    required String employeeUserId,
     String? templateId,
   }) async {
     final repository = ref.read(employeeRepositoryProvider);
@@ -358,25 +282,18 @@ Future<Map<String, dynamic>> Function({
     final companyId = appState.companyChoosen;
 
     if (companyId.isEmpty) {
-      return {
-        'success': false,
-        'error': 'NO_COMPANY',
-        'message': 'No company selected',
-      };
+      throw Exception('No company selected');
     }
 
     final result = await repository.assignWorkScheduleTemplate(
-      userId: userId,
       companyId: companyId,
+      employeeUserId: employeeUserId,
       templateId: templateId,
     );
 
     // Invalidate employee list to refresh with new template data
-    if (result['success'] == true) {
-      ref.invalidate(employeeSalaryListProvider);
-      // Also clear mutable list to force refresh
-      ref.read(mutableEmployeeListProvider.notifier).clear();
-    }
+    ref.read(mutableEmployeeListProvider.notifier).clear();
+    ref.invalidate(employeeSettingDataProvider);
 
     return result;
   };
@@ -386,14 +303,12 @@ Future<Map<String, dynamic>> Function({
 // Helper Functions
 // ============================================================================
 
-/// Refresh employees
+/// Refresh employees using new unified provider
 Future<void> refreshEmployees(WidgetRef ref) async {
   // Clear mutable cache first - this is critical for immediate UI update
   ref.read(mutableEmployeeListProvider.notifier).clear();
-  // Then invalidate providers to trigger fresh data fetch
-  ref.invalidate(employeeSalaryListProvider);
-  ref.invalidate(currencyTypesProvider);
-  ref.invalidate(rolesProvider);
+  // Then invalidate the unified provider to trigger fresh data fetch
+  ref.invalidate(employeeSettingDataProvider);
 }
 
 /// Convert string sort option to enum
@@ -418,13 +333,13 @@ usecase.EmployeeSortOption _convertToSortOption(String? sortOption) {
 
 /// Parameters for shift audit log provider
 class EmployeeAuditLogParams {
-  final String userId;
+  final String employeeUserId;
   final String companyId;
   final int limit;
   final int offset;
 
   const EmployeeAuditLogParams({
-    required this.userId,
+    required this.employeeUserId,
     required this.companyId,
     this.limit = 20,
     this.offset = 0,
@@ -435,12 +350,78 @@ class EmployeeAuditLogParams {
       identical(this, other) ||
       other is EmployeeAuditLogParams &&
           runtimeType == other.runtimeType &&
-          userId == other.userId &&
+          employeeUserId == other.employeeUserId &&
           companyId == other.companyId &&
           limit == other.limit &&
           offset == other.offset;
 
   @override
   int get hashCode =>
-      userId.hashCode ^ companyId.hashCode ^ limit.hashCode ^ offset.hashCode;
+      employeeUserId.hashCode ^ companyId.hashCode ^ limit.hashCode ^ offset.hashCode;
 }
+
+// ============================================================================
+// Unified Employee Setting Data Provider (NEW - Single RPC)
+// ============================================================================
+
+/// Parameters for unified employee setting data provider
+class EmployeeSettingDataParams {
+  final String? searchQuery;
+  final String? storeId;
+
+  const EmployeeSettingDataParams({
+    this.searchQuery,
+    this.storeId,
+  });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is EmployeeSettingDataParams &&
+          runtimeType == other.runtimeType &&
+          searchQuery == other.searchQuery &&
+          storeId == other.storeId;
+
+  @override
+  int get hashCode => searchQuery.hashCode ^ storeId.hashCode;
+}
+
+/// Unified Employee Setting Data Provider
+///
+/// This provider replaces 11 individual queries with a single RPC call:
+/// - employees list (with optional search/filter)
+/// - currencies list
+/// - roles list
+///
+/// Note: isOwner check removed in v1.1 - use appState.isCurrentCompanyOwner
+///
+/// Usage:
+/// ```dart
+/// // Basic usage (no filters):
+/// final dataAsync = ref.watch(employeeSettingDataProvider(const EmployeeSettingDataParams()));
+///
+/// // With search:
+/// final dataAsync = ref.watch(employeeSettingDataProvider(
+///   EmployeeSettingDataParams(searchQuery: 'john'),
+/// ));
+///
+/// // Check owner status:
+/// final isOwner = ref.watch(appStateProvider).isCurrentCompanyOwner;
+/// ```
+final employeeSettingDataProvider = FutureProvider.family<EmployeeSettingData, EmployeeSettingDataParams>(
+  (ref, params) async {
+    final repository = ref.read(employeeRepositoryProvider);
+    final appState = ref.watch(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      return EmployeeSettingData.empty();
+    }
+
+    return await repository.getEmployeeSettingData(
+      companyId: companyId,
+      searchQuery: params.searchQuery,
+      storeId: params.storeId,
+    );
+  },
+);

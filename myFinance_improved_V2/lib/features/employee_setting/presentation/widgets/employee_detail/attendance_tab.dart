@@ -28,7 +28,7 @@ class AttendanceTab extends ConsumerWidget {
     final auditLogsAsync = ref.watch(
       employeeShiftAuditLogsProvider(
         EmployeeAuditLogParams(
-          userId: employee.userId,
+          employeeUserId: employee.userId,
           companyId: companyId,
           limit: 20,
           offset: 0,
@@ -135,7 +135,10 @@ class AttendanceTab extends ConsumerWidget {
 
           // Audit Logs List
           auditLogsAsync.when(
-            data: (logs) {
+            data: (result) {
+              final logs = result.logs;
+              final pagination = result.pagination;
+
               if (logs.isEmpty) {
                 return Container(
                   padding: const EdgeInsets.all(TossSpacing.space4),
@@ -165,11 +168,11 @@ class AttendanceTab extends ConsumerWidget {
               return Column(
                 children: [
                   ...logs.map((log) => _buildAuditLogItem(log)),
-                  if (logs.isNotEmpty && logs.first.totalCount > logs.length)
+                  if (pagination.hasMore)
                     Padding(
                       padding: const EdgeInsets.only(top: TossSpacing.space2),
                       child: Text(
-                        '${logs.first.totalCount - logs.length} more activities...',
+                        '${pagination.totalCount - logs.length} more activities...',
                         style: TossTextStyles.caption.copyWith(
                           color: TossColors.gray400,
                         ),

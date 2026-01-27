@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/shared/widgets/index.dart';
 
-import '../../../../shared/models/selection_item.dart';
+import '../../../../app/providers/app_state_provider.dart';
 import '../../data/repositories/repository_providers.dart';
 import '../../domain/entities/role.dart';
 import '../providers/employee_providers.dart';
-import 'package:myfinance_improved/shared/widgets/index.dart';
 
 /// Employee Setting feature role selection helper
 ///
@@ -31,8 +31,11 @@ class RoleSelectionHelper {
     );
 
     try {
-      // Wait for roles to load
-      final roles = await ref.read(rolesProvider.future);
+      // Wait for roles to load from unified provider
+      final settingData = await ref.read(
+        employeeSettingDataProvider(const EmployeeSettingDataParams()).future,
+      );
+      final roles = settingData.roles;
 
       // Close loading dialog
       if (context.mounted) {
@@ -148,14 +151,30 @@ class RoleSelectionHelper {
         ),
       );
 
-      // Update role in database
+      // Get companyId from app state
+      final appState = ref.read(appStateProvider);
+      final companyId = appState.companyChoosen;
+
+      if (companyId.isEmpty) {
+        throw Exception('No company selected. Please select a company first.');
+      }
+
+      // Update role in database using unified RPC
       final roleRepository = ref.read(roleRepositoryProvider);
-      await roleRepository.updateUserRole(userId, selectedItem!.id).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          throw Exception('Request timed out. Please check your connection and try again.');
-        },
-      );
+      await roleRepository
+          .updateUserRole(
+            companyId: companyId,
+            userId: userId,
+            roleId: selectedItem!.id,
+          )
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              throw Exception(
+                'Request timed out. Please check your connection and try again.',
+              );
+            },
+          );
 
       // Close loading dialog
       if (!context.mounted) return false;

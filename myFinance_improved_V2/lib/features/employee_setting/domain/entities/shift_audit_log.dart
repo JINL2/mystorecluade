@@ -16,7 +16,6 @@ class ShiftAuditLog {
   final String? changedByName;
   final DateTime changedAt;
   final String? reason;
-  final int totalCount;
 
   const ShiftAuditLog({
     required this.auditId,
@@ -32,7 +31,6 @@ class ShiftAuditLog {
     this.changedByName,
     required this.changedAt,
     this.reason,
-    required this.totalCount,
   });
 
   /// Get human-readable action type text
@@ -101,4 +99,43 @@ class ShiftAuditLog {
       return '${months}mo ago';
     }
   }
+}
+
+/// Result wrapper for shift audit logs with pagination
+class ShiftAuditLogsResult {
+  final List<ShiftAuditLog> logs;
+  final ShiftAuditLogsPagination pagination;
+
+  const ShiftAuditLogsResult({
+    required this.logs,
+    required this.pagination,
+  });
+
+  /// Create empty result
+  factory ShiftAuditLogsResult.empty() {
+    return const ShiftAuditLogsResult(
+      logs: [],
+      pagination: ShiftAuditLogsPagination(
+        totalCount: 0,
+        limit: 20,
+        offset: 0,
+        hasMore: false,
+      ),
+    );
+  }
+}
+
+/// Pagination info for shift audit logs
+class ShiftAuditLogsPagination {
+  final int totalCount;
+  final int limit;
+  final int offset;
+  final bool hasMore;
+
+  const ShiftAuditLogsPagination({
+    required this.totalCount,
+    required this.limit,
+    required this.offset,
+    required this.hasMore,
+  });
 }

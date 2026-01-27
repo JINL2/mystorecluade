@@ -92,10 +92,8 @@ class _EmployeeSettingPageV2State extends ConsumerState<EmployeeSettingPageV2>
       ref.read(employeeSortOptionProvider.notifier).update('name');
       ref.read(employeeSortDirectionProvider.notifier).update(true);
 
-      // Invalidate providers to force fresh data load from database
-      ref.invalidate(employeeSalaryListProvider);
-      ref.invalidate(currencyTypesProvider);
-      ref.invalidate(rolesProvider);
+      // Invalidate unified provider to force fresh data load from database
+      ref.invalidate(employeeSettingDataProvider);
 
       // Also clear mutable employee list to force reload
       ref.read(mutableEmployeeListProvider.notifier).clear();

@@ -6,88 +6,8 @@ part of 'employee_providers.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$employeeSalaryListHash() =>
-    r'745d5d79e8f9613139c136c408a8b94e5772ea78';
-
-/// Employee Salary List Provider
-///
-/// Copied from [employeeSalaryList].
-@ProviderFor(employeeSalaryList)
-final employeeSalaryListProvider =
-    AutoDisposeFutureProvider<List<EmployeeSalary>>.internal(
-  employeeSalaryList,
-  name: r'employeeSalaryListProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$employeeSalaryListHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef EmployeeSalaryListRef
-    = AutoDisposeFutureProviderRef<List<EmployeeSalary>>;
-String _$currencyTypesHash() => r'54e0410cd46dabe561d04897f23ab68f525525f4';
-
-/// Currency Types Provider
-///
-/// Copied from [currencyTypes].
-@ProviderFor(currencyTypes)
-final currencyTypesProvider =
-    AutoDisposeFutureProvider<List<CurrencyType>>.internal(
-  currencyTypes,
-  name: r'currencyTypesProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$currencyTypesHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CurrencyTypesRef = AutoDisposeFutureProviderRef<List<CurrencyType>>;
-String _$isCurrentUserOwnerHash() =>
-    r'3ad5ba00aeddca1ef0aa603f8643903c79e70097';
-
-/// Check if the current user is the owner of the selected company
-///
-/// Copied from [isCurrentUserOwner].
-@ProviderFor(isCurrentUserOwner)
-final isCurrentUserOwnerProvider = AutoDisposeFutureProvider<bool>.internal(
-  isCurrentUserOwner,
-  name: r'isCurrentUserOwnerProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$isCurrentUserOwnerHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef IsCurrentUserOwnerRef = AutoDisposeFutureProviderRef<bool>;
-String _$rolesHash() => r'2a667962ab812614b31cebee0b0bc2c1fb064134';
-
-/// Roles Provider
-///
-/// Copied from [roles].
-@ProviderFor(roles)
-final rolesProvider = AutoDisposeFutureProvider<List<Role>>.internal(
-  roles,
-  name: r'rolesProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$rolesHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef RolesRef = AutoDisposeFutureProviderRef<List<Role>>;
 String _$employeeShiftAuditLogsHash() =>
-    r'711200a4476529e67310c26404788b1fef6cfb9a';
+    r'd0d3bcdcdd54852e51b5b4e33ce5fdac8c54b706';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -112,21 +32,33 @@ class _SystemHash {
 
 /// Employee Shift Audit Logs Provider with pagination support
 ///
+/// Uses RPC: employee_setting_get_employee_shift_audit_logs
+/// Returns ShiftAuditLogsResult with logs and pagination metadata
+///
 /// Copied from [employeeShiftAuditLogs].
 @ProviderFor(employeeShiftAuditLogs)
 const employeeShiftAuditLogsProvider = EmployeeShiftAuditLogsFamily();
 
 /// Employee Shift Audit Logs Provider with pagination support
 ///
+/// Uses RPC: employee_setting_get_employee_shift_audit_logs
+/// Returns ShiftAuditLogsResult with logs and pagination metadata
+///
 /// Copied from [employeeShiftAuditLogs].
 class EmployeeShiftAuditLogsFamily
-    extends Family<AsyncValue<List<ShiftAuditLog>>> {
+    extends Family<AsyncValue<ShiftAuditLogsResult>> {
   /// Employee Shift Audit Logs Provider with pagination support
+  ///
+  /// Uses RPC: employee_setting_get_employee_shift_audit_logs
+  /// Returns ShiftAuditLogsResult with logs and pagination metadata
   ///
   /// Copied from [employeeShiftAuditLogs].
   const EmployeeShiftAuditLogsFamily();
 
   /// Employee Shift Audit Logs Provider with pagination support
+  ///
+  /// Uses RPC: employee_setting_get_employee_shift_audit_logs
+  /// Returns ShiftAuditLogsResult with logs and pagination metadata
   ///
   /// Copied from [employeeShiftAuditLogs].
   EmployeeShiftAuditLogsProvider call(
@@ -163,10 +95,16 @@ class EmployeeShiftAuditLogsFamily
 
 /// Employee Shift Audit Logs Provider with pagination support
 ///
+/// Uses RPC: employee_setting_get_employee_shift_audit_logs
+/// Returns ShiftAuditLogsResult with logs and pagination metadata
+///
 /// Copied from [employeeShiftAuditLogs].
 class EmployeeShiftAuditLogsProvider
-    extends AutoDisposeFutureProvider<List<ShiftAuditLog>> {
+    extends AutoDisposeFutureProvider<ShiftAuditLogsResult> {
   /// Employee Shift Audit Logs Provider with pagination support
+  ///
+  /// Uses RPC: employee_setting_get_employee_shift_audit_logs
+  /// Returns ShiftAuditLogsResult with logs and pagination metadata
   ///
   /// Copied from [employeeShiftAuditLogs].
   EmployeeShiftAuditLogsProvider(
@@ -202,7 +140,7 @@ class EmployeeShiftAuditLogsProvider
 
   @override
   Override overrideWith(
-    FutureOr<List<ShiftAuditLog>> Function(EmployeeShiftAuditLogsRef provider)
+    FutureOr<ShiftAuditLogsResult> Function(EmployeeShiftAuditLogsRef provider)
         create,
   ) {
     return ProviderOverride(
@@ -220,7 +158,7 @@ class EmployeeShiftAuditLogsProvider
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<ShiftAuditLog>> createElement() {
+  AutoDisposeFutureProviderElement<ShiftAuditLogsResult> createElement() {
     return _EmployeeShiftAuditLogsProviderElement(this);
   }
 
@@ -241,13 +179,13 @@ class EmployeeShiftAuditLogsProvider
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 mixin EmployeeShiftAuditLogsRef
-    on AutoDisposeFutureProviderRef<List<ShiftAuditLog>> {
+    on AutoDisposeFutureProviderRef<ShiftAuditLogsResult> {
   /// The parameter `params` of this provider.
   EmployeeAuditLogParams get params;
 }
 
 class _EmployeeShiftAuditLogsProviderElement
-    extends AutoDisposeFutureProviderElement<List<ShiftAuditLog>>
+    extends AutoDisposeFutureProviderElement<ShiftAuditLogsResult>
     with EmployeeShiftAuditLogsRef {
   _EmployeeShiftAuditLogsProviderElement(super.provider);
 
@@ -256,28 +194,7 @@ class _EmployeeShiftAuditLogsProviderElement
       (origin as EmployeeShiftAuditLogsProvider).params;
 }
 
-String _$salaryUpdatesStreamHash() =>
-    r'9a80152a4112a4e337a7b26c9249d7263ab82737';
-
-/// Real-time salary updates stream
-///
-/// Copied from [salaryUpdatesStream].
-@ProviderFor(salaryUpdatesStream)
-final salaryUpdatesStreamProvider =
-    StreamProvider<List<EmployeeSalary>>.internal(
-  salaryUpdatesStream,
-  name: r'salaryUpdatesStreamProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$salaryUpdatesStreamHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef SalaryUpdatesStreamRef = StreamProviderRef<List<EmployeeSalary>>;
-String _$filteredEmployeesHash() => r'd29b729c76edd245f91f5059fc3e49913df8f70b';
+String _$filteredEmployeesHash() => r'6eb179b1cbed22b63fb5ae632838ec6959f9fe89';
 
 /// See also [filteredEmployees].
 @ProviderFor(filteredEmployees)
@@ -297,15 +214,20 @@ final filteredEmployeesProvider =
 typedef FilteredEmployeesRef
     = AutoDisposeProviderRef<AsyncValue<List<EmployeeSalary>>>;
 String _$assignWorkScheduleTemplateHash() =>
-    r'9e12c77ed936d1274a0b421a69a883564f31b413';
+    r'd6fb41a00f6d871398f7f4d7d935279074dda1b2';
 
 /// Assign or unassign a work schedule template to an employee
+///
+/// Uses RPC: employee_setting_assign_work_schedule_template
+/// - Owner-only permission (companies.owner_id = auth.uid())
+/// - Pass null for templateId to unassign the current template
+/// - Returns warning for non-monthly salary types
 ///
 /// Copied from [assignWorkScheduleTemplate].
 @ProviderFor(assignWorkScheduleTemplate)
 final assignWorkScheduleTemplateProvider = AutoDisposeProvider<
-    Future<Map<String, dynamic>> Function(
-        {required String userId, String? templateId})>.internal(
+    Future<WorkScheduleAssignResult> Function(
+        {required String employeeUserId, String? templateId})>.internal(
   assignWorkScheduleTemplate,
   name: r'assignWorkScheduleTemplateProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -318,8 +240,8 @@ final assignWorkScheduleTemplateProvider = AutoDisposeProvider<
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AssignWorkScheduleTemplateRef = AutoDisposeProviderRef<
-    Future<Map<String, dynamic>> Function(
-        {required String userId, String? templateId})>;
+    Future<WorkScheduleAssignResult> Function(
+        {required String employeeUserId, String? templateId})>;
 String _$mutableEmployeeListHash() =>
     r'06b0aeb4fd5b02a08c4ce67a25db40b4b144904a';
 

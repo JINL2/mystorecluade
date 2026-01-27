@@ -13,7 +13,7 @@ part 'employee_notifier.g.dart';
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ///
 /// Hybrid 구조:
-/// - 단순 CRUD: Repository 직접 호출 (loadEmployees, searchEmployees)
+/// - 단순 CRUD: Repository getEmployeeSettingData() 호출
 /// - 복잡한 로직: UseCase 호출 (updateEmployeeSalary)
 @riverpod
 class EmployeeNotifier extends _$EmployeeNotifier {
@@ -22,7 +22,7 @@ class EmployeeNotifier extends _$EmployeeNotifier {
     return const EmployeeState();
   }
 
-  /// 직원 급여 목록 로드 (직접 Repository 호출)
+  /// 직원 급여 목록 로드 (unified RPC 호출)
   Future<void> loadEmployees({
     required String companyId,
   }) async {
@@ -30,11 +30,13 @@ class EmployeeNotifier extends _$EmployeeNotifier {
 
     try {
       final repository = ref.read(employeeRepositoryProvider);
-      final employees = await repository.getEmployeeSalaries(companyId);
+      final settingData = await repository.getEmployeeSettingData(
+        companyId: companyId,
+      );
 
       state = state.copyWith(
         isLoading: false,
-        employees: employees,
+        employees: settingData.employees,
         errorMessage: null,
       );
     } catch (e) {
@@ -46,7 +48,12 @@ class EmployeeNotifier extends _$EmployeeNotifier {
   }
 
   /// 직원 급여 업데이트 (UseCase 호출)
+  ///
+  /// Note: 업데이트 성공 시 호출자가 직접 employeeSettingDataProvider를 invalidate하여
+  /// 새로고침해야 합니다. Notifier 내부에서는 자동 새로고침하지 않습니다.
   Future<bool> updateEmployeeSalary({
+    required String companyId,
+    required String userId,
     required String salaryId,
     required double salaryAmount,
     required String salaryType,
@@ -59,6 +66,8 @@ class EmployeeNotifier extends _$EmployeeNotifier {
       final updateSalaryUseCase = ref.read(updateEmployeeSalaryUseCaseProvider);
 
       final command = UpdateEmployeeSalaryCommand(
+        companyId: companyId,
+        userId: userId,
         salaryId: salaryId,
         salaryAmount: salaryAmount,
         salaryType: salaryType,
@@ -70,13 +79,7 @@ class EmployeeNotifier extends _$EmployeeNotifier {
 
       if (result.isSuccess) {
         state = state.copyWith(isUpdatingSalary: false);
-
-        // 자동 새로고침
-        if (state.employees.isNotEmpty) {
-          final companyId = state.employees.first.companyId;
-          await loadEmployees(companyId: companyId);
-        }
-
+        // Note: 호출자가 ref.invalidate(employeeSettingDataProvider)를 호출하여 새로고침
         return true;
       } else {
         state = state.copyWith(
@@ -94,7 +97,7 @@ class EmployeeNotifier extends _$EmployeeNotifier {
     }
   }
 
-  /// 직원 검색 (직접 Repository 호출)
+  /// 직원 검색 (unified RPC 호출)
   Future<void> searchEmployees({
     required String companyId,
     String? searchQuery,
@@ -104,7 +107,7 @@ class EmployeeNotifier extends _$EmployeeNotifier {
 
     try {
       final repository = ref.read(employeeRepositoryProvider);
-      final employees = await repository.searchEmployees(
+      final settingData = await repository.getEmployeeSettingData(
         companyId: companyId,
         searchQuery: searchQuery,
         storeId: storeId,
@@ -112,7 +115,7 @@ class EmployeeNotifier extends _$EmployeeNotifier {
 
       state = state.copyWith(
         isLoading: false,
-        employees: employees,
+        employees: settingData.employees,
         searchQuery: searchQuery ?? '',
         errorMessage: null,
       );

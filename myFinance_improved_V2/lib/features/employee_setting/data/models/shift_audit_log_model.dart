@@ -20,7 +20,6 @@ class ShiftAuditLogModel extends ShiftAuditLog {
     super.changedByName,
     required super.changedAt,
     super.reason,
-    required super.totalCount,
   });
 
   /// Create model from JSON (Supabase RPC response)
@@ -50,7 +49,6 @@ class ShiftAuditLogModel extends ShiftAuditLog {
       changedAt: DateTimeUtils.toLocalSafe(json['changed_at'] as String?) ??
           DateTime.now(),
       reason: json['reason'] as String?,
-      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -70,7 +68,6 @@ class ShiftAuditLogModel extends ShiftAuditLog {
       'changed_by_name': changedByName,
       'changed_at': DateTimeUtils.toUtc(changedAt),
       'reason': reason,
-      'total_count': totalCount,
     };
   }
 
@@ -90,7 +87,71 @@ class ShiftAuditLogModel extends ShiftAuditLog {
       changedByName: changedByName,
       changedAt: changedAt,
       reason: reason,
+    );
+  }
+}
+
+/// Result model for shift audit logs with pagination
+class ShiftAuditLogsResultModel {
+  final List<ShiftAuditLogModel> logs;
+  final ShiftAuditLogsPaginationModel pagination;
+
+  const ShiftAuditLogsResultModel({
+    required this.logs,
+    required this.pagination,
+  });
+
+  /// Create model from JSON (new RPC response format)
+  factory ShiftAuditLogsResultModel.fromJson(Map<String, dynamic> json) {
+    final logsJson = json['logs'] as List<dynamic>? ?? [];
+    final paginationJson = json['pagination'] as Map<String, dynamic>? ?? {};
+
+    return ShiftAuditLogsResultModel(
+      logs: logsJson
+          .map((e) => ShiftAuditLogModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      pagination: ShiftAuditLogsPaginationModel.fromJson(paginationJson),
+    );
+  }
+
+  /// Convert to domain entity
+  ShiftAuditLogsResult toEntity() {
+    return ShiftAuditLogsResult(
+      logs: logs.map((m) => m.toEntity()).toList(),
+      pagination: pagination.toEntity(),
+    );
+  }
+}
+
+/// Pagination model for shift audit logs
+class ShiftAuditLogsPaginationModel {
+  final int totalCount;
+  final int limit;
+  final int offset;
+  final bool hasMore;
+
+  const ShiftAuditLogsPaginationModel({
+    required this.totalCount,
+    required this.limit,
+    required this.offset,
+    required this.hasMore,
+  });
+
+  factory ShiftAuditLogsPaginationModel.fromJson(Map<String, dynamic> json) {
+    return ShiftAuditLogsPaginationModel(
+      totalCount: (json['total_count'] as num?)?.toInt() ?? 0,
+      limit: (json['limit'] as num?)?.toInt() ?? 20,
+      offset: (json['offset'] as num?)?.toInt() ?? 0,
+      hasMore: json['has_more'] as bool? ?? false,
+    );
+  }
+
+  ShiftAuditLogsPagination toEntity() {
+    return ShiftAuditLogsPagination(
       totalCount: totalCount,
+      limit: limit,
+      offset: offset,
+      hasMore: hasMore,
     );
   }
 }

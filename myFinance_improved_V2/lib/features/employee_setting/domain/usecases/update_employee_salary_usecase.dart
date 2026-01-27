@@ -9,13 +9,30 @@ import '../value_objects/salary_update_request.dart';
 
 /// Command for updating employee salary
 class UpdateEmployeeSalaryCommand {
+  /// Company ID (required for RPC authorization)
+  final String companyId;
+
+  /// Target employee's user ID
+  final String userId;
+
+  /// Salary record ID
   final String salaryId;
+
+  /// New salary amount
   final double salaryAmount;
+
+  /// Salary type: 'hourly', 'monthly', 'yearly', etc.
   final String salaryType;
+
+  /// Currency ID or code
   final String currencyId;
+
+  /// Optional reason for the change
   final String? changeReason;
 
   const UpdateEmployeeSalaryCommand({
+    required this.companyId,
+    required this.userId,
     required this.salaryId,
     required this.salaryAmount,
     required this.salaryType,
@@ -77,8 +94,10 @@ class UpdateEmployeeSalaryUseCase {
         );
       }
 
-      // Create request
+      // Create request with companyId and userId for RPC authorization
       final request = SalaryUpdateRequest(
+        companyId: command.companyId,
+        userId: command.userId,
         salaryId: command.salaryId,
         salaryAmount: command.salaryAmount,
         salaryType: command.salaryType,

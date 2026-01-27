@@ -247,7 +247,7 @@ class __$$EmployeeStateImplCopyWithImpl<$Res>
 
 /// @nodoc
 
-class _$EmployeeStateImpl extends _EmployeeState {
+class _$EmployeeStateImpl implements _EmployeeState {
   const _$EmployeeStateImpl(
       {final List<EmployeeSalary> employees = const [],
       this.isLoading = false,
@@ -261,8 +261,7 @@ class _$EmployeeStateImpl extends _EmployeeState {
       this.sortOption = 'name',
       this.sortAscending = true,
       this.selectedEmployee})
-      : _employees = employees,
-        super._();
+      : _employees = employees;
 
 // Data
   final List<EmployeeSalary> _employees;
@@ -373,7 +372,7 @@ class _$EmployeeStateImpl extends _EmployeeState {
       __$$EmployeeStateImplCopyWithImpl<_$EmployeeStateImpl>(this, _$identity);
 }
 
-abstract class _EmployeeState extends EmployeeState {
+abstract class _EmployeeState implements EmployeeState {
   const factory _EmployeeState(
       {final List<EmployeeSalary> employees,
       final bool isLoading,
@@ -387,7 +386,6 @@ abstract class _EmployeeState extends EmployeeState {
       final String sortOption,
       final bool sortAscending,
       final EmployeeSalary? selectedEmployee}) = _$EmployeeStateImpl;
-  const _EmployeeState._() : super._();
 
 // Data
   @override

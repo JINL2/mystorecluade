@@ -1,4 +1,3 @@
-import '../../domain/entities/role.dart';
 import '../../domain/repositories/role_repository.dart';
 import '../datasources/role_remote_datasource.dart';
 
@@ -12,31 +11,15 @@ class RoleRepositoryImpl implements RoleRepository {
   RoleRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<List<Role>> getAllRoles() async {
-    final models = await _remoteDataSource.getAllRoles();
-    return models.map((model) => model.toEntity()).toList();
-  }
-
-  @override
-  Future<List<Role>> getRolesByCompany(String companyId) async {
-    final models = await _remoteDataSource.getRolesByCompany(companyId);
-    return models.map((model) => model.toEntity()).toList();
-  }
-
-  @override
-  Future<void> updateUserRole(String userId, String roleId) async {
-    await _remoteDataSource.updateUserRole(userId, roleId);
-  }
-
-  @override
-  Future<Role?> getRoleById(String roleId) async {
-    final model = await _remoteDataSource.getRoleById(roleId);
-    return model?.toEntity();
-  }
-
-  @override
-  Future<Role?> getRoleByName(String roleName) async {
-    final model = await _remoteDataSource.getRoleByName(roleName);
-    return model?.toEntity();
+  Future<void> updateUserRole({
+    required String companyId,
+    required String userId,
+    required String roleId,
+  }) async {
+    await _remoteDataSource.updateUserRole(
+      companyId: companyId,
+      userId: userId,
+      roleId: roleId,
+    );
   }
 }
