@@ -15,13 +15,12 @@ class JournalEntryDataSource {
 
   JournalEntryDataSource(this._supabase);
 
-  /// Fetch all accounts from the database
+  /// Fetch all accounts using RPC
   Future<List<Map<String, dynamic>>> getAccounts() async {
     try {
-      final response = await _supabase
-          .from('accounts')
-          .select('account_id, account_name, category_tag')
-          .order('account_name');
+      final response = await _supabase.rpc<List<dynamic>>(
+        'get_accounts_v2',
+      );
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
@@ -29,39 +28,56 @@ class JournalEntryDataSource {
     }
   }
 
-  /// Fetch counterparties for a specific company
+  /// Fetch counterparties for a specific company using RPC
   Future<List<Map<String, dynamic>>> getCounterparties(String companyId) async {
     try {
       if (companyId.isEmpty) {
         return [];
       }
 
-      final response = await _supabase
-          .from('counterparties')
-          .select('counterparty_id, name, is_internal, linked_company_id')
-          .eq('company_id', companyId)
-          .order('name');
+      final response = await _supabase.rpc<List<dynamic>>(
+        'get_counterparties_v2',
+        params: {
+          'p_company_id': companyId,
+        },
+      );
 
-      return List<Map<String, dynamic>>.from(response);
+      // Map RPC response to expected format
+      return response.map((item) {
+        final additionalData = item['additionalData'] as Map<String, dynamic>?;
+        return {
+          'counterparty_id': item['id'],
+          'name': item['name'],
+          'is_internal': item['isInternal'],
+          'linked_company_id': additionalData?['linked_company_id'],
+        };
+      }).toList().cast<Map<String, dynamic>>();
     } catch (e) {
       throw Exception('Failed to fetch counterparties: $e');
     }
   }
 
-  /// Fetch stores for a linked company (counterparty)
+  /// Fetch stores for a linked company (counterparty) using RPC
   Future<List<Map<String, dynamic>>> getCounterpartyStores(String linkedCompanyId) async {
     try {
       if (linkedCompanyId.isEmpty) {
         return [];
       }
 
-      final response = await _supabase
-          .from('stores')
-          .select('store_id, store_name')
-          .eq('company_id', linkedCompanyId)
-          .order('store_name');
+      final response = await _supabase.rpc<List<dynamic>>(
+        'get_store_info',
+        params: {
+          'p_company_id': linkedCompanyId,
+        },
+      );
 
-      return List<Map<String, dynamic>>.from(response);
+      // Map RPC response to expected format
+      return response.map((item) {
+        return {
+          'store_id': item['store_id'],
+          'store_name': item['store_name'],
+        };
+      }).toList().cast<Map<String, dynamic>>();
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
@@ -117,30 +133,23 @@ class JournalEntryDataSource {
     }
   }
 
-  /// Check account mapping for internal transactions
+  /// Check account mapping for internal transactions using RPC
   Future<Map<String, dynamic>?> checkAccountMapping({
     required String companyId,
     required String counterpartyId,
     required String accountId,
   }) async {
     try {
-      final response = await _supabase
-          .from('account_mappings')
-          .select('my_account_id, linked_account_id, direction')
-          .eq('my_company_id', companyId)
-          .eq('counterparty_id', counterpartyId)
-          .eq('my_account_id', accountId)
-          .maybeSingle();
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'journal_input_account_mapping',
+        params: {
+          'p_company_id': companyId,
+          'p_counterparty_id': counterpartyId,
+          'p_account_id': accountId,
+        },
+      );
 
-      if (response != null) {
-        return {
-          'my_account_id': response['my_account_id'],
-          'linked_account_id': response['linked_account_id'],
-          'direction': response['direction'],
-        };
-      }
-
-      return null;
+      return response;
     } catch (e, stackTrace) {
       SentryConfig.captureException(
         e,
