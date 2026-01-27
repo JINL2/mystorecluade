@@ -156,16 +156,16 @@ class SalesDatasource {
     return BcgMatrix(categories: categories);
   }
 
-  /// 회사 통화 심볼 조회
+  /// 회사 기본 통화 심볼 조회
+  /// RPC: get_base_currency
   Future<String> getCurrencySymbol(String companyId) async {
-    final response = await _client
-        .from('companies')
-        .select('currency_types(symbol)')
-        .eq('company_id', companyId)
-        .single();
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'get_base_currency',
+      params: {'p_company_id': companyId},
+    );
 
-    final currencyData = response['currency_types'] as Map<String, dynamic>?;
-    return currencyData?['symbol'] as String? ?? '₫';
+    final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+    return baseCurrency?['symbol'] as String? ?? '₫';
   }
 
   // ═══════════════════════════════════════════════════════════════

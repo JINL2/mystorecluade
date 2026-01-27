@@ -10,8 +10,7 @@ import '../../data/repositories/repository_providers.dart';
 import '../../domain/usecases/auto_select_company_store.dart';
 import '../../domain/usecases/create_company.dart';
 import '../../domain/usecases/create_store.dart';
-import '../../domain/usecases/get_company_types.dart';
-import '../../domain/usecases/get_currencies.dart';
+import '../../domain/usecases/get_company_currency_types.dart';
 import '../../domain/usecases/join_by_code.dart';
 
 // ============================================================================
@@ -24,16 +23,10 @@ final createCompanyUseCaseProvider = Provider<CreateCompany>((ref) {
   return CreateCompany(repository);
 });
 
-/// Get Company Types Use Case provider
-final getCompanyTypesUseCaseProvider = Provider<GetCompanyTypes>((ref) {
+/// Get Company Types and Currencies Use Case provider
+final getCompanyCurrencyTypesUseCaseProvider = Provider<GetCompanyCurrencyTypes>((ref) {
   final repository = ref.watch(companyRepositoryProvider);
-  return GetCompanyTypes(repository);
-});
-
-/// Get Currencies Use Case provider
-final getCurrenciesUseCaseProvider = Provider<GetCurrencies>((ref) {
-  final repository = ref.watch(companyRepositoryProvider);
-  return GetCurrencies(repository);
+  return GetCompanyCurrencyTypes(repository);
 });
 
 // ============================================================================

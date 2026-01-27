@@ -22,18 +22,18 @@ class HomepageDataSource {
 
   // === User & Company Operations ===
 
-  /// Fetch user companies and stores via get_user_companies_with_salary RPC
+  /// Fetch user companies and stores via get_user_companies_with_salary_v2 RPC
   ///
-  /// Calls: rpc('get_user_companies_with_salary', {...})
+  /// Calls: rpc('get_user_companies_with_salary_v2', {...})
   /// Returns: User with companies, stores, subscription, and salary info
   ///
-  /// ✅ Uses new RPC that includes subscription data for each company
+  /// ✅ Uses RPC that includes subscription data for each company
   /// ✅ Includes salary info (salary_type, currency_code, currency_symbol)
-  /// ✅ Filters out deleted companies and stores before parsing
+  /// ✅ RPC handles deleted companies/stores filtering internally
   Future<UserCompaniesModel> getUserCompanies(String userId) async {
 
     final response = await _supabaseService.client.rpc(
-      'get_user_companies_with_salary',
+      'get_user_companies_with_salary_v2',
       params: {
         'p_user_id': userId,
       },
@@ -84,14 +84,14 @@ class HomepageDataSource {
 
   // === Feature Operations ===
 
-  /// Fetch all categories with features via get_categories_with_features RPC
+  /// Fetch all categories with features via get_categories_with_features_v2 RPC
   ///
-  /// Calls: rpc('get_categories_with_features')
+  /// Calls: rpc('get_categories_with_features_v2')
   /// Returns: List of categories with their features
   Future<List<CategoryFeaturesModel>> getCategoriesWithFeatures() async {
     try {
       final response = await _supabaseService.client.rpc(
-        'get_categories_with_features',
+        'get_categories_with_features_v2',
       );
 
       if (response == null || response is! List) {
@@ -110,9 +110,9 @@ class HomepageDataSource {
     }
   }
 
-  /// Fetch user's frequently used features via get_user_quick_access_features RPC
+  /// Fetch user's frequently used features via get_user_quick_access_features_v2 RPC
   ///
-  /// Calls: rpc('get_user_quick_access_features', {...})
+  /// Calls: rpc('get_user_quick_access_features_v2', {...})
   /// Returns: List of top features ordered by usage
   Future<List<TopFeatureModel>> getQuickAccessFeatures({
     required String userId,
@@ -120,7 +120,7 @@ class HomepageDataSource {
   }) async {
     try {
       final response = await _supabaseService.client.rpc(
-        'get_user_quick_access_features',
+        'get_user_quick_access_features_v2',
         params: {
           'p_user_id': userId,
           'p_company_id': companyId,

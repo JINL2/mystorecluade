@@ -7,15 +7,12 @@ import 'package:myfinance_improved/features/homepage/domain/entities/currency.da
 /// Repository interface for company operations
 /// Defines the contract that the data layer must implement
 abstract class CompanyRepository {
-  /// Create a new company with all associated data
+  /// Create a new company via RPC
   ///
-  /// Performs the following operations:
-  /// 1. INSERT companies (auto-generates company_code)
-  /// 2. INSERT user_companies (links user)
-  /// 3. INSERT/GET roles (Owner role)
-  /// 4. INSERT role_permissions (all features)
-  /// 5. INSERT user_roles (assign Owner)
-  /// 6. INSERT company_currency (base currency)
+  /// Calls 'homepage_insert_company' RPC which handles:
+  /// - Input validation (duplicate name, company type, currency)
+  /// - Company creation with auto-generated company_code
+  /// - DB triggers handle: user_companies, roles, permissions, user_roles, company_currency
   ///
   /// Returns [Right<Company>] on success
   /// Returns [Left<Failure>] on error
@@ -25,17 +22,10 @@ abstract class CompanyRepository {
     required String baseCurrencyId,
   });
 
-  /// Get all available company types from database
-  /// Used for populating the company type dropdown
+  /// Get all available company types and currencies from database via single RPC
+  /// Used for populating dropdowns in company creation form
   ///
-  /// Returns [Right<List<CompanyType>>] on success
+  /// Returns [Right<(List<CompanyType>, List<Currency>)>] on success
   /// Returns [Left<Failure>] on error
-  Future<Either<Failure, List<CompanyType>>> getCompanyTypes();
-
-  /// Get all available currencies from database
-  /// Used for populating the currency dropdown
-  ///
-  /// Returns [Right<List<Currency>>] on success
-  /// Returns [Left<Failure>] on error
-  Future<Either<Failure, List<Currency>>> getCurrencies();
+  Future<Either<Failure, (List<CompanyType>, List<Currency>)>> getCompanyCurrencyTypes();
 }

@@ -21,30 +21,32 @@ import 'usecase_providers.dart';
 // Presentation Layer Providers (UI State Management)
 // ============================================================================
 
-/// Company Types FutureProvider for dropdown
-///
-/// Fetches company types for UI dropdown selection.
-/// Uses GetCompanyTypes use case from domain layer.
-final companyTypesProvider = FutureProvider<List<CompanyType>>((ref) async {
-  final getCompanyTypes = ref.watch(getCompanyTypesUseCaseProvider);
-  final result = await getCompanyTypes();
+/// Combined provider for company types and currencies
+/// Fetches both data types in a single RPC call for efficiency.
+final _companyCurrencyTypesProvider = FutureProvider<(List<CompanyType>, List<Currency>)>((ref) async {
+  final getCompanyCurrencyTypes = ref.watch(getCompanyCurrencyTypesUseCaseProvider);
+  final result = await getCompanyCurrencyTypes();
 
   return result.fold(
     (failure) => throw Exception(failure.message),
-    (companyTypes) => companyTypes,
+    (data) => data,
   );
+});
+
+/// Company Types FutureProvider for dropdown
+///
+/// Fetches company types for UI dropdown selection.
+/// Derived from combined provider for single RPC efficiency.
+final companyTypesProvider = FutureProvider<List<CompanyType>>((ref) async {
+  final (companyTypes, _) = await ref.watch(_companyCurrencyTypesProvider.future);
+  return companyTypes;
 });
 
 /// Currencies FutureProvider for dropdown
 ///
 /// Fetches currencies for UI dropdown selection.
-/// Uses GetCurrencies use case from domain layer.
+/// Derived from combined provider for single RPC efficiency.
 final currenciesProvider = FutureProvider<List<Currency>>((ref) async {
-  final getCurrencies = ref.watch(getCurrenciesUseCaseProvider);
-  final result = await getCurrencies();
-
-  return result.fold(
-    (failure) => throw Exception(failure.message),
-    (currencies) => currencies,
-  );
+  final (_, currencies) = await ref.watch(_companyCurrencyTypesProvider.future);
+  return currencies;
 });

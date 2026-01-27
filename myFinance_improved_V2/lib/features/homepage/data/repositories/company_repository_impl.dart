@@ -21,35 +21,7 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
     required String companyTypeId,
     required String baseCurrencyId,
   }) async {
-    // Validation checks (returns early on failure)
-    final isDuplicate =
-        await remoteDataSource.checkDuplicateCompanyName(companyName);
-    if (isDuplicate) {
-      return const Left(ValidationFailure(
-        message: 'You already have a business with this name',
-        code: 'DUPLICATE_NAME',
-      ),);
-    }
-
-    final companyTypeExists =
-        await remoteDataSource.verifyCompanyTypeExists(companyTypeId);
-    if (!companyTypeExists) {
-      return const Left(ValidationFailure(
-        message: 'Please select a valid business type',
-        code: 'INVALID_COMPANY_TYPE',
-      ),);
-    }
-
-    final currencyExists =
-        await remoteDataSource.verifyCurrencyExists(baseCurrencyId);
-    if (!currencyExists) {
-      return const Left(ValidationFailure(
-        message: 'Please select a valid currency',
-        code: 'INVALID_CURRENCY',
-      ),);
-    }
-
-    // Execute with automatic error handling
+    // All validation is now handled by RPC (homepage_insert_company)
     return executeWithErrorHandling(
       operation: () async {
         final companyModel = await remoteDataSource.createCompany(
@@ -65,26 +37,16 @@ class CompanyRepositoryImpl extends BaseRepository implements CompanyRepository 
   }
 
   @override
-  Future<Either<Failure, List<CompanyType>>> getCompanyTypes() async {
+  Future<Either<Failure, (List<CompanyType>, List<Currency>)>> getCompanyCurrencyTypes() async {
     return executeWithErrorHandling(
       operation: () async {
-        final companyTypeModels = await remoteDataSource.getCompanyTypes();
-        return companyTypeModels.map((model) => model.toEntity()).toList();
+        final (companyTypeModels, currencyModels) = await remoteDataSource.getCompanyCurrencyTypes();
+        final companyTypes = companyTypeModels.map((model) => model.toEntity()).toList();
+        final currencies = currencyModels.map((model) => model.toEntity()).toList();
+        return (companyTypes, currencies);
       },
-      errorContext: 'getCompanyTypes',
-      fallbackErrorMessage: 'Failed to load company types',
-    );
-  }
-
-  @override
-  Future<Either<Failure, List<Currency>>> getCurrencies() async {
-    return executeWithErrorHandling(
-      operation: () async {
-        final currencyModels = await remoteDataSource.getCurrencies();
-        return currencyModels.map((model) => model.toEntity()).toList();
-      },
-      errorContext: 'getCurrencies',
-      fallbackErrorMessage: 'Failed to load currencies',
+      errorContext: 'getCompanyCurrencyTypes',
+      fallbackErrorMessage: 'Failed to load company types and currencies',
     );
   }
 }

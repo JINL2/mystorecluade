@@ -91,7 +91,8 @@ abstract class SalesRepository {
     String? storeId,
   });
 
-  /// 회사 통화 심볼 조회
+  /// 회사 기본 통화 심볼 조회
+  /// RPC: get_base_currency
   Future<Either<Failure, String>> getCurrencySymbol({
     required String companyId,
   });
