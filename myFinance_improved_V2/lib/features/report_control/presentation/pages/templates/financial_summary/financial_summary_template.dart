@@ -133,15 +133,14 @@ class _FinancialSummaryLoaderState
         companyId = appState.companyChoosen;
 
         if ((companyId?.isEmpty ?? true) && widget.notification.sessionId.isNotEmpty) {
-          // 3순위: session에서 직접 가져오기
+          // 3순위: session에서 RPC로 가져오기
           print('🔍 [FinancialTemplate] Fetching company_id from session...');
-          final sessionData = await Supabase.instance.client
-              .from('report_generation_sessions')
-              .select('company_id')
-              .eq('session_id', widget.notification.sessionId)
-              .maybeSingle();
+          final result = await Supabase.instance.client.rpc<String?>(
+            'report_control_get_session_company_id',
+            params: {'p_session_id': widget.notification.sessionId},
+          );
 
-          companyId = sessionData?['company_id'] as String?;
+          companyId = result;
           print('✅ [FinancialTemplate] Got company_id from session: $companyId');
         }
 

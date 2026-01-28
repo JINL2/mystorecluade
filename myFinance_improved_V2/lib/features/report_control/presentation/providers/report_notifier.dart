@@ -306,11 +306,6 @@ class ReportNotifier extends StateNotifier<ReportState> {
     state = state.copyWith(categoryFilter: categoryId);
   }
 
-  /// Set filter for template
-  void setTemplateFilter(String? templateId) {
-    state = state.copyWith(templateFilter: templateId);
-  }
-
   /// Toggle show unread only filter
   void toggleShowUnreadOnly() {
     state = state.copyWith(showUnreadOnly: !state.showUnreadOnly);
