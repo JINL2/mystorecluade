@@ -14,49 +14,9 @@ class PORepositoryImpl implements PORepository {
   }
 
   @override
-  Future<PurchaseOrder> getById(String poId) async {
-    final model = await _datasource.getById(poId);
+  Future<PurchaseOrder> getById(String poId, {required String companyId}) async {
+    final model = await _datasource.getById(poId, companyId: companyId);
     return model.toEntity();
-  }
-
-  @override
-  Future<PurchaseOrder> create(POCreateParams params) async {
-    final model = await _datasource.create(params);
-    return model.toEntity();
-  }
-
-  @override
-  Future<PurchaseOrder> update(
-      String poId, int version, Map<String, dynamic> updates) async {
-    final model = await _datasource.update(poId, version, updates);
-    return model.toEntity();
-  }
-
-  @override
-  Future<void> delete(String poId) async {
-    await _datasource.delete(poId);
-  }
-
-  @override
-  Future<void> confirm(String poId) async {
-    await _datasource.confirm(poId);
-  }
-
-  @override
-  Future<void> updateStatus(String poId, POStatus newStatus,
-      {String? notes}) async {
-    await _datasource.updateStatus(poId, newStatus, notes: notes);
-  }
-
-  @override
-  Future<String> convertFromPI(String piId,
-      {Map<String, dynamic>? options}) async {
-    return _datasource.convertFromPI(piId, options: options);
-  }
-
-  @override
-  Future<String> generateNumber(String companyId) async {
-    return _datasource.generateNumber(companyId);
   }
 
   @override
@@ -72,11 +32,6 @@ class PORepositoryImpl implements PORepository {
       companyId: companyId,
       timezone: timezone,
     );
-  }
-
-  @override
-  Future<List<AcceptedPIForConversion>> getAcceptedPIsForConversion() async {
-    return _datasource.getAcceptedPIsForConversion();
   }
 
   @override

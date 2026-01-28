@@ -38,26 +38,6 @@ final poRepositoryProvider = Provider<PORepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef PoRepositoryRef = ProviderRef<PORepository>;
-String _$acceptedPIsForConversionHash() =>
-    r'26dbc90408c56bd79bf4c9649375a773896bdbed';
-
-/// See also [acceptedPIsForConversion].
-@ProviderFor(acceptedPIsForConversion)
-final acceptedPIsForConversionProvider =
-    AutoDisposeFutureProvider<List<AcceptedPIForConversion>>.internal(
-  acceptedPIsForConversion,
-  name: r'acceptedPIsForConversionProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$acceptedPIsForConversionHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef AcceptedPIsForConversionRef
-    = AutoDisposeFutureProviderRef<List<AcceptedPIForConversion>>;
 String _$supplierListHash() => r'37e5327ad228e07ab9fb9ec3f05e7962969ef813';
 
 /// See also [supplierList].
@@ -109,7 +89,7 @@ final poListProvider =
 );
 
 typedef _$PoList = AutoDisposeNotifier<POListState>;
-String _$poDetailHash() => r'010f75331b907e29f7eb993e0015ac256e81ddef';
+String _$poDetailHash() => r'd3efcad0d8896f27331a30b74796c194c8ec244d';
 
 /// See also [PoDetail].
 @ProviderFor(PoDetail)
@@ -124,7 +104,7 @@ final poDetailProvider =
 );
 
 typedef _$PoDetail = AutoDisposeNotifier<PODetailState>;
-String _$poFormHash() => r'03e1fac5655764ca55a7a3334e19a9e6cd3072e8';
+String _$poFormHash() => r'eec69b120e3e74a56a55e83a2ec4d18f88b28001';
 
 /// See also [PoForm].
 @ProviderFor(PoForm)

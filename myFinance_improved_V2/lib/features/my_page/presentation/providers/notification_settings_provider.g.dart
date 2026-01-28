@@ -29,7 +29,7 @@ final notificationSettingsDataSourceProvider =
 typedef NotificationSettingsDataSourceRef
     = ProviderRef<NotificationSettingsDataSource>;
 String _$notificationSettingsNotifierHash() =>
-    r'aaab70dab7238810a98d1f19302fbc48968aa2ca';
+    r'8ac38430ff90bfebc32c5528e6a3736722dc6d23';
 
 /// Notification Settings Notifier (메인 화면)
 ///
