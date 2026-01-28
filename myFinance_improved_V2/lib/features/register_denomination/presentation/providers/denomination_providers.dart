@@ -92,38 +92,6 @@ class DenominationOperations extends _$DenominationOperations {
     }
   }
 
-  Future<void> updateDenomination(
-    String denominationId,
-    String currencyId, {
-    double? value,
-    DenominationType? type,
-    String? displayName,
-    String? emoji,
-    bool? isActive,
-  }) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final repository = ref.read(denominationRepositoryProvider);
-      await repository.updateDenomination(
-        denominationId,
-        value: value,
-        type: type,
-        displayName: displayName,
-        emoji: emoji,
-        isActive: isActive,
-      );
-
-      // Refresh the denomination list for this currency
-      ref.invalidate(denominationListProvider(currencyId));
-      ref.invalidate(denominationStatsProvider(currencyId));
-
-      state = const AsyncValue.data(null);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
-  }
-
   Future<DenominationDeleteResult> removeDenomination(String denominationId, String currencyId) async {
     state = const AsyncValue.loading();
 

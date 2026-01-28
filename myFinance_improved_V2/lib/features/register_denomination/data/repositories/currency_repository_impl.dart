@@ -1,38 +1,68 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/currency.dart';
-import '../../domain/entities/denomination.dart';
 import '../../domain/repositories/currency_repository.dart';
-import '../mappers/denomination_mapper.dart';
+import '../mappers/currency_info_mapper.dart';
 
 class SupabaseCurrencyRepository implements CurrencyRepository {
   final SupabaseClient _client;
 
   SupabaseCurrencyRepository(this._client);
-  
+
   // Default flag emoji for currencies without a flag
   static const String _defaultFlagEmoji = '🏳️';
 
-  @override
-  Future<List<CurrencyType>> getAvailableCurrencyTypes() async {
-    try {
-      final response = await _client
-          .from('currency_types')
-          .select('*')
-          .order('currency_name');
+  /// Cached RPC response for the current session
+  CurrencyInfoResponse? _cachedResponse;
+  String? _cachedCompanyId;
 
-      return (response as List)
-          .map((json) => CurrencyType(
-            currencyId: json['currency_id'] as String,
-            currencyCode: json['currency_code'] as String,
-            currencyName: json['currency_name'] as String,
-            symbol: json['symbol'] as String,
-            flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
-            createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
-          ),)
-          .toList();
+  /// Fetch currency info from RPC with optional caching
+  Future<CurrencyInfoResponse> _fetchCurrencyInfo(
+    String companyId, {
+    String? currencyId,
+    String? searchQuery,
+    bool useCache = true,
+  }) async {
+    // Return cached response if available and valid
+    if (useCache &&
+        _cachedResponse != null &&
+        _cachedCompanyId == companyId &&
+        currencyId == null &&
+        searchQuery == null) {
+      return _cachedResponse!;
+    }
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'register_denomination_get_currency_info',
+      params: {
+        'p_company_id': companyId,
+        if (currencyId != null) 'p_currency_id': currencyId,
+        if (searchQuery != null) 'p_search_query': searchQuery,
+      },
+    );
+
+    final result = CurrencyInfoMapper.fromRpcResponse(response);
+
+    // Cache the response if it's a full fetch (no filters)
+    if (currencyId == null && searchQuery == null) {
+      _cachedResponse = result;
+      _cachedCompanyId = companyId;
+    }
+
+    return result;
+  }
+
+  /// Invalidate the cache when data changes
+  void _invalidateCache() {
+    _cachedResponse = null;
+    _cachedCompanyId = null;
+  }
+
+  @override
+  Future<List<CurrencyType>> getAvailableCurrencyTypes(String companyId) async {
+    try {
+      final response = await _fetchCurrencyInfo(companyId);
+      return response.availableCurrencyTypes;
     } catch (e) {
       throw Exception('Failed to fetch available currency types: $e');
     }
@@ -41,63 +71,8 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<List<Currency>> getCompanyCurrencies(String companyId) async {
     try {
-      // First get company currencies with company_currency_id (only non-deleted)
-      final companyCurrencies = await _client
-          .from('company_currency')
-          .select('company_currency_id, currency_id')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false);  // Only fetch non-deleted company currencies
-
-      if (companyCurrencies.isEmpty) return [];
-
-      // Create a map of currency_id to company_currency_id
-      final currencyIdToCompanyCurrencyId = <String, String>{};
-      final currencyIds = <String>[];
-      for (final cc in companyCurrencies) {
-        final currencyId = cc['currency_id'] as String;
-        currencyIds.add(currencyId);
-        currencyIdToCompanyCurrencyId[currencyId] = cc['company_currency_id'] as String;
-      }
-
-      // Get currency details
-      final currencyTypes = await _client
-          .from('currency_types')
-          .select('*')
-          .inFilter('currency_id', currencyIds);
-
-      // Get denominations for each currency (only non-deleted ones)
-      final denominations = await _client
-          .from('currency_denominations')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false)  // Only fetch non-deleted denominations
-          .inFilter('currency_id', currencyIds);
-
-      // Map denominations by currency_id using DenominationMapper
-      final denominationMap = <String, List<Denomination>>{};
-      for (final denom in denominations) {
-        final currencyId = denom['currency_id'] as String;
-        denominationMap[currencyId] ??= [];
-        denominationMap[currencyId]!.add(
-          DenominationMapper.fromJson(denom),
-        );
-      }
-
-      // Build Currency objects
-      return (currencyTypes as List).map((ct) {
-        final currencyId = ct['currency_id'] as String;
-        return Currency(
-          id: currencyId,
-          code: ct['currency_code'] as String,
-          name: ct['currency_name'] as String,
-          fullName: ct['currency_name'] as String, // Use same as name since no full_name column
-          symbol: ct['symbol'] as String,
-          flagEmoji: ct['flag_emoji'] as String? ?? _defaultFlagEmoji,
-          companyCurrencyId: currencyIdToCompanyCurrencyId[currencyId], // Include company_currency_id
-          denominations: denominationMap[currencyId] ?? [],
-          createdAt: ct['created_at'] != null ? DateTimeUtils.toLocal(ct['created_at'] as String) : null,
-        );
-      }).toList();
+      final response = await _fetchCurrencyInfo(companyId);
+      return response.companyCurrencies;
     } catch (e) {
       throw Exception('Failed to fetch company currencies: $e');
     }
@@ -106,91 +81,43 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<Currency> addCompanyCurrency(String companyId, String currencyId) async {
     try {
-      // Check if currency type exists
-      final currencyType = await _client
-          .from('currency_types')
-          .select('*')
-          .eq('currency_id', currencyId)
-          .maybeSingle();
+      // Use RPC for add operation
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'register_denomination_upsert_company_currency',
+        params: {
+          'p_company_id': companyId,
+          'p_currency_id': currencyId,
+          'p_operation': 'add',
+        },
+      );
 
-      if (currencyType == null) {
-        throw Exception('Currency type not found: $currencyId');
-      }
+      if (response['success'] != true) {
+        final errorCode = response['error_code'] as String?;
+        final errorMessage = response['error'] as String? ?? 'Failed to add currency';
 
-      // Check if ANY entry exists for this company/currency combination
-      final anyExisting = await _client
-          .from('company_currency')
-          .select('company_currency_id, is_deleted')
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .maybeSingle();
-
-      // Check specifically for soft-deleted entries
-      final existingDeleted = anyExisting != null &&
-                              (anyExisting['is_deleted'] == true ||
-                               anyExisting['is_deleted'] == 'true' ||
-                               anyExisting['is_deleted'] == 1)
-                              ? anyExisting : null;
-
-      // Check if currency is already active
-      if (anyExisting != null &&
-          (anyExisting['is_deleted'] == false ||
-           anyExisting['is_deleted'] == 'false' ||
-           anyExisting['is_deleted'] == 0 ||
-           anyExisting['is_deleted'] == null)) {
-        throw Exception('Currency is already added to your company');
-      }
-
-      String companyCurrencyId;
-
-      if (existingDeleted != null) {
-        // Reactivate the existing soft-deleted entry
-        companyCurrencyId = existingDeleted['company_currency_id'] as String;
-
-        final updateResult = await _client
-            .from('company_currency')
-            .update({'is_deleted': false})
-            .eq('company_currency_id', companyCurrencyId)
-            .eq('company_id', companyId)
-            .eq('currency_id', currencyId)
-            .select();
-
-        // Verify the update was successful
-        if (updateResult.isEmpty) {
-          final verifyResult = await _client
-              .from('company_currency')
-              .select('is_deleted')
-              .eq('company_currency_id', companyCurrencyId)
-              .maybeSingle();
-
-          if (verifyResult == null || verifyResult['is_deleted'] == true) {
-            throw Exception('Failed to reactivate currency. Check database permissions.');
-          }
+        // Provide user-friendly error messages
+        if (errorCode == 'ALREADY_ADDED') {
+          throw Exception('Currency is already added to your company');
+        } else if (errorCode == 'CURRENCY_NOT_EXISTS') {
+          throw Exception('Currency type not found');
         }
-      } else {
-        // Create new entry
-        companyCurrencyId = const Uuid().v4();
-
-        final insertResult = await _client.from('company_currency').insert({
-          'company_currency_id': companyCurrencyId,
-          'company_id': companyId,
-          'currency_id': currencyId,
-          'is_deleted': false,
-          'created_at': DateTimeUtils.nowUtc(),
-        }).select();
-
-        if (insertResult.isEmpty) {
-          throw Exception('Failed to insert company_currency');
-        }
+        throw Exception(errorMessage);
       }
+
+      // Invalidate cache after mutation
+      _invalidateCache();
+
+      // Parse currency data from RPC response
+      final currencyData = response['currency'] as Map<String, dynamic>;
+      final companyCurrencyId = response['company_currency_id'] as String;
 
       return Currency(
-        id: currencyId,
-        code: currencyType['currency_code'] as String,
-        name: currencyType['currency_name'] as String,
-        fullName: currencyType['currency_name'] as String,
-        symbol: currencyType['symbol'] as String,
-        flagEmoji: currencyType['flag_emoji'] as String? ?? _defaultFlagEmoji,
+        id: currencyData['currency_id'] as String,
+        code: currencyData['currency_code'] as String,
+        name: currencyData['currency_name'] as String? ?? '',
+        fullName: currencyData['currency_name'] as String? ?? '',
+        symbol: currencyData['symbol'] as String? ?? '',
+        flagEmoji: currencyData['flag_emoji'] as String? ?? _defaultFlagEmoji,
         companyCurrencyId: companyCurrencyId,
         denominations: [],
         createdAt: DateTime.now(),
@@ -203,44 +130,31 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<void> removeCompanyCurrency(String companyId, String currencyId) async {
     try {
-      // First check if this is the base currency of the company
-      final companyResult = await _client
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .maybeSingle();
-      
-      if (companyResult != null) {
-        final baseCurrencyId = companyResult['base_currency_id'] as String?;
-        if (baseCurrencyId == currencyId) {
+      // Use RPC for remove operation
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'register_denomination_upsert_company_currency',
+        params: {
+          'p_company_id': companyId,
+          'p_currency_id': currencyId,
+          'p_operation': 'remove',
+        },
+      );
+
+      if (response['success'] != true) {
+        final errorCode = response['error_code'] as String?;
+        final errorMessage = response['error'] as String? ?? 'Failed to remove currency';
+
+        // Provide user-friendly error messages
+        if (errorCode == 'BASE_CURRENCY') {
           throw Exception('Cannot remove base currency. Please change the base currency first.');
+        } else if (errorCode == 'NOT_FOUND') {
+          throw Exception('Currency not found in company or already removed');
         }
+        throw Exception(errorMessage);
       }
 
-      // Check if the currency exists and is not already deleted
-      final companyCurrencyResult = await _client
-          .from('company_currency')
-          .select('company_currency_id')
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .eq('is_deleted', false)  // Only check non-deleted currencies
-          .maybeSingle();
-
-      if (companyCurrencyResult == null) {
-        throw Exception('Currency not found in company or already removed');
-      }
-
-      // Perform soft delete by updating is_deleted to true
-      final result = await _client
-          .from('company_currency')
-          .update({'is_deleted': true})
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .select();
-
-      if (result.isEmpty) {
-        throw Exception('Failed to soft delete currency - no rows affected');
-      }
+      // Invalidate cache after mutation
+      _invalidateCache();
     } catch (e) {
       throw Exception('Failed to remove currency: $e');
     }
@@ -249,61 +163,15 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<Currency?> getCompanyCurrency(String companyId, String currencyId) async {
     try {
-      // Check if the currency is associated with the company (and not deleted)
-      final companyCurrency = await _client
-          .from('company_currency')
-          .select('company_currency_id, currency_id')
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .eq('is_deleted', false)  // Only check non-deleted company currencies
-          .maybeSingle();
+      final response = await _fetchCurrencyInfo(companyId, currencyId: currencyId);
 
-      if (companyCurrency == null) return null;
+      // Find the specific currency from the response
+      final currencies = response.companyCurrencies;
+      if (currencies.isEmpty) return null;
 
-      final companyCurrencyId = companyCurrency['company_currency_id'] as String;
-
-      // Get currency details
-      final currencyType = await _client
-          .from('currency_types')
-          .select('*')
-          .eq('currency_id', currencyId)
-          .single();
-
-      // Get denominations for this currency (only non-deleted ones)
-      final denominations = await _client
-          .from('currency_denominations')
-          .select('*')
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .eq('is_deleted', false)  // Only fetch non-deleted denominations
-          .order('value');
-
-      // Build denominations list
-      final denominationList = (denominations as List).map((denom) {
-        return Denomination(
-          id: denom['denomination_id'] as String,
-          companyId: denom['company_id'] as String,
-          currencyId: denom['currency_id'] as String,
-          value: (denom['value'] as num).toDouble(),
-          type: (denom['type'] as String? ?? 'bill') == 'coin' ? DenominationType.coin : DenominationType.bill,
-          displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
-          emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
-          isActive: denom['is_active'] as bool? ?? true,
-          createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
-        );
-      }).toList();
-
-      // Build and return Currency object
-      return Currency(
-        id: currencyType['currency_id'] as String,
-        code: currencyType['currency_code'] as String,
-        name: currencyType['currency_name'] as String,
-        fullName: currencyType['currency_name'] as String,
-        symbol: currencyType['symbol'] as String,
-        flagEmoji: currencyType['flag_emoji'] as String? ?? _defaultFlagEmoji,
-        companyCurrencyId: companyCurrencyId, // Include company_currency_id
-        denominations: denominationList,
-        createdAt: currencyType['created_at'] != null ? DateTimeUtils.toLocal(currencyType['created_at'] as String) : null,
+      return currencies.firstWhere(
+        (c) => c.id == currencyId,
+        orElse: () => currencies.first,
       );
     } catch (e) {
       throw Exception('Failed to fetch company currency: $e');
@@ -311,77 +179,10 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   }
 
   @override
-  Future<Currency> updateCompanyCurrency(String companyId, String currencyId, {
-    bool? isActive,
-  }) async {
+  Future<List<CurrencyType>> searchCurrencyTypes(String companyId, String query) async {
     try {
-      final updateData = <String, dynamic>{
-        'updated_at': DateTimeUtils.nowUtc(),
-      };
-
-      // Use isActive if provided and column exists
-      if (isActive != null) {
-        updateData['is_active'] = isActive;
-      }
-
-      final result = await _client
-          .from('company_currency')
-          .update(updateData)
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .select();
-
-      if (result.isEmpty) {
-        throw Exception('Update failed - no rows affected');
-      }
-
-      // Return updated currency
-      final currency = await getCompanyCurrency(companyId, currencyId);
-      if (currency == null) {
-        throw Exception('Currency not found after update');
-      }
-      return currency;
-    } catch (e) {
-      throw Exception('Failed to update company currency: $e');
-    }
-  }
-
-  @override
-  Future<List<CurrencyType>> searchCurrencyTypes(String query) async {
-    try {
-      // Sanitize query to prevent SQL injection
-      final sanitizedQuery = query
-          .replaceAll('%', r'\%')
-          .replaceAll('_', r'\_');
-
-      final response = await _client
-          .from('currency_types')
-          .select('*')
-          .or('currency_name.ilike.%$sanitizedQuery%,currency_code.ilike.%$sanitizedQuery%')
-          .order('currency_name')
-          .limit(20);
-
-      return (response as List).map((json) {
-        // Validate required fields
-        final currencyId = json['currency_id'] as String?;
-        final currencyCode = json['currency_code'] as String?;
-        final currencyName = json['currency_name'] as String?;
-        final symbol = json['symbol'] as String?;
-
-        if (currencyId == null) throw Exception('Missing currency_id in database');
-        if (currencyCode == null) throw Exception('Missing currency_code in database');
-        if (currencyName == null) throw Exception('Missing currency_name in database');
-        if (symbol == null) throw Exception('Missing symbol in database');
-
-        return CurrencyType(
-          currencyId: currencyId,
-          currencyCode: currencyCode,
-          currencyName: currencyName,
-          symbol: symbol,
-          flagEmoji: json['flag_emoji'] as String? ?? _defaultFlagEmoji,
-          createdAt: json['created_at'] != null ? DateTimeUtils.toLocal(json['created_at'] as String) : null,
-        );
-      }).toList();
+      final response = await _fetchCurrencyInfo(companyId, searchQuery: query);
+      return response.availableCurrencyTypes;
     } catch (e) {
       throw Exception('Failed to search currency types: $e');
     }
@@ -389,86 +190,42 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
 
   @override
   Stream<List<Currency>> watchCompanyCurrencies(String companyId) {
+    // For real-time updates, we still need to use the stream-based approach
+    // but we can simplify by using RPC for the data fetch
     return _client
         .from('company_currency')
-        .select('company_currency_id, currency_id')
+        .select('company_currency_id')
         .eq('company_id', companyId)
-        .eq('is_deleted', false)  // Only watch non-deleted company currencies
+        .eq('is_deleted', false)
         .asStream()
-        .asyncMap((companyCurrencyData) async {
-          if (companyCurrencyData.isEmpty) return <Currency>[];
-
-          // Create a map of currency_id to company_currency_id
-          final currencyIdToCompanyCurrencyId = <String, String>{};
-          final currencyIds = <String>[];
-          for (final cc in companyCurrencyData) {
-            final currencyId = cc['currency_id'] as String;
-            currencyIds.add(currencyId);
-            currencyIdToCompanyCurrencyId[currencyId] = cc['company_currency_id'] as String;
-          }
-
-          // Get currency details
-          final currencyTypes = await _client
-              .from('currency_types')
-              .select('*')
-              .inFilter('currency_id', currencyIds);
-
-          // Get denominations for all currencies (only non-deleted ones)
-          final denominations = await _client
-              .from('currency_denominations')
-              .select('*')
-              .eq('company_id', companyId)
-              .eq('is_deleted', false)  // Only fetch non-deleted denominations
-              .inFilter('currency_id', currencyIds);
-
-          // Map denominations by currency_id
-          final denominationMap = <String, List<Denomination>>{};
-          for (final denom in denominations) {
-            final currencyId = denom['currency_id'] as String;
-            denominationMap[currencyId] ??= [];
-            denominationMap[currencyId]!.add(Denomination(
-              id: denom['denomination_id'] as String,
-              companyId: denom['company_id'] as String,
-              currencyId: currencyId,
-              value: (denom['value'] as num).toDouble(),
-              type: (denom['type'] as String? ?? 'bill') == 'coin' ? DenominationType.coin : DenominationType.bill,
-              displayName: (denom['type'] as String? ?? 'bill') == 'coin' ? 'Coin' : 'Bill',
-              emoji: (denom['type'] as String? ?? 'bill') == 'coin' ? '🪙' : '💵',
-              isActive: denom['is_active'] as bool? ?? true,
-              createdAt: denom['created_at'] != null ? DateTimeUtils.toLocal(denom['created_at'] as String) : null,
-            ),);
-          }
-
-          // Build Currency objects
-          return (currencyTypes as List).map((ct) {
-            final currencyId = ct['currency_id'] as String;
-            return Currency(
-              id: currencyId,
-              code: ct['currency_code'] as String,
-              name: ct['currency_name'] as String,
-              fullName: ct['currency_name'] as String,
-              symbol: ct['symbol'] as String,
-              flagEmoji: ct['flag_emoji'] as String? ?? _defaultFlagEmoji,
-              companyCurrencyId: currencyIdToCompanyCurrencyId[currencyId], // Include company_currency_id
-              denominations: denominationMap[currencyId] ?? [],
-              createdAt: ct['created_at'] != null ? DateTimeUtils.toLocal(ct['created_at'] as String) : null,
-            );
-          }).toList();
+        .asyncMap((_) async {
+          // Invalidate cache and fetch fresh data
+          _invalidateCache();
+          final response = await _fetchCurrencyInfo(companyId, useCache: false);
+          return response.companyCurrencies;
         });
   }
 
   @override
   Future<bool> hasDenominations(String companyId, String currencyId) async {
     try {
-      // Query only non-deleted denominations for this currency
-      final denominations = await _client
-          .from('currency_denominations')
-          .select('denomination_id')
-          .eq('company_id', companyId)
-          .eq('currency_id', currencyId)
-          .eq('is_deleted', false);  // Only check non-deleted denominations
+      final response = await _fetchCurrencyInfo(companyId, currencyId: currencyId);
 
-      return denominations.isNotEmpty;
+      // Find the specific currency and check its denominations
+      final currency = response.companyCurrencies.firstWhere(
+        (c) => c.id == currencyId,
+        orElse: () => Currency(
+          id: currencyId,
+          code: '',
+          name: '',
+          fullName: '',
+          symbol: '',
+          flagEmoji: _defaultFlagEmoji,
+          denominations: [],
+        ),
+      );
+
+      return currency.denominations.isNotEmpty;
     } catch (e) {
       throw Exception('Failed to check denominations: $e');
     }
@@ -477,19 +234,67 @@ class SupabaseCurrencyRepository implements CurrencyRepository {
   @override
   Future<bool> isBaseCurrency(String companyId, String currencyId) async {
     try {
-      final companyResult = await _client
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .maybeSingle();
-
-      if (companyResult == null) return false;
-
-      final baseCurrencyId = companyResult['base_currency_id'] as String?;
-      return baseCurrencyId == currencyId;
+      final response = await _fetchCurrencyInfo(companyId);
+      return response.baseCurrencyId == currencyId;
     } catch (e) {
       // Log error but return false as default (safer to show Rate button if unsure)
       return false;
+    }
+  }
+
+  @override
+  Future<CurrencyInfoResponse> getCurrencyInfo(String companyId) async {
+    try {
+      return await _fetchCurrencyInfo(companyId);
+    } catch (e) {
+      throw Exception('Failed to fetch currency info: $e');
+    }
+  }
+
+  @override
+  Future<ExchangeRateResult> getCurrentExchangeRate(
+    String companyId,
+    String currencyId,
+  ) async {
+    try {
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'register_denomination_upsert_exchange_rate',
+        params: {
+          'p_company_id': companyId,
+          'p_currency_id': currencyId,
+          // p_rate is NULL → READ mode
+        },
+      );
+
+      return ExchangeRateResult.fromRpcResponse(response);
+    } catch (e) {
+      throw Exception('Failed to get current exchange rate: $e');
+    }
+  }
+
+  @override
+  Future<ExchangeRateResult> insertExchangeRate({
+    required String companyId,
+    required String currencyId,
+    required double rate,
+    required String userId,
+    DateTime? rateDate,
+  }) async {
+    try {
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'register_denomination_upsert_exchange_rate',
+        params: {
+          'p_company_id': companyId,
+          'p_currency_id': currencyId,
+          'p_rate': rate,
+          'p_user_id': userId,
+          if (rateDate != null) 'p_rate_date': rateDate.toIso8601String().split('T')[0],
+        },
+      );
+
+      return ExchangeRateResult.fromRpcResponse(response);
+    } catch (e) {
+      throw Exception('Failed to insert exchange rate: $e');
     }
   }
 }

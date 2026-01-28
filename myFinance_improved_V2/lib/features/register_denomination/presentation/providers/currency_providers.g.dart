@@ -7,9 +7,9 @@ part of 'currency_providers.dart';
 // **************************************************************************
 
 String _$availableCurrencyTypesHash() =>
-    r'0bc38af3ea6a9d15f56120690d75329d64ac9d93';
+    r'b096c16147ece93c4dac65ebf48983cd8e5286bc';
 
-/// Available currency types provider
+/// Available currency types provider (includes isAlreadyAdded flag from RPC)
 ///
 /// Copied from [availableCurrencyTypes].
 @ProviderFor(availableCurrencyTypes)
@@ -115,9 +115,9 @@ final searchFilteredCurrenciesProvider =
 typedef SearchFilteredCurrenciesRef
     = AutoDisposeProviderRef<AsyncValue<List<Currency>>>;
 String _$availableCurrenciesToAddHash() =>
-    r'19539046b9ae269607369f86f783f1ebfadd4ffa';
+    r'0516c59395cb0729a012b475d5fce4b9c08a35a6';
 
-/// Available currencies to add provider that filters out already added currencies
+/// Available currencies to add provider - uses RPC's isAlreadyAdded flag
 ///
 /// Copied from [availableCurrenciesToAdd].
 @ProviderFor(availableCurrenciesToAdd)
@@ -136,7 +136,26 @@ final availableCurrenciesToAddProvider =
 // ignore: unused_element
 typedef AvailableCurrenciesToAddRef
     = AutoDisposeFutureProviderRef<List<CurrencyType>>;
-String _$currencySearchHash() => r'b9faf7fb8ea2004b6212cd3a6c97bf90661099da';
+String _$currencyInfoHash() => r'd60f4c1f20096cf419ae1abf6a0bcd73ca57b9b3';
+
+/// Full currency info provider including base currency details from RPC
+///
+/// Copied from [currencyInfo].
+@ProviderFor(currencyInfo)
+final currencyInfoProvider =
+    AutoDisposeFutureProvider<CurrencyInfoResponse>.internal(
+  currencyInfo,
+  name: r'currencyInfoProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$currencyInfoHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef CurrencyInfoRef = AutoDisposeFutureProviderRef<CurrencyInfoResponse>;
+String _$currencySearchHash() => r'd6f9d3128e53f0fb26888d1970247b44c5b2ff65';
 
 /// Currency search notifier
 ///
@@ -174,7 +193,7 @@ final selectedCurrencyTypeProvider =
 
 typedef _$SelectedCurrencyType = AutoDisposeNotifier<String?>;
 String _$currencyOperationsHash() =>
-    r'2d5ff0c14e27a30f062835828b7f29de4a93f4ee';
+    r'5fcc01eea7230d5ef0dc9c8ab50a824a1f8cf4c5';
 
 /// Currency operations notifier
 ///

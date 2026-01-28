@@ -926,7 +926,7 @@ class _EffectiveDenominationListProviderElement
 }
 
 String _$denominationOperationsHash() =>
-    r'4ce8cdad5734b47afd2baef7aa048e5cdb18e2b8';
+    r'7de65d5dec662167672e864116b773e18987fc54';
 
 /// Denomination operations notifier
 ///

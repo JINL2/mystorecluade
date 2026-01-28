@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-// App-level
-import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-
-// Feature - DI (Dependency Injection)
+import '../../data/mappers/currency_info_mapper.dart';
 import '../../di/providers.dart';
-// Feature - Domain
 import '../../domain/entities/currency.dart';
 
 part 'currency_providers.g.dart';
@@ -16,11 +13,18 @@ part 'currency_providers.g.dart';
 // Available Currency Types Provider
 // ============================================================================
 
-/// Available currency types provider
+/// Available currency types provider (includes isAlreadyAdded flag from RPC)
 @riverpod
 Future<List<CurrencyType>> availableCurrencyTypes(Ref ref) async {
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+
+  if (companyId.isEmpty) {
+    return [];
+  }
+
   final repository = ref.watch(currencyRepositoryProvider);
-  return repository.getAvailableCurrencyTypes();
+  return repository.getAvailableCurrencyTypes(companyId);
 }
 
 // ============================================================================
@@ -71,11 +75,19 @@ class CurrencySearch extends _$CurrencySearch {
       return;
     }
 
+    final appState = ref.read(appStateProvider);
+    final companyId = appState.companyChoosen;
+
+    if (companyId.isEmpty) {
+      state = const AsyncValue.data([]);
+      return;
+    }
+
     state = const AsyncValue.loading();
 
     try {
       final repository = ref.read(currencyRepositoryProvider);
-      final results = await repository.searchCurrencyTypes(query.trim());
+      final results = await repository.searchCurrencyTypes(companyId, query.trim());
       state = AsyncValue.data(results);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -130,8 +142,8 @@ class CurrencyOperations extends _$CurrencyOperations {
     try {
       final repository = ref.read(currencyRepositoryProvider);
 
-      // First, get the currency type to create a full currency object for optimistic update
-      final allTypes = await repository.getAvailableCurrencyTypes();
+      // Get the currency type from available types (uses RPC with isAlreadyAdded)
+      final allTypes = await repository.getAvailableCurrencyTypes(companyId);
       final currencyType = allTypes.firstWhere((type) => type.currencyId == currencyId);
 
       // Create a temporary currency object for optimistic update
@@ -139,7 +151,7 @@ class CurrencyOperations extends _$CurrencyOperations {
         id: currencyType.currencyId,
         code: currencyType.currencyCode,
         name: currencyType.currencyName,
-        fullName: currencyType.currencyName, // CurrencyType doesn't have fullName, use currencyName
+        fullName: currencyType.currencyName,
         symbol: currencyType.symbol,
         flagEmoji: currencyType.flagEmoji,
       );
@@ -153,6 +165,7 @@ class CurrencyOperations extends _$CurrencyOperations {
       // Refresh the remote providers after successful database operation
       ref.invalidate(companyCurrenciesProvider);
       ref.invalidate(companyCurrenciesStreamProvider);
+      ref.invalidate(availableCurrencyTypesProvider);
 
       state = const AsyncValue.data(null);
     } catch (error, stackTrace) {
@@ -160,7 +173,8 @@ class CurrencyOperations extends _$CurrencyOperations {
       ref.read(localCurrencyListProvider.notifier).optimisticallyRemove(currencyId);
 
       // Enhanced error reporting
-      final errorMessage = error.toString().contains('already exists')
+      final errorMessage = error.toString().contains('already exists') ||
+                           error.toString().contains('already added')
           ? 'This currency has already been added to your company'
           : 'Failed to add currency: Network error or server unavailable';
 
@@ -207,30 +221,6 @@ class CurrencyOperations extends _$CurrencyOperations {
           : 'Failed to remove currency: ${error.toString()}';
 
       state = AsyncValue.error(errorMessage, stackTrace);
-    }
-  }
-
-  Future<void> updateCompanyCurrency(String currencyId, {bool? isActive}) async {
-    final appState = ref.read(appStateProvider);
-    final companyId = appState.companyChoosen;
-
-    if (companyId.isEmpty) {
-      state = AsyncValue.error(Exception('No company selected'), StackTrace.current);
-      return;
-    }
-
-    state = const AsyncValue.loading();
-
-    try {
-      final repository = ref.read(currencyRepositoryProvider);
-      await repository.updateCompanyCurrency(companyId, currencyId, isActive: isActive);
-
-      // Refresh the company currencies list
-      ref.invalidate(companyCurrenciesProvider);
-
-      state = const AsyncValue.data(null);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
     }
   }
 
@@ -419,18 +409,31 @@ AsyncValue<List<Currency>> searchFilteredCurrencies(Ref ref) {
 // Available Currencies to Add Provider
 // ============================================================================
 
-/// Available currencies to add provider that filters out already added currencies
+/// Available currencies to add provider - uses RPC's isAlreadyAdded flag
 @riverpod
 Future<List<CurrencyType>> availableCurrenciesToAdd(Ref ref) async {
   final allTypes = await ref.watch(availableCurrencyTypesProvider.future);
-  final companyCurrencies = ref.watch(effectiveCompanyCurrenciesProvider);
+  // RPC already provides isAlreadyAdded flag, so we just filter by it
+  return allTypes.where((type) => !type.isAlreadyAdded).toList();
+}
 
-  return companyCurrencies.when(
-    data: (currencies) {
-      final companyCurrencyIds = currencies.map((c) => c.id).toSet();
-      return allTypes.where((type) => !companyCurrencyIds.contains(type.currencyId)).toList();
-    },
-    loading: () => [],
-    error: (_, __) => allTypes,
-  );
+// ============================================================================
+// Currency Info Provider (includes base currency details)
+// ============================================================================
+
+/// Full currency info provider including base currency details from RPC
+@riverpod
+Future<CurrencyInfoResponse> currencyInfo(Ref ref) async {
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+
+  if (companyId.isEmpty) {
+    return const CurrencyInfoResponse(
+      companyCurrencies: [],
+      availableCurrencyTypes: [],
+    );
+  }
+
+  final repository = ref.watch(currencyRepositoryProvider);
+  return repository.getCurrencyInfo(companyId);
 }

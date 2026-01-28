@@ -3,13 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
-import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
-import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_spacing.dart';
-import 'package:myfinance_improved/shared/themes/toss_text_styles.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
 import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
@@ -59,31 +54,14 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
 
   Future<void> _fetchBaseCurrency() async {
     try {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
+      // Use RPC via provider to get base currency info
+      final currencyInfo = await ref.read(currencyInfoProvider.future);
 
-      if (companyId.isEmpty) return;
-
-      final supabase = Supabase.instance.client;
-
-      final companyResult = await supabase
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .single();
-
-      if (companyResult['base_currency_id'] != null) {
-        baseCurrencyId = companyResult['base_currency_id'] as String;
-
-        final currencyResult = await supabase
-            .from('currency_types')
-            .select('symbol, currency_code')
-            .eq('currency_id', baseCurrencyId!)
-            .single();
-
+      if (currencyInfo.baseCurrencyId != null) {
         setState(() {
-          baseCurrencySymbol = currencyResult['symbol'] as String;
-          baseCurrencyCode = currencyResult['currency_code'] as String;
+          baseCurrencyId = currencyInfo.baseCurrencyId;
+          baseCurrencySymbol = currencyInfo.baseCurrencySymbol;
+          baseCurrencyCode = currencyInfo.baseCurrencyCode;
         });
       }
     } catch (e) {
@@ -96,24 +74,26 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      if (companyId.isEmpty || baseCurrencyId == null) return;
+      if (companyId.isEmpty) return;
 
-      final supabase = Supabase.instance.client;
+      // Use RPC to get current exchange rate
+      final currencyRepository = ref.read(currencyRepositoryProvider);
+      final result = await currencyRepository.getCurrentExchangeRate(
+        companyId,
+        widget.currency.id,
+      );
 
-      final rateResult = await supabase
-          .from('book_exchange_rates')
-          .select('rate')
-          .eq('company_id', companyId)
-          .eq('from_currency_id', widget.currency.id)
-          .eq('to_currency_id', baseCurrencyId!)
-          .order('created_at', ascending: false)
-          .limit(1)
-          .maybeSingle();
-
-      if (rateResult != null) {
+      if (result.success && result.currentRate != null) {
         setState(() {
-          currentExchangeRate = (rateResult['rate'] as num).toDouble();
+          currentExchangeRate = result.currentRate;
           exchangeRateController.text = currentExchangeRate!.toStringAsFixed(8);
+          // Also update base currency info if available from RPC
+          if (result.baseCurrencyId != null) {
+            baseCurrencyId = result.baseCurrencyId;
+          }
+          if (result.baseCurrencyCode != null) {
+            baseCurrencyCode = result.baseCurrencyCode;
+          }
         });
       }
     } catch (e) {
@@ -191,19 +171,19 @@ class _EditExchangeRateBottomSheetState extends ConsumerState<EditExchangeRateBo
         throw Exception('No company selected');
       }
 
-      final supabase = Supabase.instance.client;
-      final now = DateTimeUtils.nowUtc();
-      final today = DateTimeUtils.toDateOnly(DateTime.now());
+      // Use RPC to insert exchange rate
+      final currencyRepository = ref.read(currencyRepositoryProvider);
+      final result = await currencyRepository.insertExchangeRate(
+        companyId: companyId,
+        currencyId: widget.currency.id,
+        rate: exchangeRate,
+        userId: userId,
+        rateDate: DateTime.now(),
+      );
 
-      await supabase.from('book_exchange_rates').insert({
-        'company_id': companyId,
-        'from_currency_id': widget.currency.id,
-        'to_currency_id': baseCurrencyId!,
-        'rate': exchangeRate,
-        'rate_date': today,
-        'created_by': userId,
-        'created_at': now,
-      });
+      if (!result.success) {
+        throw Exception(result.error ?? 'Failed to update exchange rate');
+      }
 
       if (mounted) {
         // Invalidate providers first for immediate UI update

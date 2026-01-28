@@ -8,23 +8,8 @@ abstract class DenominationRepository {
   /// Add a new denomination
   Future<Denomination> addDenomination(DenominationInput input);
 
-  /// Update an existing denomination
-  Future<Denomination> updateDenomination(String denominationId, {
-    double? value,
-    DenominationType? type,
-    String? displayName,
-    String? emoji,
-    bool? isActive,
-  });
-
   /// Remove a denomination (uses RPC for safe deletion with blocking location info)
   Future<DenominationDeleteResult> removeDenomination(String denominationId, String companyId);
-
-  /// Check if a denomination is in use (has records in cashier_amount_lines or vault_amount_line)
-  Future<bool> isDenominationInUse(String denominationId);
-
-  /// Get a specific denomination by ID
-  Future<Denomination?> getDenomination(String denominationId);
 
   /// Apply a standard template for a currency (e.g., USD standard denominations)
   Future<List<Denomination>> applyDenominationTemplate(

@@ -15,6 +15,7 @@ class Currency with _$Currency {
     required String flagEmoji,
     String? companyCurrencyId, // Added for tracking company_currency relationship
     @Default([]) List<Denomination> denominations,
+    @Default(false) bool isBaseCurrency, // Whether this is the company's base currency
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _Currency;
@@ -32,6 +33,7 @@ class CurrencyType with _$CurrencyType {
     required String symbol,
     required String flagEmoji,
     @Default(true) bool isActive,
+    @Default(false) bool isAlreadyAdded, // Whether this currency is already added to the company
     DateTime? createdAt,
   }) = _CurrencyType;
 

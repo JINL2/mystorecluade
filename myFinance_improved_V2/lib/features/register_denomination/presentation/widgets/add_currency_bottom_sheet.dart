@@ -1,11 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
 import '../../di/providers.dart';
 import '../../domain/entities/currency.dart';
 import '../providers/currency_providers.dart';
@@ -49,36 +47,15 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
 
   Future<void> _fetchBaseCurrency() async {
     try {
-      final appState = ref.read(appStateProvider);
-      final companyId = appState.companyChoosen;
+      // Use RPC via provider to get base currency info
+      final currencyInfo = await ref.read(currencyInfoProvider.future);
 
-      if (companyId.isEmpty) return;
-
-      final supabase = ref.read(supabaseClientProvider);
-
-      // Query companies table to get base_currency_id
-      final companyResult = await supabase
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .maybeSingle();
-
-      if (companyResult != null && companyResult['base_currency_id'] != null) {
-        baseCurrencyId = companyResult['base_currency_id'] as String;
-
-        // Query currency_types to get base currency symbol and code
-        final currencyResult = await supabase
-            .from('currency_types')
-            .select('symbol, currency_code')
-            .eq('currency_id', baseCurrencyId!)
-            .maybeSingle();
-
-        if (currencyResult != null) {
-          setState(() {
-            baseCurrencySymbol = currencyResult['symbol'] as String;
-            baseCurrencyCode = currencyResult['currency_code'] as String;
-          });
-        }
+      if (currencyInfo.baseCurrencyId != null) {
+        setState(() {
+          baseCurrencyId = currencyInfo.baseCurrencyId;
+          baseCurrencySymbol = currencyInfo.baseCurrencySymbol;
+          baseCurrencyCode = currencyInfo.baseCurrencyCode;
+        });
       }
     } catch (e) {
       debugPrint('Error fetching base currency: $e');
@@ -296,52 +273,23 @@ class _AddCurrencyBottomSheetState extends ConsumerState<AddCurrencyBottomSheet>
         throw Exception('User ID not found in app state');
       }
 
-      final supabase = ref.read(supabaseClientProvider);
-      final currentTime = DateTimeUtils.nowUtc();
-      final currentDate = DateTimeUtils.toDateOnly(DateTime.now());
+      final currencyRepository = ref.read(currencyRepositoryProvider);
 
-      // First check if currency is soft-deleted and reactivate if needed
-      final existingCurrency = await supabase
-          .from('company_currency')
-          .select('company_currency_id, is_deleted')
-          .eq('company_id', companyId)
-          .eq('currency_id', selectedCurrencyId!)
-          .maybeSingle();
+      // 1. Add currency to company using RPC (handles soft-delete check)
+      await currencyRepository.addCompanyCurrency(companyId, selectedCurrencyId!);
 
-      if (existingCurrency != null) {
-        if (existingCurrency['is_deleted'] == true) {
-          // Reactivate soft-deleted currency
-          await supabase
-              .from('company_currency')
-              .update({
-                'is_deleted': false,
-              })
-              .eq('company_currency_id', existingCurrency['company_currency_id'] as String)
-              .eq('company_id', companyId)
-              .eq('currency_id', selectedCurrencyId!);
-        } else {
-          throw Exception('Currency already exists for this company');
-        }
-      } else {
-        // 1. Insert into company_currency table
-        await supabase.from('company_currency').insert({
-          'company_id': companyId,
-          'currency_id': selectedCurrencyId!,
-          'is_deleted': false,
-          'created_at': currentTime,
-        });
+      // 2. Insert exchange rate using RPC
+      final exchangeRateResult = await currencyRepository.insertExchangeRate(
+        companyId: companyId,
+        currencyId: selectedCurrencyId!,
+        rate: exchangeRate,
+        userId: userId,
+        rateDate: DateTime.now(),
+      );
+
+      if (!exchangeRateResult.success) {
+        throw Exception(exchangeRateResult.error ?? 'Failed to set exchange rate');
       }
-
-      // 2. Insert into book_exchange_rates table
-      await supabase.from('book_exchange_rates').insert({
-        'company_id': companyId,
-        'from_currency_id': selectedCurrencyId!,
-        'to_currency_id': baseCurrencyId!,
-        'rate': exchangeRate,
-        'rate_date': currentDate,
-        'created_by': userId,
-        'created_at': currentTime,
-      });
 
       // Create Currency object for local state update
       final newCurrency = Currency(

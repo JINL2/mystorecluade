@@ -29,6 +29,8 @@ mixin _$Currency {
   String? get companyCurrencyId =>
       throw _privateConstructorUsedError; // Added for tracking company_currency relationship
   List<Denomination> get denominations => throw _privateConstructorUsedError;
+  bool get isBaseCurrency =>
+      throw _privateConstructorUsedError; // Whether this is the company's base currency
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
@@ -56,6 +58,7 @@ abstract class $CurrencyCopyWith<$Res> {
       String flagEmoji,
       String? companyCurrencyId,
       List<Denomination> denominations,
+      bool isBaseCurrency,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -83,6 +86,7 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
     Object? flagEmoji = null,
     Object? companyCurrencyId = freezed,
     Object? denominations = null,
+    Object? isBaseCurrency = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -119,6 +123,10 @@ class _$CurrencyCopyWithImpl<$Res, $Val extends Currency>
           ? _value.denominations
           : denominations // ignore: cast_nullable_to_non_nullable
               as List<Denomination>,
+      isBaseCurrency: null == isBaseCurrency
+          ? _value.isBaseCurrency
+          : isBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -148,6 +156,7 @@ abstract class _$$CurrencyImplCopyWith<$Res>
       String flagEmoji,
       String? companyCurrencyId,
       List<Denomination> denominations,
+      bool isBaseCurrency,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -173,6 +182,7 @@ class __$$CurrencyImplCopyWithImpl<$Res>
     Object? flagEmoji = null,
     Object? companyCurrencyId = freezed,
     Object? denominations = null,
+    Object? isBaseCurrency = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -209,6 +219,10 @@ class __$$CurrencyImplCopyWithImpl<$Res>
           ? _value._denominations
           : denominations // ignore: cast_nullable_to_non_nullable
               as List<Denomination>,
+      isBaseCurrency: null == isBaseCurrency
+          ? _value.isBaseCurrency
+          : isBaseCurrency // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -233,6 +247,7 @@ class _$CurrencyImpl implements _Currency {
       required this.flagEmoji,
       this.companyCurrencyId,
       final List<Denomination> denominations = const [],
+      this.isBaseCurrency = false,
       this.createdAt,
       this.updatedAt})
       : _denominations = denominations;
@@ -266,13 +281,17 @@ class _$CurrencyImpl implements _Currency {
   }
 
   @override
+  @JsonKey()
+  final bool isBaseCurrency;
+// Whether this is the company's base currency
+  @override
   final DateTime? createdAt;
   @override
   final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'Currency(id: $id, code: $code, name: $name, fullName: $fullName, symbol: $symbol, flagEmoji: $flagEmoji, companyCurrencyId: $companyCurrencyId, denominations: $denominations, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Currency(id: $id, code: $code, name: $name, fullName: $fullName, symbol: $symbol, flagEmoji: $flagEmoji, companyCurrencyId: $companyCurrencyId, denominations: $denominations, isBaseCurrency: $isBaseCurrency, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -292,6 +311,8 @@ class _$CurrencyImpl implements _Currency {
                 other.companyCurrencyId == companyCurrencyId) &&
             const DeepCollectionEquality()
                 .equals(other._denominations, _denominations) &&
+            (identical(other.isBaseCurrency, isBaseCurrency) ||
+                other.isBaseCurrency == isBaseCurrency) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -310,6 +331,7 @@ class _$CurrencyImpl implements _Currency {
       flagEmoji,
       companyCurrencyId,
       const DeepCollectionEquality().hash(_denominations),
+      isBaseCurrency,
       createdAt,
       updatedAt);
 
@@ -339,6 +361,7 @@ abstract class _Currency implements Currency {
       required final String flagEmoji,
       final String? companyCurrencyId,
       final List<Denomination> denominations,
+      final bool isBaseCurrency,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$CurrencyImpl;
 
@@ -362,6 +385,8 @@ abstract class _Currency implements Currency {
       get companyCurrencyId; // Added for tracking company_currency relationship
   @override
   List<Denomination> get denominations;
+  @override
+  bool get isBaseCurrency; // Whether this is the company's base currency
   @override
   DateTime? get createdAt;
   @override
@@ -387,6 +412,8 @@ mixin _$CurrencyType {
   String get symbol => throw _privateConstructorUsedError;
   String get flagEmoji => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
+  bool get isAlreadyAdded =>
+      throw _privateConstructorUsedError; // Whether this currency is already added to the company
   DateTime? get createdAt => throw _privateConstructorUsedError;
 
   /// Serializes this CurrencyType to a JSON map.
@@ -412,6 +439,7 @@ abstract class $CurrencyTypeCopyWith<$Res> {
       String symbol,
       String flagEmoji,
       bool isActive,
+      bool isAlreadyAdded,
       DateTime? createdAt});
 }
 
@@ -436,6 +464,7 @@ class _$CurrencyTypeCopyWithImpl<$Res, $Val extends CurrencyType>
     Object? symbol = null,
     Object? flagEmoji = null,
     Object? isActive = null,
+    Object? isAlreadyAdded = null,
     Object? createdAt = freezed,
   }) {
     return _then(_value.copyWith(
@@ -463,6 +492,10 @@ class _$CurrencyTypeCopyWithImpl<$Res, $Val extends CurrencyType>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      isAlreadyAdded: null == isAlreadyAdded
+          ? _value.isAlreadyAdded
+          : isAlreadyAdded // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -486,6 +519,7 @@ abstract class _$$CurrencyTypeImplCopyWith<$Res>
       String symbol,
       String flagEmoji,
       bool isActive,
+      bool isAlreadyAdded,
       DateTime? createdAt});
 }
 
@@ -508,6 +542,7 @@ class __$$CurrencyTypeImplCopyWithImpl<$Res>
     Object? symbol = null,
     Object? flagEmoji = null,
     Object? isActive = null,
+    Object? isAlreadyAdded = null,
     Object? createdAt = freezed,
   }) {
     return _then(_$CurrencyTypeImpl(
@@ -535,6 +570,10 @@ class __$$CurrencyTypeImplCopyWithImpl<$Res>
           ? _value.isActive
           : isActive // ignore: cast_nullable_to_non_nullable
               as bool,
+      isAlreadyAdded: null == isAlreadyAdded
+          ? _value.isAlreadyAdded
+          : isAlreadyAdded // ignore: cast_nullable_to_non_nullable
+              as bool,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -553,6 +592,7 @@ class _$CurrencyTypeImpl implements _CurrencyType {
       required this.symbol,
       required this.flagEmoji,
       this.isActive = true,
+      this.isAlreadyAdded = false,
       this.createdAt});
 
   factory _$CurrencyTypeImpl.fromJson(Map<String, dynamic> json) =>
@@ -572,11 +612,15 @@ class _$CurrencyTypeImpl implements _CurrencyType {
   @JsonKey()
   final bool isActive;
   @override
+  @JsonKey()
+  final bool isAlreadyAdded;
+// Whether this currency is already added to the company
+  @override
   final DateTime? createdAt;
 
   @override
   String toString() {
-    return 'CurrencyType(currencyId: $currencyId, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji, isActive: $isActive, createdAt: $createdAt)';
+    return 'CurrencyType(currencyId: $currencyId, currencyCode: $currencyCode, currencyName: $currencyName, symbol: $symbol, flagEmoji: $flagEmoji, isActive: $isActive, isAlreadyAdded: $isAlreadyAdded, createdAt: $createdAt)';
   }
 
   @override
@@ -595,6 +639,8 @@ class _$CurrencyTypeImpl implements _CurrencyType {
                 other.flagEmoji == flagEmoji) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
+            (identical(other.isAlreadyAdded, isAlreadyAdded) ||
+                other.isAlreadyAdded == isAlreadyAdded) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt));
   }
@@ -602,7 +648,7 @@ class _$CurrencyTypeImpl implements _CurrencyType {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, currencyId, currencyCode,
-      currencyName, symbol, flagEmoji, isActive, createdAt);
+      currencyName, symbol, flagEmoji, isActive, isAlreadyAdded, createdAt);
 
   /// Create a copy of CurrencyType
   /// with the given fields replaced by the non-null parameter values.
@@ -628,6 +674,7 @@ abstract class _CurrencyType implements CurrencyType {
       required final String symbol,
       required final String flagEmoji,
       final bool isActive,
+      final bool isAlreadyAdded,
       final DateTime? createdAt}) = _$CurrencyTypeImpl;
 
   factory _CurrencyType.fromJson(Map<String, dynamic> json) =
@@ -645,6 +692,9 @@ abstract class _CurrencyType implements CurrencyType {
   String get flagEmoji;
   @override
   bool get isActive;
+  @override
+  bool
+      get isAlreadyAdded; // Whether this currency is already added to the company
   @override
   DateTime? get createdAt;
 

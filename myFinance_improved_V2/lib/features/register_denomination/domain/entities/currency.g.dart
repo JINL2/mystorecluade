@@ -19,6 +19,7 @@ _$CurrencyImpl _$$CurrencyImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Denomination.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      isBaseCurrency: json['isBaseCurrency'] as bool? ?? false,
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -37,6 +38,7 @@ Map<String, dynamic> _$$CurrencyImplToJson(_$CurrencyImpl instance) =>
       'flagEmoji': instance.flagEmoji,
       'companyCurrencyId': instance.companyCurrencyId,
       'denominations': instance.denominations,
+      'isBaseCurrency': instance.isBaseCurrency,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };
@@ -49,6 +51,7 @@ _$CurrencyTypeImpl _$$CurrencyTypeImplFromJson(Map<String, dynamic> json) =>
       symbol: json['symbol'] as String,
       flagEmoji: json['flagEmoji'] as String,
       isActive: json['isActive'] as bool? ?? true,
+      isAlreadyAdded: json['isAlreadyAdded'] as bool? ?? false,
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -62,6 +65,7 @@ Map<String, dynamic> _$$CurrencyTypeImplToJson(_$CurrencyTypeImpl instance) =>
       'symbol': instance.symbol,
       'flagEmoji': instance.flagEmoji,
       'isActive': instance.isActive,
+      'isAlreadyAdded': instance.isAlreadyAdded,
       'createdAt': instance.createdAt?.toIso8601String(),
     };
 
