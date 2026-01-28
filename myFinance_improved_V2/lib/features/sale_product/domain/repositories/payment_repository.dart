@@ -1,5 +1,4 @@
 import '../entities/cash_location.dart';
-import '../entities/exchange_rate_data.dart';
 import '../value_objects/invoice_types.dart';
 
 // Re-export value objects for backward compatibility
@@ -16,11 +15,6 @@ abstract class PaymentRepository {
   Future<List<CashLocation>> getCashLocations({
     required String companyId,
     required String storeId,
-  });
-
-  /// Get exchange rates
-  Future<ExchangeRateData?> getExchangeRates({
-    required String companyId,
   });
 
   /// Create invoice from products

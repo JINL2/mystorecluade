@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Data Sources
-import '../data/datasources/brands_remote_datasource.dart';
 import '../data/datasources/exchange_rate_datasource.dart';
 import '../data/datasources/inventory_metadata_datasource.dart'
     hide InventoryMetadata, BrandMetadata, CategoryMetadata, ProductTypeMetadata,
@@ -11,7 +10,6 @@ import '../data/datasources/payment_remote_datasource.dart';
 import '../data/datasources/sales_product_remote_datasource.dart';
 
 // Repository Implementations
-import '../data/repositories/brands_repository_impl.dart';
 import '../data/repositories/exchange_rate_repository_impl.dart';
 import '../data/repositories/inventory_metadata_repository_impl.dart';
 import '../data/repositories/payment_repository_impl.dart';
@@ -19,7 +17,6 @@ import '../data/repositories/sales_journal_repository_impl.dart';
 import '../data/repositories/sales_product_repository_impl.dart';
 
 // Domain Repository Interfaces
-import '../domain/repositories/brands_repository.dart';
 import '../domain/repositories/exchange_rate_repository.dart';
 import '../domain/repositories/inventory_metadata_repository.dart';
 import '../domain/repositories/payment_repository.dart';
@@ -44,12 +41,6 @@ final _salesProductDataSourceProvider =
     Provider<SalesProductRemoteDataSource>((ref) {
   final client = ref.watch(supabaseClientProvider);
   return SalesProductRemoteDataSource(client);
-});
-
-/// Brands remote data source provider
-final _brandsDataSourceProvider = Provider<BrandsRemoteDataSource>((ref) {
-  final client = ref.watch(supabaseClientProvider);
-  return BrandsRemoteDataSource(client);
 });
 
 /// Exchange rate data source provider
@@ -80,12 +71,6 @@ final _paymentDataSourceProvider = Provider<PaymentRemoteDataSource>((ref) {
 final salesProductRepositoryProvider = Provider<SalesProductRepository>((ref) {
   final dataSource = ref.watch(_salesProductDataSourceProvider);
   return SalesProductRepositoryImpl(dataSource);
-});
-
-/// Brands repository provider
-final brandsRepositoryProvider = Provider<BrandsRepository>((ref) {
-  final dataSource = ref.watch(_brandsDataSourceProvider);
-  return BrandsRepositoryImpl(dataSource);
 });
 
 /// Exchange rate repository provider

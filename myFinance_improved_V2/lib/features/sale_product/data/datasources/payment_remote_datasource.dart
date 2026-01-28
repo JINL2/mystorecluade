@@ -38,87 +38,48 @@ class PaymentRemoteDataSource {
 
   PaymentRemoteDataSource(this._client);
 
-  /// Get currency data using table queries
+  /// Get currency data using get_base_currency RPC
+  ///
+  /// Returns base currency info and company currencies with exchange rates
   Future<Map<String, dynamic>> getCurrencyData({
     required String companyId,
   }) async {
     try {
-      // 1. Get company's base currency ID
-      final companyResult = await _client
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .maybeSingle();
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_base_currency',
+        params: {'p_company_id': companyId},
+      );
 
-      if (companyResult == null) {
-        throw const PaymentDataException(
-          'Company not found',
-        );
-      }
+      // RPC returns: { base_currency: {...}, company_currencies: [...] }
+      final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+      final companyCurrencies = response['company_currencies'] as List<dynamic>?;
 
-      final baseCurrencyId = companyResult['base_currency_id'] as String?;
-      if (baseCurrencyId == null || baseCurrencyId.isEmpty) {
+      if (baseCurrency == null) {
         throw const PaymentDataException(
           'Base currency not configured for this company',
         );
       }
 
-      // 2. Get base currency details from currency_types
-      final baseCurrencyResult = await _client
-          .from('currency_types')
-          .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
-          .eq('currency_id', baseCurrencyId)
-          .maybeSingle();
-
-      if (baseCurrencyResult == null) {
-        throw const PaymentDataException(
-          'Base currency type not found',
-        );
-      }
-
-      // 3. Get company currencies (non-deleted)
-      final companyCurrencies = await _client
-          .from('company_currency')
-          .select('currency_id')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false);
-
-      List<Map<String, dynamic>> companyCurrencyList = [];
-
-      if (companyCurrencies.isNotEmpty) {
-        final currencyIds = (companyCurrencies as List<dynamic>)
-            .map((cc) => (cc as Map<String, dynamic>)['currency_id'] as String)
-            .toList();
-
-        // 4. Get currency details for company currencies
-        final currencyTypes = await _client
-            .from('currency_types')
-            .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
-            .inFilter('currency_id', currencyIds);
-
-        companyCurrencyList = (currencyTypes as List<dynamic>)
-            .map((ct) {
-              final ctMap = ct as Map<String, dynamic>;
-              return {
-                'currency_id': ctMap['currency_id'],
-                'currency_code': ctMap['currency_code'],
-                'currency_name': ctMap['currency_name'],
-                'symbol': ctMap['symbol'],
-                'flag_emoji': ctMap['flag_emoji'] ?? '🏳️',
-                'exchange_rate_to_base':
-                    ctMap['currency_id'] == baseCurrencyId ? 1.0 : null,
-              };
-            })
-            .toList();
-      }
+      // Transform company_currencies to match expected format
+      final companyCurrencyList = (companyCurrencies ?? []).map((currency) {
+        final c = currency as Map<String, dynamic>;
+        return {
+          'currency_id': c['currency_id'],
+          'currency_code': c['currency_code'],
+          'currency_name': c['currency_name'],
+          'symbol': c['symbol'],
+          'flag_emoji': c['flag_emoji'] ?? '🏳️',
+          'exchange_rate_to_base': c['exchange_rate_to_base'] ?? 1.0,
+        };
+      }).toList();
 
       return {
         'base_currency': {
-          'currency_id': baseCurrencyResult['currency_id'],
-          'currency_code': baseCurrencyResult['currency_code'],
-          'currency_name': baseCurrencyResult['currency_name'],
-          'symbol': baseCurrencyResult['symbol'],
-          'flag_emoji': baseCurrencyResult['flag_emoji'] ?? '🏳️',
+          'currency_id': baseCurrency['currency_id'],
+          'currency_code': baseCurrency['currency_code'],
+          'currency_name': baseCurrency['currency_name'],
+          'symbol': baseCurrency['symbol'],
+          'flag_emoji': baseCurrency['flag_emoji'] ?? '🏳️',
           'exchange_rate_to_base': 1.0,
         },
         'company_currencies': companyCurrencyList,
@@ -138,14 +99,19 @@ class PaymentRemoteDataSource {
     }
   }
 
-  /// Get cash locations using RPC
+  /// Get cash locations using get_cash_locations_v2 RPC
+  ///
+  /// v2 changes from v1:
+  /// - Field names match actual database column names (snake_case)
+  /// - Added store_name, currency_id, icon, note, main_cash_location fields
+  /// - Removed duplicate additionalData fields
   Future<List<CashLocationModel>> getCashLocations({
     required String companyId,
     required String storeId,
   }) async {
     try {
       final response = await _client.rpc<List<dynamic>>(
-        'get_cash_locations',
+        'get_cash_locations_v2',
         params: {
           'p_company_id': companyId,
           'p_store_id': storeId,
@@ -166,37 +132,6 @@ class PaymentRemoteDataSource {
       if (e is PaymentException) rethrow;
       throw PaymentDataException(
         'Failed to parse cash location data: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  /// Get exchange rates
-  /// Uses get_exchange_rate_v3 which supports store-based currency sorting
-  Future<Map<String, dynamic>?> getExchangeRates({
-    required String companyId,
-    String? storeId,
-  }) async {
-    try {
-      final response = await _client.rpc<Map<String, dynamic>?>(
-        'get_exchange_rate_v3',
-        params: {
-          'p_company_id': companyId,
-          if (storeId != null) 'p_store_id': storeId,
-        },
-      );
-
-      return response;
-    } on PostgrestException catch (e) {
-      throw PaymentNetworkException(
-        'Failed to load exchange rates: ${e.message}',
-        code: e.code,
-        originalError: e,
-      );
-    } catch (e) {
-      if (e is PaymentException) rethrow;
-      throw PaymentDataException(
-        'Failed to parse exchange rate data: $e',
         originalError: e,
       );
     }

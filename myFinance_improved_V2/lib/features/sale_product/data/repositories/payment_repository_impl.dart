@@ -1,8 +1,6 @@
 import '../../domain/entities/cash_location.dart';
-import '../../domain/entities/exchange_rate_data.dart';
 import '../../domain/repositories/payment_repository.dart';
 import '../datasources/payment_remote_datasource.dart';
-import '../models/exchange_rate_data_model.dart';
 import '../models/payment_currency_model.dart';
 
 /// Payment repository implementation
@@ -45,19 +43,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
     );
 
     return response.map((model) => model.toEntity()).toList();
-  }
-
-  @override
-  Future<ExchangeRateData?> getExchangeRates({
-    required String companyId,
-  }) async {
-    final response = await _remoteDataSource.getExchangeRates(
-      companyId: companyId,
-    );
-
-    if (response == null) return null;
-
-    return ExchangeRateDataModel(response).toEntity();
   }
 
   @override
