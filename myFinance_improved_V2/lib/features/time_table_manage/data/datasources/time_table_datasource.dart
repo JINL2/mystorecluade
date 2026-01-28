@@ -62,10 +62,6 @@ class TimeTableDatasource {
         userId: userId,
       );
 
-  /// Delete a shift
-  Future<void> deleteShift({required String shiftId}) =>
-      _shiftDatasource.deleteShift(shiftId: shiftId);
-
   /// Delete a shift tag
   Future<Map<String, dynamic>> deleteShiftTag({
     required String tagId,
@@ -209,14 +205,5 @@ class TimeTableDatasource {
         bonusAmount: bonusAmount,
         managerMemo: managerMemo,
         timezone: timezone,
-      );
-
-  /// Update bonus amount for shift request
-  Future<void> updateBonusAmount({
-    required String shiftRequestId,
-    required double bonusAmount,
-  }) => _managerCardDatasource.updateBonusAmount(
-        shiftRequestId: shiftRequestId,
-        bonusAmount: bonusAmount,
       );
 }

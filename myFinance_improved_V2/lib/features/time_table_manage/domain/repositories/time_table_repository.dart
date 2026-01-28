@@ -100,15 +100,6 @@ abstract class TimeTableRepository {
     required String userId,
   });
 
-  /// Delete a shift
-  ///
-  /// [shiftId] - Shift ID to delete
-  ///
-  /// Returns [OperationResult] indicating success or failure
-  Future<OperationResult> deleteShift({
-    required String shiftId,
-  });
-
   /// Delete a shift tag
   ///
   /// [tagId] - Tag ID to delete
@@ -171,17 +162,6 @@ abstract class TimeTableRepository {
   Future<BulkApprovalResult> processBulkApproval({
     required List<String> shiftRequestIds,
     required List<bool> approvalStates,
-  });
-
-  /// Update bonus amount for shift request
-  ///
-  /// [shiftRequestId] - Shift request ID
-  /// [bonusAmount] - New bonus amount
-  ///
-  /// Returns update result
-  Future<void> updateBonusAmount({
-    required String shiftRequestId,
-    required double bonusAmount,
   });
 
   /// Get reliability score data for stats tab

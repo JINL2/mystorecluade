@@ -7,7 +7,6 @@ import '../../domain/exceptions/time_table_exceptions.dart';
 /// Handles Supabase RPC calls for manager-specific operations:
 /// - Manager overview and shift cards
 /// - Input card (manager updates shift)
-/// - Bonus amount updates
 class ManagerCardDatasource {
   final SupabaseClient _supabase;
 
@@ -172,25 +171,6 @@ class ManagerCardDatasource {
     } catch (e, stackTrace) {
       throw TimeTableException(
         'Failed to input card v5: $e',
-        originalError: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
-  /// Update bonus amount for shift request
-  Future<void> updateBonusAmount({
-    required String shiftRequestId,
-    required double bonusAmount,
-  }) async {
-    try {
-      await _supabase
-          .from('shift_requests')
-          .update({'bonus_amount_v2': bonusAmount})
-          .eq('shift_request_id', shiftRequestId);
-    } catch (e, stackTrace) {
-      throw TimeTableException(
-        'Failed to update bonus: $e',
         originalError: e,
         stackTrace: stackTrace,
       );

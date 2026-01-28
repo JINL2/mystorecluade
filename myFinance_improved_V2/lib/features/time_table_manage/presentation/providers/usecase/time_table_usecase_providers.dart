@@ -25,7 +25,6 @@ import '../../../domain/usecases/input_card_v5.dart';
 import '../../../domain/usecases/insert_schedule.dart';
 import '../../../domain/usecases/process_bulk_approval.dart';
 import '../../../domain/usecases/toggle_shift_approval.dart';
-import '../../../domain/usecases/update_bonus_amount.dart';
 
 // ============================================================================
 // Metadata & Status UseCases
@@ -121,16 +120,6 @@ final inputCardV5UseCaseProvider = Provider<InputCardV5>((ref) {
 final deleteShiftTagUseCaseProvider = Provider<DeleteShiftTag>((ref) {
   final repository = ref.watch(timeTableRepositoryProvider);
   return DeleteShiftTag(repository);
-});
-
-// ============================================================================
-// Bonus UseCases
-// ============================================================================
-
-/// Update Bonus Amount UseCase Provider
-final updateBonusAmountUseCaseProvider = Provider<UpdateBonusAmount>((ref) {
-  final repository = ref.watch(timeTableRepositoryProvider);
-  return UpdateBonusAmount(repository);
 });
 
 // ============================================================================

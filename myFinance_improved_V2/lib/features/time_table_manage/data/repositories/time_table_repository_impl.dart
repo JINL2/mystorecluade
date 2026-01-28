@@ -240,22 +240,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
   }
 
   @override
-  Future<OperationResult> deleteShift({
-    required String shiftId,
-  }) async {
-    try {
-      await _datasource.deleteShift(shiftId: shiftId);
-      return OperationResult.success(message: 'Shift deleted successfully');
-    } catch (e) {
-      if (e is ShiftDeletionException) rethrow;
-      throw ShiftDeletionException(
-        'Failed to delete shift: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
   Future<OperationResult> deleteShiftTag({
     required String tagId,
     required String userId,
@@ -346,25 +330,6 @@ class TimeTableRepositoryImpl implements TimeTableRepository {
       if (e is TimeTableException) rethrow;
       throw TimeTableException(
         'Failed to add schedule: $e',
-        originalError: e,
-      );
-    }
-  }
-
-  @override
-  Future<void> updateBonusAmount({
-    required String shiftRequestId,
-    required double bonusAmount,
-  }) async {
-    try {
-      await _datasource.updateBonusAmount(
-        shiftRequestId: shiftRequestId,
-        bonusAmount: bonusAmount,
-      );
-    } catch (e) {
-      if (e is TimeTableException) rethrow;
-      throw TimeTableException(
-        'Failed to update bonus: $e',
         originalError: e,
       );
     }

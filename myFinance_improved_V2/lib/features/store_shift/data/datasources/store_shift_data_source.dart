@@ -80,8 +80,11 @@ class StoreShiftDataSource {
   // Store Operations (delegated to StoreDataSource)
   // ========================================
 
-  Future<Map<String, dynamic>> getStoreById(String storeId) =>
-      _storeDataSource.getStoreById(storeId);
+  Future<Map<String, dynamic>> getStoreById({
+    required String storeId,
+    required String companyId,
+  }) =>
+      _storeDataSource.getStoreById(storeId: storeId, companyId: companyId);
 
   Future<void> updateStoreLocation({
     required String storeId,

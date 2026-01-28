@@ -73,12 +73,18 @@ abstract class StoreShiftRepository {
 
   /// Get detailed store information by ID
   ///
+  /// Uses RPC function 'get_store_info_v2' to fetch store with latitude/longitude
+  ///
   /// Parameters:
   /// - [storeId]: The ID of the store
+  /// - [companyId]: The ID of the company
   ///
   /// Returns a Map containing store details
   /// Throws an exception if the operation fails
-  Future<Map<String, dynamic>> getStoreById(String storeId);
+  Future<Map<String, dynamic>> getStoreById({
+    required String storeId,
+    required String companyId,
+  });
 
   /// Update store location
   ///

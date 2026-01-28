@@ -108,8 +108,14 @@ class StoreShiftRepositoryImpl implements StoreShiftRepository {
   }
 
   @override
-  Future<Map<String, dynamic>> getStoreById(String storeId) async {
-    return await _dataSource.getStoreById(storeId);
+  Future<Map<String, dynamic>> getStoreById({
+    required String storeId,
+    required String companyId,
+  }) async {
+    return await _dataSource.getStoreById(
+      storeId: storeId,
+      companyId: companyId,
+    );
   }
 
   @override

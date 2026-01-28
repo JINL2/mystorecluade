@@ -15,15 +15,29 @@ class StoreDataSource {
   SupabaseClient get _client => _supabaseService.client;
 
   /// Get detailed store information by ID
-  Future<Map<String, dynamic>> getStoreById(String storeId) async {
+  ///
+  /// Uses RPC function 'get_store_info_v2' to fetch store with latitude/longitude
+  Future<Map<String, dynamic>> getStoreById({
+    required String storeId,
+    required String companyId,
+  }) async {
     try {
-      final response = await _client
-          .from('stores')
-          .select()
-          .eq('store_id', storeId)
-          .single();
+      final response = await _client.rpc<List<dynamic>>(
+        'get_store_info_v2',
+        params: {'p_company_id': companyId},
+      );
 
-      return response;
+      // Find the store by storeId from the list
+      final store = response.cast<Map<String, dynamic>>().firstWhere(
+        (s) => s['store_id'] == storeId,
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (store.isEmpty) {
+        throw Exception('Store not found');
+      }
+
+      return store;
     } catch (e, stackTrace) {
       throw StoreNotFoundException(
         'Failed to fetch store $storeId: $e',
@@ -97,7 +111,7 @@ class StoreDataSource {
 
   /// Update store information (name, email, phone, address)
   ///
-  /// Direct update to stores table
+  /// Uses RPC function 'store_shift_update_store_info'
   Future<void> updateStoreInfo({
     required String storeId,
     String? storeName,
@@ -106,21 +120,31 @@ class StoreDataSource {
     String? storeAddress,
   }) async {
     try {
-      final updateData = <String, dynamic>{
-        'updated_at': DateTime.now().toIso8601String(),
-        'updated_at_utc': DateTime.now().toUtc().toIso8601String(),
-      };
+      final localTime = DateTimeUtils.formatLocalTimestamp();
+      final timezone = DateTimeUtils.getLocalTimezone();
 
-      if (storeName != null) updateData['store_name'] = storeName;
-      if (storeEmail != null) updateData['store_email'] = storeEmail;
-      if (storePhone != null) updateData['store_phone'] = storePhone;
-      if (storeAddress != null) updateData['store_address'] = storeAddress;
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'store_shift_update_store_info',
+        params: {
+          'p_store_id': storeId,
+          'p_store_name': storeName,
+          'p_store_email': storeEmail,
+          'p_store_phone': storePhone,
+          'p_store_address': storeAddress,
+          'p_time': localTime,
+          'p_timezone': timezone,
+        },
+      );
 
-      await _client
-          .from('stores')
-          .update(updateData)
-          .eq('store_id', storeId);
+      if (response['success'] == false) {
+        throw StoreLocationUpdateException(
+          response['message'] as String? ?? 'Unknown error',
+          StackTrace.current,
+        );
+      }
     } catch (e, stackTrace) {
+      if (e is StoreLocationUpdateException) rethrow;
+
       throw StoreLocationUpdateException(
         'Failed to update store info: $e',
         stackTrace,

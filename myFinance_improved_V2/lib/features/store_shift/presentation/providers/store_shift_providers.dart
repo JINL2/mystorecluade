@@ -127,20 +127,23 @@ Future<List<StoreShift>> storeShifts(Ref ref) async {
 
 /// Provider to fetch detailed store information
 ///
-/// Uses Domain Repository Provider (implementation injected via DI)
-/// Returns null if no store is selected.
+/// Uses RPC function 'get_store_info_v2' via Domain Repository Provider.
+/// Returns null if no store or company is selected.
 @riverpod
 Future<Map<String, dynamic>?> storeDetails(Ref ref) async {
   final appState = ref.watch(appStateProvider);
 
-  // If no store is selected, return null
-  if (appState.storeChoosen.isEmpty) {
+  // If no store or company is selected, return null
+  if (appState.storeChoosen.isEmpty || appState.companyChoosen.isEmpty) {
     return null;
   }
 
   // Use Domain Repository Provider (Clean Architecture compliant)
   final repository = ref.watch(storeShiftRepositoryProvider);
-  return await repository.getStoreById(appState.storeChoosen);
+  return await repository.getStoreById(
+    storeId: appState.storeChoosen,
+    companyId: appState.companyChoosen,
+  );
 }
 
 /// Provider to fetch business hours for the selected store

@@ -117,11 +117,12 @@ class StoreInfoCard extends StatelessWidget {
             const SizedBox(height: TossSpacing.space2),
           ],
 
+          // Status is always Active since RPC only returns non-deleted stores
           InfoRow.fixed(
             label: 'Status',
-            value: store['is_deleted'] == true ? 'Inactive' : 'Active',
+            value: 'Active',
             labelWidth: 100,
-            valueColor: store['is_deleted'] == true ? TossColors.error : TossColors.success,
+            valueColor: TossColors.success,
           ),
         ],
       ),

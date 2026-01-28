@@ -89,7 +89,7 @@ class ShiftDataSource {
 
   /// Update an existing shift
   ///
-  /// Uses RPC function 'edit_store_shift'
+  /// Uses RPC function 'edit_store_shift_v2'
   Future<Map<String, dynamic>> updateShift({
     required String shiftId,
     String? shiftName,
@@ -98,13 +98,14 @@ class ShiftDataSource {
     int? numberShift,
     bool? isCanOvertime,
     int? shiftBonus,
+    bool? isActive,
   }) async {
     try {
       final localTime = DateTimeUtils.formatLocalTimestamp();
       final timezone = DateTimeUtils.getLocalTimezone();
 
       final response = await _client.rpc<Map<String, dynamic>>(
-        'edit_store_shift',
+        'edit_store_shift_v2',
         params: {
           'p_shift_id': shiftId,
           'p_shift_name': shiftName,
@@ -115,6 +116,7 @@ class ShiftDataSource {
           'p_shift_bonus': shiftBonus,
           'p_time': localTime,
           'p_timezone': timezone,
+          'p_is_active': isActive,
         },
       );
 
@@ -137,13 +139,32 @@ class ShiftDataSource {
   }
 
   /// Delete a shift (soft delete)
+  ///
+  /// Uses RPC function 'edit_store_shift_v2' with p_is_active = false
   Future<void> deleteShift(String shiftId) async {
     try {
-      await _client
-          .from('store_shifts')
-          .update({'is_active': false})
-          .eq('shift_id', shiftId);
+      final localTime = DateTimeUtils.formatLocalTimestamp();
+      final timezone = DateTimeUtils.getLocalTimezone();
+
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'edit_store_shift_v2',
+        params: {
+          'p_shift_id': shiftId,
+          'p_is_active': false,
+          'p_time': localTime,
+          'p_timezone': timezone,
+        },
+      );
+
+      if (response['success'] == false) {
+        throw ShiftDeletionException(
+          response['message'] as String? ?? 'Unknown error',
+          StackTrace.current,
+        );
+      }
     } catch (e, stackTrace) {
+      if (e is ShiftDeletionException) rethrow;
+
       throw ShiftDeletionException(
         'Failed to delete shift $shiftId: $e',
         stackTrace,

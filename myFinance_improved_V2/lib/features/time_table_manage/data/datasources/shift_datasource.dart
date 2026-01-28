@@ -111,21 +111,6 @@ class ShiftDatasource {
     }
   }
 
-  /// Delete a shift
-  Future<void> deleteShift({
-    required String shiftId,
-  }) async {
-    try {
-      await _supabase.from('store_shifts').delete().eq('shift_id', shiftId);
-    } catch (e, stackTrace) {
-      throw ShiftDeletionException(
-        'Failed to delete shift: $e',
-        originalError: e,
-        stackTrace: stackTrace,
-      );
-    }
-  }
-
   /// Delete a shift tag using v2 RPC
   ///
   /// Uses manager_shift_delete_tag_v2 RPC

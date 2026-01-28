@@ -224,12 +224,12 @@ final storeShiftsProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef StoreShiftsRef = AutoDisposeFutureProviderRef<List<StoreShift>>;
-String _$storeDetailsHash() => r'b268950947a83b0627a22619d85d65dc2eb0d528';
+String _$storeDetailsHash() => r'0898089f352a04561b13b6f08b30fa297d269e79';
 
 /// Provider to fetch detailed store information
 ///
-/// Uses Domain Repository Provider (implementation injected via DI)
-/// Returns null if no store is selected.
+/// Uses RPC function 'get_store_info_v2' via Domain Repository Provider.
+/// Returns null if no store or company is selected.
 ///
 /// Copied from [storeDetails].
 @ProviderFor(storeDetails)
