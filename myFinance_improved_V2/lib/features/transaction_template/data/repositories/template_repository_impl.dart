@@ -36,33 +36,57 @@ class TemplateRepositoryImpl implements TemplateRepository {
   }
 
   @override
-  Future<void> save(TransactionTemplate template) async {
-    // Save to database
-    await _dataSource.save(template);
-
-    // Update cache
-    await _cacheRepository.cacheTemplate(template);
-
-    // Invalidate lists cache to ensure consistency
-    await _cacheRepository.invalidateTemplatesCache(
-      template.companyId, 
-      template.storeId,
+  Future<String> upsert({
+    String? templateId,
+    required String name,
+    required List<Map<String, dynamic>> data,
+    required String companyId,
+    required String visibilityLevel,
+    required String permission,
+    required String userId,
+    required String localTime,
+    required String timezone,
+    String? templateDescription,
+    Map<String, dynamic>? tags,
+    String? storeId,
+    String? counterpartyId,
+    String? counterpartyCashLocationId,
+    bool? isActive,
+    bool? requiredAttachment,
+  }) async {
+    // Call RPC via DataSource
+    final response = await _dataSource.upsertTemplate(
+      templateId: templateId,
+      name: name,
+      data: data,
+      companyId: companyId,
+      visibilityLevel: visibilityLevel,
+      permission: permission,
+      userId: userId,
+      localTime: localTime,
+      timezone: timezone,
+      templateDescription: templateDescription,
+      tags: tags,
+      storeId: storeId,
+      counterpartyId: counterpartyId,
+      counterpartyCashLocationId: counterpartyCashLocationId,
+      isActive: isActive,
+      requiredAttachment: requiredAttachment,
     );
-  }
 
-  @override
-  Future<void> update(TransactionTemplate template) async {
-    // Update in database
-    await _dataSource.update(template);
+    if (!response.success) {
+      throw Exception(response.message ?? response.error ?? 'Failed to upsert template');
+    }
 
-    // Update cache
-    await _cacheRepository.cacheTemplate(template);
+    final resultTemplateId = response.data?.templateId ?? templateId ?? '';
 
-    // Invalidate lists cache to ensure consistency
-    await _cacheRepository.invalidateTemplatesCache(
-      template.companyId, 
-      template.storeId,
-    );
+    // Invalidate cache
+    if (templateId != null) {
+      await _cacheRepository.invalidateTemplateCache(templateId);
+    }
+    await _cacheRepository.invalidateTemplatesCache(companyId, storeId ?? '');
+
+    return resultTemplateId;
   }
 
   @override
@@ -87,58 +111,38 @@ class TemplateRepositoryImpl implements TemplateRepository {
   @override
   Future<List<TransactionTemplate>> findByContext({
     required String companyId,
+    required String timezone,
     String? storeId,
     bool? isActive,
     String? visibilityLevel,
   }) async {
-    // Delegate to existing findByCompanyAndStore method
-    // Handle optional storeId by providing empty string as default
-    final result = await findByCompanyAndStore(
+    // Check cache first
+    final cachedTemplates = await _cacheRepository.getCachedTemplates(
       companyId: companyId,
-      storeId: storeId ?? '', // Convert optional to required
+      storeId: storeId ?? '',
       isActive: isActive,
       visibilityLevel: visibilityLevel,
-      forceRefresh: false, // Use default value
     );
 
-    return result;
-  }
-
-  /// Legacy method - kept for backward compatibility
-  /// Use findByContext() which matches the domain interface
-  Future<List<TransactionTemplate>> findByCompanyAndStore({
-    required String companyId,
-    required String storeId,
-    bool? isActive,
-    String? visibilityLevel,
-    bool forceRefresh = false,
-  }) async {
-    // Check cache first unless force refresh is requested
-    if (!forceRefresh) {
-      final cachedTemplates = await _cacheRepository.getCachedTemplates(
-        companyId: companyId,
-        storeId: storeId,
-        isActive: isActive,
-        visibilityLevel: visibilityLevel,
-      );
-
-      if (cachedTemplates != null) {
-        return cachedTemplates;
-      }
+    if (cachedTemplates != null) {
+      return cachedTemplates;
     }
 
-    // Fetch from data source
-    final templates = await _dataSource.findByCompanyAndStore(
+    // Fetch via RPC
+    final response = await _dataSource.getTemplatesForList(
       companyId: companyId,
+      timezone: timezone,
       storeId: storeId,
       isActive: isActive,
       visibilityLevel: visibilityLevel,
     );
+
+    final templates = _dataSource.mapTemplateListToDomain(response);
 
     // Cache the results
     await _cacheRepository.cacheTemplates(
       companyId: companyId,
-      storeId: storeId,
+      storeId: storeId ?? '',
       templates: templates,
       isActive: isActive,
       visibilityLevel: visibilityLevel,
@@ -151,19 +155,6 @@ class TemplateRepositoryImpl implements TemplateRepository {
   Future<bool> nameExists(String name, String companyId) async {
     // Name existence check always goes to database for consistency
     return await _dataSource.nameExists(name, companyId);
-  }
-
-  @override
-  Future<TransactionTemplate?> findByName(String name, String companyId) async {
-    // For specific lookups, check database directly for consistency
-    final template = await _dataSource.findByName(name, companyId);
-    
-    // Cache the result if found
-    if (template != null) {
-      await _cacheRepository.cacheTemplate(template);
-    }
-
-    return template;
   }
 
   @override
@@ -190,16 +181,32 @@ class TemplateRepositoryImpl implements TemplateRepository {
   }
 
   @override
-  Future<void> delete(String templateId) async {
+  Future<void> delete({
+    required String templateId,
+    required String userId,
+    required String companyId,
+    required String localTime,
+    required String timezone,
+  }) async {
     // Get template info before deletion for cache invalidation
     final template = await findById(templateId);
-    
-    // Delete from database
-    await _dataSource.delete(templateId);
+
+    // Delete via RPC
+    final response = await _dataSource.deleteTemplate(
+      templateId: templateId,
+      userId: userId,
+      companyId: companyId,
+      localTime: localTime,
+      timezone: timezone,
+    );
+
+    if (!response.success) {
+      throw Exception(response.message ?? response.error ?? 'Failed to delete template');
+    }
 
     // Invalidate cache
     await _cacheRepository.invalidateTemplateCache(templateId);
-    
+
     // Invalidate lists cache if we have template info
     if (template != null) {
       await _cacheRepository.invalidateTemplatesCache(
@@ -208,75 +215,42 @@ class TemplateRepositoryImpl implements TemplateRepository {
       );
     }
   }
-  
-  @override
-  Future<void> deleteTemplate({
-    required String templateId,
-    required String userId,
-    required String companyId,
-    required String storeId,
-  }) async {
-    // Add context validation if needed
-    // For now, delegate to the simple delete method
-    await delete(templateId);
-  }
 
   @override
   Future<List<TransactionTemplate>> search({
+    required String timezone,
     String? namePattern,
     String? companyId,
     String? storeId,
     String? createdBy,
+    List<String>? categoryFilters,
+    List<String>? accountFilters,
     int? limit,
     int? offset,
   }) async {
-    // Map domain interface parameters to implementation
-    // Note: Some parameters (createdBy, limit, offset) cannot be fully mapped to current implementation
-    return await searchTemplates(
-      companyId: companyId ?? '',
-      storeId: storeId ?? '',
-      searchQuery: namePattern,
-      categoryFilters: null, // Not available in domain interface
-      accountFilters: null,  // Not available in domain interface
-    );
-  }
+    if (companyId == null || companyId.isEmpty) {
+      return [];
+    }
 
-  /// Legacy method - kept for backward compatibility
-  /// Use search() which matches the domain interface
-  Future<List<TransactionTemplate>> searchTemplates({
-    required String companyId,
-    required String storeId,
-    String? searchQuery,
-    List<String>? categoryFilters,
-    List<String>? accountFilters,
-  }) async {
-    // Search operations always go to database for fresh results
-    final templates = await _dataSource.searchTemplates(
+    // Search via RPC - always fresh results
+    final response = await _dataSource.getTemplatesForList(
       companyId: companyId,
+      timezone: timezone,
       storeId: storeId,
-      searchQuery: searchQuery,
+      searchQuery: namePattern,
       categoryFilters: categoryFilters,
       accountFilters: accountFilters,
+      limit: limit,
+      offset: offset,
     );
 
+    final templates = _dataSource.mapTemplateListToDomain(response);
+
     // Cache individual templates
     for (final template in templates) {
       await _cacheRepository.cacheTemplate(template);
     }
 
-    return templates;
-  }
-
-  @override
-  Future<List<TransactionTemplate>> findByCreatedBy(String userId) async {
-    // Fetch from data source
-    final templates = await _dataSource.findByCreatedBy(userId);
-    
-    // Cache individual templates
-    for (final template in templates) {
-      await _cacheRepository.cacheTemplate(template);
-    }
-    
     return templates;
   }
 
@@ -290,12 +264,13 @@ class TemplateRepositoryImpl implements TemplateRepository {
   Future<void> refreshCache({
     required String companyId,
     required String storeId,
+    required String timezone,
   }) async {
     await _cacheRepository.invalidateAllCache();
-    await findByCompanyAndStore(
+    await findByContext(
       companyId: companyId,
       storeId: storeId,
-      forceRefresh: true,
+      timezone: timezone,
     );
   }
 

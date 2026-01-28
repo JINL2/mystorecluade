@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/shared/themes/toss_border_radius.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
 import 'package:myfinance_improved/shared/themes/toss_font_weight.dart';
@@ -60,6 +61,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
       // Load templates using templateProvider
       ref.read(templateNotifierProvider.notifier).loadTemplates(
         companyId: companyId,
+        timezone: DateTimeUtils.getLocalTimezone(),
         storeId: storeId,
         includeInactive: false,
       );
@@ -98,6 +100,7 @@ class _TransactionTemplatePageState extends ConsumerState<TransactionTemplatePag
         if (companyChoosen.isNotEmpty && storeChoosen.isNotEmpty) {
           ref.read(templateNotifierProvider.notifier).loadTemplates(
             companyId: companyChoosen,
+            timezone: DateTimeUtils.getLocalTimezone(),
             storeId: storeChoosen,
           );
         }

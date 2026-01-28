@@ -154,10 +154,27 @@ class CreateTemplateUseCase {
         policyValidation: policyValidation,
       );
 
-      // 8. Save the template
-      print('📝 Step 8: Saving template to repository...');
-      await _templateRepository.save(finalTemplate);
-      print('✅ Step 8: Template saved successfully');
+      // 8. Save the template via RPC
+      print('📝 Step 8: Saving template via RPC...');
+      final savedTemplateId = await _templateRepository.upsert(
+        templateId: null,  // INSERT mode
+        name: finalTemplate.name,
+        data: finalTemplate.data,
+        companyId: finalTemplate.companyId,
+        visibilityLevel: finalTemplate.visibilityLevel,
+        permission: finalTemplate.permission,
+        userId: command.createdBy ?? '',
+        localTime: DateTime.now().toIso8601String(),
+        timezone: DateTimeUtils.getLocalTimezone(),
+        templateDescription: finalTemplate.templateDescription,
+        tags: finalTemplate.tags,
+        storeId: finalTemplate.storeId,
+        counterpartyId: finalTemplate.counterpartyId,
+        counterpartyCashLocationId: finalTemplate.counterpartyCashLocationId,
+        isActive: finalTemplate.isActive,
+        requiredAttachment: finalTemplate.requiredAttachment,
+      );
+      print('✅ Step 8: Template saved successfully (ID: $savedTemplateId)');
 
       // 9. Return success result with optimistic template
       print('✅ USE CASE: Template creation completed successfully!');
@@ -195,27 +212,6 @@ class CreateTemplateUseCase {
         'Failed to create template: ${e.toString()}',
         errorCode: 'TEMPLATE_CREATION_FAILED',
         innerException: e is Exception ? e : Exception(e.toString()),
-      );
-    }
-  }
-
-  /// Checks if template name is unique within the company
-  Future<void> _checkNameUniqueness(CreateTemplateCommand command) async {
-    final nameExists = await _templateRepository.nameExists(
-      command.name,
-      command.companyId,
-    );
-
-    if (nameExists) {
-      final existingTemplate = await _templateRepository.findByName(
-        command.name,
-        command.companyId,
-      );
-      
-      throw TemplateBusinessException.nameAlreadyExists(
-        templateName: command.name,
-        existingTemplateId: existingTemplate?.id ?? 'unknown',
-        companyId: command.companyId,
       );
     }
   }
@@ -545,7 +541,6 @@ class CreateTemplateUseCase {
     // ✅ REMOVED: Similar template check
     // Reason: Name-based similarity is not reliable for detecting duplicate templates
     // Templates with same accounts but different purposes (e.g., COGS, Inventory) should be allowed
-    // Name uniqueness is already checked in _checkNameUniqueness()
 
     if (errors.isNotEmpty) {
       throw ValidationException.multipleFields(

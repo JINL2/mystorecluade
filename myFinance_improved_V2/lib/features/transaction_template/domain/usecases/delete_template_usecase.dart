@@ -1,3 +1,4 @@
+import '../../../../core/utils/datetime_utils.dart';
 import '../entities/template_entity.dart';
 import '../exceptions/template_business_exception.dart';
 import '../exceptions/validation_exception.dart';
@@ -48,14 +49,16 @@ class DeleteTemplateUseCase {
         await _handleForceDeleteCleanup(template, usageCheck, command);
       }
 
-      // 5. Perform soft delete (mark as inactive) or hard delete
-      if (command.hardDelete) {
-        await _templateRepository.delete(template.templateId);
-      } else {
-        // Soft delete - mark as inactive
-        final inactiveTemplate = _markTemplateAsDeleted(template, command.deletedBy);
-        await _templateRepository.save(inactiveTemplate);
-      }
+      // 5. Perform soft delete via RPC
+      // Note: hardDelete option is currently not supported by RPC
+      // RPC always performs soft delete (is_active = false)
+      await _templateRepository.delete(
+        templateId: template.templateId,
+        userId: command.deletedBy,
+        companyId: template.companyId,
+        localTime: DateTime.now().toIso8601String(),
+        timezone: DateTimeUtils.getLocalTimezone(),
+      );
 
       // 6. Log deletion for audit purposes
       await _logTemplateDeletion(template, command);
@@ -141,18 +144,6 @@ class DeleteTemplateUseCase {
         await _transactionRepository.save(cancelledTransaction);
       }
     }
-  }
-
-  /// Marks template as deleted (soft delete)
-  TransactionTemplate _markTemplateAsDeleted(
-    TransactionTemplate template,
-    String deletedBy,
-  ) {
-    return template.copyWith(
-      isActive: false,
-      updatedBy: deletedBy,
-      updatedAt: DateTime.now(),
-    );
   }
 
   /// Logs template deletion for audit

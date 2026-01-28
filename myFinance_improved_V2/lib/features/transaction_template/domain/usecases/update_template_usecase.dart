@@ -2,12 +2,13 @@
 ///
 /// Purpose: Handles template update business logic
 /// - Validates update command
-/// - Updates template in repository
+/// - Updates template in repository via RPC
 /// - Returns result with success/failure status
 ///
 /// Clean Architecture: DOMAIN LAYER - Use Cases
 library;
 
+import '../../../../core/utils/datetime_utils.dart';
 import '../exceptions/template_business_exception.dart';
 import '../repositories/template_repository.dart';
 
@@ -103,22 +104,27 @@ class UpdateTemplateUseCase {
         );
       }
 
-      // 4. Build updated template
-      final updatedTemplate = template.copyWith(
+      // 4. Update template via RPC
+      await _templateRepository.upsert(
+        templateId: command.templateId,  // UPDATE mode
         name: command.name ?? template.name,
-        templateDescription: command.templateDescription ?? template.templateDescription,
-        requiredAttachment: command.requiredAttachment ?? template.requiredAttachment,
+        data: command.data ?? template.data,
+        companyId: template.companyId,
         visibilityLevel: command.visibilityLevel ?? template.visibilityLevel,
         permission: command.permission ?? template.permission,
-        data: command.data ?? template.data,
-        updatedBy: command.updatedBy,
-        updatedAt: DateTime.now(),
+        userId: command.updatedBy,
+        localTime: DateTime.now().toIso8601String(),
+        timezone: DateTimeUtils.getLocalTimezone(),
+        templateDescription: command.templateDescription ?? template.templateDescription,
+        tags: template.tags,
+        storeId: template.storeId,
+        counterpartyId: template.counterpartyId,
+        counterpartyCashLocationId: template.counterpartyCashLocationId,
+        isActive: template.isActive,
+        requiredAttachment: command.requiredAttachment ?? template.requiredAttachment,
       );
 
-      // 5. Save updated template
-      await _templateRepository.save(updatedTemplate);
-
-      // 6. Return success
+      // 5. Return success
       return UpdateTemplateResult.success(
         templateId: command.templateId,
       );

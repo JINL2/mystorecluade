@@ -1,8 +1,8 @@
-/// Template Data Source - Direct Supabase interaction for template operations
+/// Template Data Source - Supabase interaction for template operations
 ///
 /// Purpose: Handles all database communications for transaction templates:
 /// - Template creation, retrieval, update, deletion through Supabase
-/// - Direct SQL queries to transaction_templates table
+/// - RPC calls for template list/search (transaction_template_get_list)
 /// - RPC call for template usage analysis (get_template_for_usage)
 /// - Data transformation between domain entities and database format
 /// - Error handling and response processing
@@ -14,10 +14,12 @@
 library;
 import 'package:myfinance_improved/core/services/supabase_service.dart';
 
-import '../../../../core/utils/datetime_utils.dart';
 import '../../domain/entities/template_entity.dart';
 import '../dtos/template_dto.dart';
+import '../dtos/template_list_response_dto.dart';
 import '../dtos/template_usage_response_dto.dart';
+import '../dtos/upsert_template_response_dto.dart';
+import '../dtos/delete_template_response_dto.dart';
 import '../mappers/template_mapper.dart';
 
 class TemplateDataSource {
@@ -25,23 +27,57 @@ class TemplateDataSource {
 
   TemplateDataSource(this._supabaseService);
 
-  /// Save transaction template (upsert: insert or update)
-  Future<void> save(TransactionTemplate template) async {
-    final templateData = template.toDto().toJson();
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RPC Methods for Template Upsert (Create/Update)
+  // Replaces direct table queries: save(), update()
+  // ═══════════════════════════════════════════════════════════════════════════
 
-    await _supabaseService.client
-        .from('transaction_templates')
-        .upsert(templateData);
-  }
+  /// Upsert template via RPC (replaces save() & update())
+  ///
+  /// Calls RPC: transaction_template_upsert_template
+  /// - If templateId is null: INSERT (create new template)
+  /// - If templateId is provided: UPDATE (modify existing template)
+  Future<UpsertTemplateResponseDto> upsertTemplate({
+    String? templateId,
+    required String name,
+    required List<Map<String, dynamic>> data,
+    required String companyId,
+    required String visibilityLevel,
+    required String permission,
+    required String userId,
+    required String localTime,
+    required String timezone,
+    String? templateDescription,
+    Map<String, dynamic>? tags,
+    String? storeId,
+    String? counterpartyId,
+    String? counterpartyCashLocationId,
+    bool? isActive,
+    bool? requiredAttachment,
+  }) async {
+    final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+      'transaction_template_upsert_template',
+      params: {
+        if (templateId != null) 'p_template_id': templateId,
+        'p_name': name,
+        'p_data': data,
+        'p_company_id': companyId,
+        'p_visibility_level': visibilityLevel,
+        'p_permission': permission,
+        'p_user_id': userId,
+        'p_local_time': localTime,
+        'p_timezone': timezone,
+        if (templateDescription != null) 'p_template_description': templateDescription,
+        if (tags != null) 'p_tags': tags,
+        if (storeId != null && storeId.isNotEmpty) 'p_store_id': storeId,
+        if (counterpartyId != null) 'p_counterparty_id': counterpartyId,
+        if (counterpartyCashLocationId != null) 'p_counterparty_cash_location_id': counterpartyCashLocationId,
+        if (isActive != null) 'p_is_active': isActive,
+        if (requiredAttachment != null) 'p_required_attachment': requiredAttachment,
+      },
+    );
 
-  /// Update existing template
-  Future<void> update(TransactionTemplate template) async {
-    final updateData = template.toDto().toJson();
-
-    await _supabaseService.client
-        .from('transaction_templates')
-        .update(updateData)
-        .eq('template_id', template.templateId);
+    return UpsertTemplateResponseDto.fromJson(response);
   }
 
   /// Find template by ID
@@ -57,34 +93,71 @@ class TemplateDataSource {
     return _mapToEntity(response);
   }
 
-  /// Find templates by company and store
-  Future<List<TransactionTemplate>> findByCompanyAndStore({
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RPC Methods for Template List/Search
+  // Replaces direct table queries: findByCompanyAndStore, searchTemplates
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  /// Get templates list via RPC (replaces findByCompanyAndStore & searchTemplates)
+  ///
+  /// Calls RPC: transaction_template_get_list
+  /// Returns: List of templates with pagination support
+  Future<TemplateListResponseDto> getTemplatesForList({
     required String companyId,
-    required String storeId,
+    required String timezone,
+    String? storeId,
+    String? searchQuery,
     bool? isActive,
     String? visibilityLevel,
+    List<String>? categoryFilters,
+    List<String>? accountFilters,
+    int? limit,
+    int? offset,
   }) async {
-    var query = _supabaseService.client
-        .from('transaction_templates')
-        .select()
-        .eq('company_id', companyId)
-        .eq('store_id', storeId);
+    final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+      'transaction_template_get_list',
+      params: {
+        'p_company_id': companyId,
+        'p_timezone': timezone,
+        if (storeId != null && storeId.isNotEmpty) 'p_store_id': storeId,
+        if (searchQuery != null && searchQuery.isNotEmpty) 'p_search_query': searchQuery,
+        if (isActive != null) 'p_is_active': isActive,
+        if (visibilityLevel != null) 'p_visibility_level': visibilityLevel,
+        if (categoryFilters != null && categoryFilters.isNotEmpty) 'p_category_filters': categoryFilters,
+        if (accountFilters != null && accountFilters.isNotEmpty) 'p_account_filters': accountFilters,
+        if (limit != null) 'p_limit': limit,
+        if (offset != null) 'p_offset': offset,
+      },
+    );
 
-    if (isActive != null) {
-      query = query.eq('is_active', isActive);
+    return TemplateListResponseDto.fromJson(response);
+  }
+
+  /// Convert RPC response to domain entities
+  List<TransactionTemplate> mapTemplateListToDomain(TemplateListResponseDto response) {
+    if (!response.success || response.data == null) {
+      return [];
     }
 
-    if (visibilityLevel != null) {
-      query = query.eq('visibility_level', visibilityLevel);
-    }
-
-    final response = await query.order('created_at', ascending: false);
-
-    final templates = response
-        .map<TransactionTemplate>((row) => _mapToEntity(row))
-        .toList();
-
-    return templates;
+    return response.data!.templates.map((item) => TransactionTemplate(
+      templateId: item.templateId,
+      name: item.name,
+      templateDescription: item.templateDescription,
+      data: item.data,
+      tags: item.tags,
+      visibilityLevel: item.visibilityLevel,
+      permission: item.permission,
+      companyId: item.companyId,
+      storeId: item.storeId ?? '',
+      counterpartyId: item.counterpartyId,
+      counterpartyCashLocationId: item.counterpartyCashLocationId,
+      createdBy: item.createdBy,
+      createdAt: DateTime.parse(item.createdAt),
+      updatedAt: DateTime.parse(item.updatedAt),
+      updatedBy: item.updatedBy,
+      isActive: item.isActive,
+      requiredAttachment: item.requiredAttachment,
+    )).toList();
   }
 
   /// Check if template name exists for company
@@ -99,21 +172,6 @@ class TemplateDataSource {
         .maybeSingle();
 
     return response != null;
-  }
-
-  /// Find template by name
-  Future<TransactionTemplate?> findByName(String name, String companyId) async {
-    final response = await _supabaseService.client
-        .from('transaction_templates')
-        .select()
-        .eq('company_id', companyId)
-        .eq('name', name)
-        .eq('is_active', true)
-        .maybeSingle();
-
-    if (response == null) return null;
-
-    return _mapToEntity(response);
   }
 
   /// Search templates with similarity matching
@@ -138,59 +196,34 @@ class TemplateDataSource {
         .toList();
   }
 
-  /// Delete template (soft delete by setting is_active to false)
-  Future<void> delete(String templateId) async {
-    await _supabaseService.client
-        .from('transaction_templates')
-        .update({
-          'is_active': false,
-          'updated_at': DateTimeUtils.nowUtc(),
-        })
-        .eq('template_id', templateId);
-  }
+  // ═══════════════════════════════════════════════════════════════════════════
+  // RPC Methods for Template Delete
+  // Replaces direct table queries: delete()
+  // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Search templates by name or tags
-  Future<List<TransactionTemplate>> searchTemplates({
+  /// Delete template via RPC (soft delete)
+  ///
+  /// Calls RPC: transaction_template_delete_template
+  /// Sets is_active = false, updated_by, updated_at, updated_at_utc
+  Future<DeleteTemplateResponseDto> deleteTemplate({
+    required String templateId,
+    required String userId,
     required String companyId,
-    required String storeId,
-    String? searchQuery,
-    List<String>? categoryFilters,
-    List<String>? accountFilters,
+    required String localTime,
+    required String timezone,
   }) async {
-    var query = _supabaseService.client
-        .from('transaction_templates')
-        .select()
-        .eq('company_id', companyId)
-        .eq('store_id', storeId)
-        .eq('is_active', true);
+    final response = await _supabaseService.client.rpc<Map<String, dynamic>>(
+      'transaction_template_delete_template',
+      params: {
+        'p_template_id': templateId,
+        'p_user_id': userId,
+        'p_company_id': companyId,
+        'p_local_time': localTime,
+        'p_timezone': timezone,
+      },
+    );
 
-    if (searchQuery != null && searchQuery.isNotEmpty) {
-      query = query.ilike('name', '%$searchQuery%');
-    }
-
-    final response = await query.order('created_at', ascending: false);
-    List<TransactionTemplate> results = response
-        .map<TransactionTemplate>((row) => _mapToEntity(row))
-        .toList();
-
-    // Filter by categories and accounts if provided
-    if (categoryFilters != null && categoryFilters.isNotEmpty) {
-      results = results.where((template) {
-        final tags = template.tags;
-        final categories = List<String>.from((tags['categories'] as List<dynamic>?) ?? []);
-        return categories.any((category) => categoryFilters.contains(category));
-      }).toList();
-    }
-
-    if (accountFilters != null && accountFilters.isNotEmpty) {
-      results = results.where((template) {
-        final tags = template.tags;
-        final accounts = List<String>.from((tags['accounts'] as List<dynamic>?) ?? []);
-        return accounts.any((account) => accountFilters.contains(account));
-      }).toList();
-    }
-
-    return results;
+    return DeleteTemplateResponseDto.fromJson(response);
   }
 
   /// Count templates created by a specific user
@@ -202,20 +235,6 @@ class TemplateDataSource {
         .eq('is_active', true);
 
     return response.length;
-  }
-
-  /// Find templates created by a specific user
-  Future<List<TransactionTemplate>> findByCreatedBy(String userId) async {
-    final response = await _supabaseService.client
-        .from('transaction_templates')
-        .select()
-        .eq('created_by', userId)
-        .eq('is_active', true)
-        .order('created_at', ascending: false);
-
-    return response
-        .map<TransactionTemplate>((row) => _mapToEntity(row))
-        .toList();
   }
 
   /// Map database row to domain entity using type-safe DTO

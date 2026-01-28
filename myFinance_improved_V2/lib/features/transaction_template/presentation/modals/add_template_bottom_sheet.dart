@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:myfinance_improved/app/providers/account_provider.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:myfinance_improved/shared/themes/index.dart';
 
 import '../../../journal_input/presentation/providers/journal_input_providers.dart';
@@ -230,6 +231,7 @@ class _AddTemplateBottomSheetState extends ConsumerState<AddTemplateBottomSheet>
         if (result.isSuccess) {
           await ref.read(templateNotifierProvider.notifier).loadTemplates(
             companyId: command.companyId,
+            timezone: DateTimeUtils.getLocalTimezone(),
             storeId: command.storeId,
           );
           await TemplateCreationDialogs.showSuccess(context);

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
+import 'package:myfinance_improved/core/utils/datetime_utils.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/providers/repository_providers.dart'; // ✅ Clean Architecture: Presentation → Data
@@ -44,6 +45,7 @@ class TemplateNotifier extends _$TemplateNotifier {
   /// 템플릿 목록 로드 (직접 Repository 호출)
   Future<void> loadTemplates({
     required String companyId,
+    required String timezone,
     String? storeId,
     bool includeInactive = false,
   }) async {
@@ -51,8 +53,10 @@ class TemplateNotifier extends _$TemplateNotifier {
 
     try {
       // ✅ Flutter 표준: Repository 직접 호출 (Controller 없음)
+      // RPC: transaction_template_get_list
       final templates = await _repository.findByContext(
         companyId: companyId,
+        timezone: timezone,
         storeId: storeId,
         isActive: includeInactive ? null : true,
       );
@@ -81,11 +85,8 @@ class TemplateNotifier extends _$TemplateNotifier {
       if (result.isSuccess) {
         state = state.copyWith(isCreating: false);
 
-        // 자동 새로고침
-        await loadTemplates(
-          companyId: command.companyId,
-          storeId: command.storeId,
-        );
+        // 자동 새로고침 - timezone은 호출자가 다시 loadTemplates 호출 필요
+        // createTemplate 후에는 UI에서 별도로 loadTemplates 호출 권장
 
         return true;
       } else {
@@ -177,21 +178,28 @@ class TemplateNotifier extends _$TemplateNotifier {
 
   /// 템플릿 검색 (직접 Repository 호출)
   Future<void> searchTemplates({
+    required String timezone,
     String? namePattern,
     String? companyId,
     String? storeId,
     String? createdBy,
+    List<String>? categoryFilters,
+    List<String>? accountFilters,
     int? limit,
   }) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
       // ✅ Flutter 표준: Repository 직접 호출
+      // RPC: transaction_template_get_list
       final templates = await _repository.search(
+        timezone: timezone,
         namePattern: namePattern,
         companyId: companyId,
         storeId: storeId,
         createdBy: createdBy,
+        categoryFilters: categoryFilters,
+        accountFilters: accountFilters,
         limit: limit,
       );
 
@@ -589,6 +597,7 @@ Future<void> Function() refreshTemplates(Ref ref) {
 
     await notifier.loadTemplates(
       companyId: appState.companyChoosen,
+      timezone: DateTimeUtils.getLocalTimezone(),
       storeId: appState.storeChoosen,
     );
   };

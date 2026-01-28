@@ -246,7 +246,7 @@ class _CanEditTemplateProviderElement extends AutoDisposeProviderElement<bool>
   String? get createdBy => (origin as CanEditTemplateProvider).createdBy;
 }
 
-String _$refreshTemplatesHash() => r'a02b0dfe08e7a50e78f9d966c45e6dd0b889b9b8';
+String _$refreshTemplatesHash() => r'48bc7e61b3a58a8456dfe69f3ebeca192aaf1236';
 
 /// Refresh Templates Provider - 템플릿 새로고침 함수
 ///
@@ -268,7 +268,7 @@ final refreshTemplatesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RefreshTemplatesRef = AutoDisposeProviderRef<Future<void> Function()>;
-String _$templateNotifierHash() => r'56860ebcc45ddfcaee413bfb1bbb1c39723ce14a';
+String _$templateNotifierHash() => r'95025cf9376f13f8a8e51a59b468c312e3aa8856';
 
 /// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 /// 🎯 Template Notifier - 상태 관리 + 비즈니스 로직 조율
