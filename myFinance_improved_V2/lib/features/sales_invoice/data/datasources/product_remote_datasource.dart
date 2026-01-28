@@ -9,92 +9,49 @@ class ProductRemoteDataSource {
 
   ProductRemoteDataSource(this._client);
 
-  /// Get currency data using table queries
+  /// Get currency data using RPC
+  /// Uses get_base_currency RPC which returns base currency and company currencies with exchange rates
   Future<Map<String, dynamic>> getCurrencyData({
     required String companyId,
   }) async {
     try {
-      // 1. Get company's base currency ID
-      final companyResult = await _client
-          .from('companies')
-          .select('base_currency_id')
-          .eq('company_id', companyId)
-          .maybeSingle();
+      final response = await _client.rpc<Map<String, dynamic>>(
+        'get_base_currency',
+        params: {
+          'p_company_id': companyId,
+        },
+      );
 
-      if (companyResult == null) {
+      final baseCurrency = response['base_currency'] as Map<String, dynamic>?;
+      if (baseCurrency == null) {
         throw InvoiceDataException(
-          'Company not found',
+          'Base currency not found',
           originalError: null,
         );
       }
 
-      final baseCurrencyId = companyResult['base_currency_id'] as String?;
-      if (baseCurrencyId == null || baseCurrencyId.isEmpty) {
-        throw InvoiceDataException(
-          'Base currency not configured for this company',
-          originalError: null,
-        );
-      }
-
-      // 2. Get base currency details from currency_types
-      final baseCurrencyResult = await _client
-          .from('currency_types')
-          .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
-          .eq('currency_id', baseCurrencyId)
-          .maybeSingle();
-
-      if (baseCurrencyResult == null) {
-        throw InvoiceDataException(
-          'Base currency type not found',
-          originalError: null,
-        );
-      }
-
-      // 3. Get company currencies (non-deleted)
-      final companyCurrencies = await _client
-          .from('company_currency')
-          .select('currency_id')
-          .eq('company_id', companyId)
-          .eq('is_deleted', false);
-
-      List<Map<String, dynamic>> companyCurrencyList = [];
-
-      if (companyCurrencies.isNotEmpty) {
-        final currencyIds = (companyCurrencies as List<dynamic>)
-            .map((cc) => (cc as Map<String, dynamic>)['currency_id'] as String)
-            .toList();
-
-        // 4. Get currency details for company currencies
-        final currencyTypes = await _client
-            .from('currency_types')
-            .select('currency_id, currency_code, currency_name, symbol, flag_emoji')
-            .inFilter('currency_id', currencyIds);
-
-        companyCurrencyList = (currencyTypes as List<dynamic>)
-            .map((ct) {
-              final currency = ct as Map<String, dynamic>;
-              return {
-                'currency_id': currency['currency_id'],
-                'currency_code': currency['currency_code'],
-                'currency_name': currency['currency_name'],
-                'symbol': currency['symbol'],
-                'flag_emoji': currency['flag_emoji'] ?? '🏳️',
-                'exchange_rate_to_base': currency['currency_id'] == baseCurrencyId ? 1.0 : null,
-              };
-            })
-            .toList();
-      }
+      final companyCurrencies = response['company_currencies'] as List<dynamic>? ?? [];
 
       return {
         'base_currency': {
-          'currency_id': baseCurrencyResult['currency_id'],
-          'currency_code': baseCurrencyResult['currency_code'],
-          'currency_name': baseCurrencyResult['currency_name'],
-          'symbol': baseCurrencyResult['symbol'],
-          'flag_emoji': baseCurrencyResult['flag_emoji'] ?? '🏳️',
+          'currency_id': baseCurrency['currency_id'],
+          'currency_code': baseCurrency['currency_code'],
+          'currency_name': baseCurrency['currency_name'],
+          'symbol': baseCurrency['symbol'],
+          'flag_emoji': baseCurrency['flag_emoji'] ?? '🏳️',
           'exchange_rate_to_base': 1.0,
         },
-        'company_currencies': companyCurrencyList,
+        'company_currencies': companyCurrencies.map((cc) {
+          final currency = cc as Map<String, dynamic>;
+          return {
+            'currency_id': currency['currency_id'],
+            'currency_code': currency['currency_code'],
+            'currency_name': currency['currency_name'],
+            'symbol': currency['symbol'],
+            'flag_emoji': currency['flag_emoji'] ?? '🏳️',
+            'exchange_rate_to_base': currency['exchange_rate_to_base'] ?? 1.0,
+          };
+        }).toList(),
       };
     } on PostgrestException catch (e) {
       throw InvoiceNetworkException(
