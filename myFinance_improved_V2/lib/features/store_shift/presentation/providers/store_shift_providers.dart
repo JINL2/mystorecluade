@@ -15,9 +15,6 @@ import '../../domain/usecases/update_shift.dart';
 import '../../domain/usecases/update_store_location.dart';
 import '../../domain/value_objects/shift_params.dart';
 import 'di_providers.dart';
-import 'states/shift_form_state.dart';
-import 'states/shift_page_state.dart';
-import 'states/store_settings_state.dart';
 
 part 'store_shift_providers.g.dart';
 

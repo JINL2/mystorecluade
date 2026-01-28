@@ -29,47 +29,6 @@ abstract class SessionRepository {
     int offset = 0,
   });
 
-  /// Create a new session
-  Future<InventorySession> createSession({
-    required String companyId,
-    required String sessionName,
-    required String sessionType,
-    required String storeId,
-    required String createdBy,
-    String? notes,
-  });
-
-  /// Update session status
-  Future<InventorySession> updateSessionStatus({
-    required String sessionId,
-    required String status,
-  });
-
-  /// Add item to session
-  Future<SessionItem> addSessionItem({
-    required String sessionId,
-    required String productId,
-    required String productName,
-    String? sku,
-    String? barcode,
-    String? imageUrl,
-    required int quantity,
-    double? unitPrice,
-    String? notes,
-  });
-
-  /// Update item quantity
-  Future<SessionItem> updateSessionItem({
-    required String itemId,
-    required int quantity,
-    String? notes,
-  });
-
-  /// Remove item from session
-  Future<void> removeSessionItem({
-    required String itemId,
-  });
-
   /// Get session items for review (aggregated by product with user breakdown)
   /// Only session creator can call this
   Future<SessionReviewResponse> getSessionReviewItems({

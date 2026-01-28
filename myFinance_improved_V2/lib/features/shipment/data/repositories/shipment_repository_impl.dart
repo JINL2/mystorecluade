@@ -2,7 +2,6 @@ import '../../domain/entities/create_shipment_params.dart';
 import '../../domain/entities/shipment.dart';
 import '../../domain/repositories/shipment_repository.dart';
 import '../datasources/shipment_remote_datasource.dart';
-import '../models/shipment_model.dart';
 
 /// Shipment Repository Implementation - Data Layer
 ///
@@ -40,95 +39,6 @@ class ShipmentRepositoryImpl implements ShipmentRepository {
       offset: offset,
     );
     return response.toEntity();
-  }
-
-  @override
-  Future<Shipment?> getShipmentById(String shipmentId) async {
-    final model = await _remoteDatasource.getShipmentById(shipmentId);
-    return model?.toEntity();
-  }
-
-  @override
-  Future<List<ShipmentListItem>> getShipmentsByOrderId(String orderId) async {
-    final models = await _remoteDatasource.getShipmentsByOrderId(orderId);
-    return models.map((m) => m.toEntity()).toList();
-  }
-
-  @override
-  Future<Shipment> createShipment(Shipment shipment) async {
-    final model = ShipmentModel.fromEntity(shipment);
-    final createdModel = await _remoteDatasource.createShipment(model);
-    return createdModel.toEntity();
-  }
-
-  @override
-  Future<Shipment> updateShipment(Shipment shipment) async {
-    final model = ShipmentModel.fromEntity(shipment);
-    final updatedModel = await _remoteDatasource.updateShipment(model);
-    return updatedModel.toEntity();
-  }
-
-  @override
-  Future<void> deleteShipment(String shipmentId) async {
-    await _remoteDatasource.deleteShipment(shipmentId);
-  }
-
-  @override
-  Future<void> updateShipmentStatus(
-    String shipmentId,
-    ShipmentStatus status,
-  ) async {
-    await _remoteDatasource.updateShipmentStatus(shipmentId, status.name);
-  }
-
-  @override
-  Future<List<ShipmentItem>> getShipmentItems(String shipmentId) async {
-    final models = await _remoteDatasource.getShipmentItems(shipmentId);
-    return models.map((m) => m.toEntity()).toList();
-  }
-
-  @override
-  Future<ShipmentItem> addShipmentItem(ShipmentItem item) async {
-    final model = ShipmentItemModel.fromEntity(item);
-    final createdModel = await _remoteDatasource.addShipmentItem(model);
-    return createdModel.toEntity();
-  }
-
-  @override
-  Future<ShipmentItem> updateShipmentItem(ShipmentItem item) async {
-    final model = ShipmentItemModel.fromEntity(item);
-    final updatedModel = await _remoteDatasource.updateShipmentItem(model);
-    return updatedModel.toEntity();
-  }
-
-  @override
-  Future<void> deleteShipmentItem(String itemId) async {
-    await _remoteDatasource.deleteShipmentItem(itemId);
-  }
-
-  @override
-  Future<PaginatedShipmentResponse> searchShipments({
-    required String companyId,
-    required String query,
-    int limit = 50,
-    int offset = 0,
-  }) async {
-    final response = await _remoteDatasource.searchShipments(
-      companyId: companyId,
-      query: query,
-      limit: limit,
-      offset: offset,
-    );
-    return response.toEntity();
-  }
-
-  @override
-  Future<Map<String, int>> getShipmentCountByStatus({
-    required String companyId,
-  }) async {
-    return await _remoteDatasource.getShipmentCountByStatus(
-      companyId: companyId,
-    );
   }
 
   @override

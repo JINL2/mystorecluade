@@ -32,49 +32,6 @@ abstract class ShipmentRepository {
     int offset,
   });
 
-  /// Get a single shipment by ID with full details
-  Future<Shipment?> getShipmentById(String shipmentId);
-
-  /// Get shipments by Order ID
-  Future<List<ShipmentListItem>> getShipmentsByOrderId(String orderId);
-
-  /// Create a new shipment
-  Future<Shipment> createShipment(Shipment shipment);
-
-  /// Update an existing shipment
-  Future<Shipment> updateShipment(Shipment shipment);
-
-  /// Delete a shipment
-  Future<void> deleteShipment(String shipmentId);
-
-  /// Update shipment status
-  Future<void> updateShipmentStatus(String shipmentId, ShipmentStatus status);
-
-  /// Get shipment items
-  Future<List<ShipmentItem>> getShipmentItems(String shipmentId);
-
-  /// Add item to shipment
-  Future<ShipmentItem> addShipmentItem(ShipmentItem item);
-
-  /// Update shipment item
-  Future<ShipmentItem> updateShipmentItem(ShipmentItem item);
-
-  /// Delete shipment item
-  Future<void> deleteShipmentItem(String itemId);
-
-  /// Search shipments
-  Future<PaginatedShipmentResponse> searchShipments({
-    required String companyId,
-    required String query,
-    int limit,
-    int offset,
-  });
-
-  /// Get shipment count by status
-  Future<Map<String, int>> getShipmentCountByStatus({
-    required String companyId,
-  });
-
   /// Get shipment detail using RPC (inventory_get_shipment_detail_v2)
   ///
   /// Returns detailed shipment info including:

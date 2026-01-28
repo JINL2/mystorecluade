@@ -10,7 +10,6 @@ import '../models/product_search_model.dart';
 import '../models/session_compare_model.dart';
 import '../models/session_history_item_model.dart';
 import '../models/session_item_input_model.dart';
-import '../models/session_item_model.dart';
 import '../models/session_list_item_model.dart';
 import '../models/session_review_item_model.dart';
 import '../models/shipment_model.dart';
@@ -27,111 +26,6 @@ class SessionDatasource {
   final SupabaseClient _client;
 
   SessionDatasource(this._client);
-
-  /// Create a new session
-  Future<InventorySessionModel> createSession({
-    required String companyId,
-    required String sessionName,
-    required String sessionType,
-    required String storeId,
-    required String createdBy,
-    String? notes,
-  }) async {
-    final response = await _client.from('inventory_sessions').insert({
-      'company_id': companyId,
-      'session_name': sessionName,
-      'session_type': sessionType,
-      'store_id': storeId,
-      'created_by': createdBy,
-      'status': 'active',
-      'notes': notes,
-    }).select().single();
-
-    return InventorySessionModel.fromJson(response);
-  }
-
-  /// Update session status
-  Future<InventorySessionModel> updateSessionStatus({
-    required String sessionId,
-    required String status,
-  }) async {
-    final updateData = <String, dynamic>{
-      'status': status,
-    };
-
-    if (status == 'completed') {
-      updateData['completed_at'] = DateTime.now().toIso8601String();
-    }
-
-    final response = await _client
-        .from('inventory_sessions')
-        .update(updateData)
-        .eq('session_id', sessionId)
-        .select()
-        .single();
-
-    return InventorySessionModel.fromJson(response);
-  }
-
-  /// Add item to session
-  Future<SessionItemModel> addSessionItem({
-    required String sessionId,
-    required String productId,
-    required String productName,
-    String? sku,
-    String? barcode,
-    String? imageUrl,
-    required int quantity,
-    double? unitPrice,
-    String? notes,
-  }) async {
-    final response = await _client.from('session_items').insert({
-      'session_id': sessionId,
-      'product_id': productId,
-      'product_name': productName,
-      'sku': sku,
-      'barcode': barcode,
-      'image_url': imageUrl,
-      'quantity': quantity,
-      'unit_price': unitPrice,
-      'notes': notes,
-    }).select().single();
-
-    return SessionItemModel.fromJson(response);
-  }
-
-  /// Update item quantity
-  Future<SessionItemModel> updateSessionItem({
-    required String itemId,
-    required int quantity,
-    String? notes,
-  }) async {
-    final updateData = <String, dynamic>{
-      'quantity': quantity,
-    };
-    if (notes != null) {
-      updateData['notes'] = notes;
-    }
-
-    final response = await _client
-        .from('session_items')
-        .update(updateData)
-        .eq('item_id', itemId)
-        .select()
-        .single();
-
-    return SessionItemModel.fromJson(response);
-  }
-
-  /// Remove item from session
-  Future<void> removeSessionItem({
-    required String itemId,
-  }) async {
-    await _client
-        .from('session_items')
-        .delete()
-        .eq('item_id', itemId);
-  }
 
   /// Get session list via RPC (inventory_get_session_list_v2)
   /// v2: Replaced p_is_active with p_status, added supplier filters
