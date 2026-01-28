@@ -1,7 +1,7 @@
 import '../entities/user_profile.dart';
 
 abstract class UserProfileRepository {
-  /// Get user profile by user ID
+  /// Get user profile via RPC (includes bank accounts, language, available languages)
   Future<UserProfile?> getUserProfile(String userId);
 
   /// Update user profile
@@ -20,12 +20,6 @@ abstract class UserProfileRepository {
   /// Remove profile image
   Future<void> removeProfileImage(String userId);
 
-  /// Get user's bank account info
-  Future<Map<String, dynamic>?> getUserBankAccount({
-    required String userId,
-    required String companyId,
-  });
-
   /// Save user's bank account
   Future<bool> saveUserBankAccount({
     required String userId,
@@ -34,15 +28,6 @@ abstract class UserProfileRepository {
     required String accountNumber,
     required String description,
   });
-
-  /// Get available languages
-  Future<List<Map<String, dynamic>>> getLanguages();
-
-  /// Get user's current language ID
-  Future<String?> getUserLanguageId(String userId);
-
-  /// Get language code by ID
-  Future<String?> getLanguageCode(String languageId);
 
   /// Update user's language preference
   Future<bool> updateUserLanguage({

@@ -2,8 +2,28 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'user_profile.freezed.dart';
 
-/// Pure domain entity for user profile
-/// JSON serialization is handled by UserProfileModel in data layer
+/// Bank account entity
+@freezed
+class BankAccount with _$BankAccount {
+  const factory BankAccount({
+    required String companyId,
+    String? bankName,
+    String? accountNumber,
+    String? description,
+  }) = _BankAccount;
+}
+
+/// Language entity
+@freezed
+class Language with _$Language {
+  const factory Language({
+    required String languageId,
+    required String languageCode,
+    required String languageName,
+  }) = _Language;
+}
+
+/// User profile entity
 @freezed
 class UserProfile with _$UserProfile {
   const factory UserProfile({
@@ -14,22 +34,11 @@ class UserProfile with _$UserProfile {
     String? phoneNumber,
     String? dateOfBirth,
     String? profileImage,
-    String? bankName,
-    String? bankAccountNumber,
-    @Default(false) bool isDeleted,
-    DateTime? deletedAt,
     DateTime? createdAt,
     DateTime? updatedAt,
-
-    // Additional fields from relationships
-    String? companyName,
-    String? storeName,
-    String? roleName,
-
-    // Subscription info
-    @Default('Free') String subscriptionPlan,
-    @Default('active') String subscriptionStatus,
-    DateTime? subscriptionExpiresAt,
+    @Default([]) List<BankAccount> bankAccounts,
+    Language? language,
+    @Default([]) List<Language> availableLanguages,
   }) = _UserProfile;
 
   const UserProfile._();
@@ -41,9 +50,9 @@ class UserProfile with _$UserProfile {
   }
 
   String get initials {
-    if (firstName != null && lastName != null) {
+    if (firstName != null && firstName!.isNotEmpty && lastName != null && lastName!.isNotEmpty) {
       return '${firstName![0]}${lastName![0]}'.toUpperCase();
-    } else if (firstName != null) {
+    } else if (firstName != null && firstName!.isNotEmpty) {
       return firstName![0].toUpperCase();
     } else {
       return email[0].toUpperCase();
@@ -52,11 +61,16 @@ class UserProfile with _$UserProfile {
 
   bool get hasProfileImage => profileImage != null && profileImage!.isNotEmpty;
 
-  bool get isSubscriptionActive => subscriptionStatus == 'active';
+  String? get languageCode => language?.languageCode;
 
-  String get displayRole => roleName ?? 'User';
+  String? get languageId => language?.languageId;
 
-  String get displayCompany => companyName ?? 'No Company';
-
-  String get displayStore => storeName ?? 'No Store Assigned';
+  /// Get bank account for specific company
+  BankAccount? getBankAccountForCompany(String companyId) {
+    try {
+      return bankAccounts.firstWhere((b) => b.companyId == companyId);
+    } catch (_) {
+      return null;
+    }
+  }
 }

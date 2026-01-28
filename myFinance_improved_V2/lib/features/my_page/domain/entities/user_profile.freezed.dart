@@ -15,6 +15,372 @@ final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 /// @nodoc
+mixin _$BankAccount {
+  String get companyId => throw _privateConstructorUsedError;
+  String? get bankName => throw _privateConstructorUsedError;
+  String? get accountNumber => throw _privateConstructorUsedError;
+  String? get description => throw _privateConstructorUsedError;
+
+  /// Create a copy of BankAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $BankAccountCopyWith<BankAccount> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $BankAccountCopyWith<$Res> {
+  factory $BankAccountCopyWith(
+          BankAccount value, $Res Function(BankAccount) then) =
+      _$BankAccountCopyWithImpl<$Res, BankAccount>;
+  @useResult
+  $Res call(
+      {String companyId,
+      String? bankName,
+      String? accountNumber,
+      String? description});
+}
+
+/// @nodoc
+class _$BankAccountCopyWithImpl<$Res, $Val extends BankAccount>
+    implements $BankAccountCopyWith<$Res> {
+  _$BankAccountCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of BankAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? companyId = null,
+    Object? bankName = freezed,
+    Object? accountNumber = freezed,
+    Object? description = freezed,
+  }) {
+    return _then(_value.copyWith(
+      companyId: null == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as String,
+      bankName: freezed == bankName
+          ? _value.bankName
+          : bankName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      accountNumber: freezed == accountNumber
+          ? _value.accountNumber
+          : accountNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$BankAccountImplCopyWith<$Res>
+    implements $BankAccountCopyWith<$Res> {
+  factory _$$BankAccountImplCopyWith(
+          _$BankAccountImpl value, $Res Function(_$BankAccountImpl) then) =
+      __$$BankAccountImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call(
+      {String companyId,
+      String? bankName,
+      String? accountNumber,
+      String? description});
+}
+
+/// @nodoc
+class __$$BankAccountImplCopyWithImpl<$Res>
+    extends _$BankAccountCopyWithImpl<$Res, _$BankAccountImpl>
+    implements _$$BankAccountImplCopyWith<$Res> {
+  __$$BankAccountImplCopyWithImpl(
+      _$BankAccountImpl _value, $Res Function(_$BankAccountImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of BankAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? companyId = null,
+    Object? bankName = freezed,
+    Object? accountNumber = freezed,
+    Object? description = freezed,
+  }) {
+    return _then(_$BankAccountImpl(
+      companyId: null == companyId
+          ? _value.companyId
+          : companyId // ignore: cast_nullable_to_non_nullable
+              as String,
+      bankName: freezed == bankName
+          ? _value.bankName
+          : bankName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      accountNumber: freezed == accountNumber
+          ? _value.accountNumber
+          : accountNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      description: freezed == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$BankAccountImpl implements _BankAccount {
+  const _$BankAccountImpl(
+      {required this.companyId,
+      this.bankName,
+      this.accountNumber,
+      this.description});
+
+  @override
+  final String companyId;
+  @override
+  final String? bankName;
+  @override
+  final String? accountNumber;
+  @override
+  final String? description;
+
+  @override
+  String toString() {
+    return 'BankAccount(companyId: $companyId, bankName: $bankName, accountNumber: $accountNumber, description: $description)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$BankAccountImpl &&
+            (identical(other.companyId, companyId) ||
+                other.companyId == companyId) &&
+            (identical(other.bankName, bankName) ||
+                other.bankName == bankName) &&
+            (identical(other.accountNumber, accountNumber) ||
+                other.accountNumber == accountNumber) &&
+            (identical(other.description, description) ||
+                other.description == description));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, companyId, bankName, accountNumber, description);
+
+  /// Create a copy of BankAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$BankAccountImplCopyWith<_$BankAccountImpl> get copyWith =>
+      __$$BankAccountImplCopyWithImpl<_$BankAccountImpl>(this, _$identity);
+}
+
+abstract class _BankAccount implements BankAccount {
+  const factory _BankAccount(
+      {required final String companyId,
+      final String? bankName,
+      final String? accountNumber,
+      final String? description}) = _$BankAccountImpl;
+
+  @override
+  String get companyId;
+  @override
+  String? get bankName;
+  @override
+  String? get accountNumber;
+  @override
+  String? get description;
+
+  /// Create a copy of BankAccount
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$BankAccountImplCopyWith<_$BankAccountImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+mixin _$Language {
+  String get languageId => throw _privateConstructorUsedError;
+  String get languageCode => throw _privateConstructorUsedError;
+  String get languageName => throw _privateConstructorUsedError;
+
+  /// Create a copy of Language
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $LanguageCopyWith<Language> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $LanguageCopyWith<$Res> {
+  factory $LanguageCopyWith(Language value, $Res Function(Language) then) =
+      _$LanguageCopyWithImpl<$Res, Language>;
+  @useResult
+  $Res call({String languageId, String languageCode, String languageName});
+}
+
+/// @nodoc
+class _$LanguageCopyWithImpl<$Res, $Val extends Language>
+    implements $LanguageCopyWith<$Res> {
+  _$LanguageCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of Language
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? languageId = null,
+    Object? languageCode = null,
+    Object? languageName = null,
+  }) {
+    return _then(_value.copyWith(
+      languageId: null == languageId
+          ? _value.languageId
+          : languageId // ignore: cast_nullable_to_non_nullable
+              as String,
+      languageCode: null == languageCode
+          ? _value.languageCode
+          : languageCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      languageName: null == languageName
+          ? _value.languageName
+          : languageName // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
+  }
+}
+
+/// @nodoc
+abstract class _$$LanguageImplCopyWith<$Res>
+    implements $LanguageCopyWith<$Res> {
+  factory _$$LanguageImplCopyWith(
+          _$LanguageImpl value, $Res Function(_$LanguageImpl) then) =
+      __$$LanguageImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({String languageId, String languageCode, String languageName});
+}
+
+/// @nodoc
+class __$$LanguageImplCopyWithImpl<$Res>
+    extends _$LanguageCopyWithImpl<$Res, _$LanguageImpl>
+    implements _$$LanguageImplCopyWith<$Res> {
+  __$$LanguageImplCopyWithImpl(
+      _$LanguageImpl _value, $Res Function(_$LanguageImpl) _then)
+      : super(_value, _then);
+
+  /// Create a copy of Language
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? languageId = null,
+    Object? languageCode = null,
+    Object? languageName = null,
+  }) {
+    return _then(_$LanguageImpl(
+      languageId: null == languageId
+          ? _value.languageId
+          : languageId // ignore: cast_nullable_to_non_nullable
+              as String,
+      languageCode: null == languageCode
+          ? _value.languageCode
+          : languageCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      languageName: null == languageName
+          ? _value.languageName
+          : languageName // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// @nodoc
+
+class _$LanguageImpl implements _Language {
+  const _$LanguageImpl(
+      {required this.languageId,
+      required this.languageCode,
+      required this.languageName});
+
+  @override
+  final String languageId;
+  @override
+  final String languageCode;
+  @override
+  final String languageName;
+
+  @override
+  String toString() {
+    return 'Language(languageId: $languageId, languageCode: $languageCode, languageName: $languageName)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$LanguageImpl &&
+            (identical(other.languageId, languageId) ||
+                other.languageId == languageId) &&
+            (identical(other.languageCode, languageCode) ||
+                other.languageCode == languageCode) &&
+            (identical(other.languageName, languageName) ||
+                other.languageName == languageName));
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, languageId, languageCode, languageName);
+
+  /// Create a copy of Language
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$LanguageImplCopyWith<_$LanguageImpl> get copyWith =>
+      __$$LanguageImplCopyWithImpl<_$LanguageImpl>(this, _$identity);
+}
+
+abstract class _Language implements Language {
+  const factory _Language(
+      {required final String languageId,
+      required final String languageCode,
+      required final String languageName}) = _$LanguageImpl;
+
+  @override
+  String get languageId;
+  @override
+  String get languageCode;
+  @override
+  String get languageName;
+
+  /// Create a copy of Language
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$LanguageImplCopyWith<_$LanguageImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
 mixin _$UserProfile {
   String get userId => throw _privateConstructorUsedError;
   String? get firstName => throw _privateConstructorUsedError;
@@ -23,20 +389,11 @@ mixin _$UserProfile {
   String? get phoneNumber => throw _privateConstructorUsedError;
   String? get dateOfBirth => throw _privateConstructorUsedError;
   String? get profileImage => throw _privateConstructorUsedError;
-  String? get bankName => throw _privateConstructorUsedError;
-  String? get bankAccountNumber => throw _privateConstructorUsedError;
-  bool get isDeleted => throw _privateConstructorUsedError;
-  DateTime? get deletedAt => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  DateTime? get updatedAt =>
-      throw _privateConstructorUsedError; // Additional fields from relationships
-  String? get companyName => throw _privateConstructorUsedError;
-  String? get storeName => throw _privateConstructorUsedError;
-  String? get roleName =>
-      throw _privateConstructorUsedError; // Subscription info
-  String get subscriptionPlan => throw _privateConstructorUsedError;
-  String get subscriptionStatus => throw _privateConstructorUsedError;
-  DateTime? get subscriptionExpiresAt => throw _privateConstructorUsedError;
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
+  List<BankAccount> get bankAccounts => throw _privateConstructorUsedError;
+  Language? get language => throw _privateConstructorUsedError;
+  List<Language> get availableLanguages => throw _privateConstructorUsedError;
 
   /// Create a copy of UserProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -59,18 +416,13 @@ abstract class $UserProfileCopyWith<$Res> {
       String? phoneNumber,
       String? dateOfBirth,
       String? profileImage,
-      String? bankName,
-      String? bankAccountNumber,
-      bool isDeleted,
-      DateTime? deletedAt,
       DateTime? createdAt,
       DateTime? updatedAt,
-      String? companyName,
-      String? storeName,
-      String? roleName,
-      String subscriptionPlan,
-      String subscriptionStatus,
-      DateTime? subscriptionExpiresAt});
+      List<BankAccount> bankAccounts,
+      Language? language,
+      List<Language> availableLanguages});
+
+  $LanguageCopyWith<$Res>? get language;
 }
 
 /// @nodoc
@@ -95,18 +447,11 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
     Object? phoneNumber = freezed,
     Object? dateOfBirth = freezed,
     Object? profileImage = freezed,
-    Object? bankName = freezed,
-    Object? bankAccountNumber = freezed,
-    Object? isDeleted = null,
-    Object? deletedAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
-    Object? companyName = freezed,
-    Object? storeName = freezed,
-    Object? roleName = freezed,
-    Object? subscriptionPlan = null,
-    Object? subscriptionStatus = null,
-    Object? subscriptionExpiresAt = freezed,
+    Object? bankAccounts = null,
+    Object? language = freezed,
+    Object? availableLanguages = null,
   }) {
     return _then(_value.copyWith(
       userId: null == userId
@@ -137,22 +482,6 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
               as String?,
-      bankName: freezed == bankName
-          ? _value.bankName
-          : bankName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bankAccountNumber: freezed == bankAccountNumber
-          ? _value.bankAccountNumber
-          : bankAccountNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isDeleted: null == isDeleted
-          ? _value.isDeleted
-          : isDeleted // ignore: cast_nullable_to_non_nullable
-              as bool,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -161,31 +490,33 @@ class _$UserProfileCopyWithImpl<$Res, $Val extends UserProfile>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      companyName: freezed == companyName
-          ? _value.companyName
-          : companyName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      storeName: freezed == storeName
-          ? _value.storeName
-          : storeName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      roleName: freezed == roleName
-          ? _value.roleName
-          : roleName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      subscriptionPlan: null == subscriptionPlan
-          ? _value.subscriptionPlan
-          : subscriptionPlan // ignore: cast_nullable_to_non_nullable
-              as String,
-      subscriptionStatus: null == subscriptionStatus
-          ? _value.subscriptionStatus
-          : subscriptionStatus // ignore: cast_nullable_to_non_nullable
-              as String,
-      subscriptionExpiresAt: freezed == subscriptionExpiresAt
-          ? _value.subscriptionExpiresAt
-          : subscriptionExpiresAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
+      bankAccounts: null == bankAccounts
+          ? _value.bankAccounts
+          : bankAccounts // ignore: cast_nullable_to_non_nullable
+              as List<BankAccount>,
+      language: freezed == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as Language?,
+      availableLanguages: null == availableLanguages
+          ? _value.availableLanguages
+          : availableLanguages // ignore: cast_nullable_to_non_nullable
+              as List<Language>,
     ) as $Val);
+  }
+
+  /// Create a copy of UserProfile
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $LanguageCopyWith<$Res>? get language {
+    if (_value.language == null) {
+      return null;
+    }
+
+    return $LanguageCopyWith<$Res>(_value.language!, (value) {
+      return _then(_value.copyWith(language: value) as $Val);
+    });
   }
 }
 
@@ -205,18 +536,14 @@ abstract class _$$UserProfileImplCopyWith<$Res>
       String? phoneNumber,
       String? dateOfBirth,
       String? profileImage,
-      String? bankName,
-      String? bankAccountNumber,
-      bool isDeleted,
-      DateTime? deletedAt,
       DateTime? createdAt,
       DateTime? updatedAt,
-      String? companyName,
-      String? storeName,
-      String? roleName,
-      String subscriptionPlan,
-      String subscriptionStatus,
-      DateTime? subscriptionExpiresAt});
+      List<BankAccount> bankAccounts,
+      Language? language,
+      List<Language> availableLanguages});
+
+  @override
+  $LanguageCopyWith<$Res>? get language;
 }
 
 /// @nodoc
@@ -239,18 +566,11 @@ class __$$UserProfileImplCopyWithImpl<$Res>
     Object? phoneNumber = freezed,
     Object? dateOfBirth = freezed,
     Object? profileImage = freezed,
-    Object? bankName = freezed,
-    Object? bankAccountNumber = freezed,
-    Object? isDeleted = null,
-    Object? deletedAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
-    Object? companyName = freezed,
-    Object? storeName = freezed,
-    Object? roleName = freezed,
-    Object? subscriptionPlan = null,
-    Object? subscriptionStatus = null,
-    Object? subscriptionExpiresAt = freezed,
+    Object? bankAccounts = null,
+    Object? language = freezed,
+    Object? availableLanguages = null,
   }) {
     return _then(_$UserProfileImpl(
       userId: null == userId
@@ -281,22 +601,6 @@ class __$$UserProfileImplCopyWithImpl<$Res>
           ? _value.profileImage
           : profileImage // ignore: cast_nullable_to_non_nullable
               as String?,
-      bankName: freezed == bankName
-          ? _value.bankName
-          : bankName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      bankAccountNumber: freezed == bankAccountNumber
-          ? _value.bankAccountNumber
-          : bankAccountNumber // ignore: cast_nullable_to_non_nullable
-              as String?,
-      isDeleted: null == isDeleted
-          ? _value.isDeleted
-          : isDeleted // ignore: cast_nullable_to_non_nullable
-              as bool,
-      deletedAt: freezed == deletedAt
-          ? _value.deletedAt
-          : deletedAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -305,30 +609,18 @@ class __$$UserProfileImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      companyName: freezed == companyName
-          ? _value.companyName
-          : companyName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      storeName: freezed == storeName
-          ? _value.storeName
-          : storeName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      roleName: freezed == roleName
-          ? _value.roleName
-          : roleName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      subscriptionPlan: null == subscriptionPlan
-          ? _value.subscriptionPlan
-          : subscriptionPlan // ignore: cast_nullable_to_non_nullable
-              as String,
-      subscriptionStatus: null == subscriptionStatus
-          ? _value.subscriptionStatus
-          : subscriptionStatus // ignore: cast_nullable_to_non_nullable
-              as String,
-      subscriptionExpiresAt: freezed == subscriptionExpiresAt
-          ? _value.subscriptionExpiresAt
-          : subscriptionExpiresAt // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
+      bankAccounts: null == bankAccounts
+          ? _value._bankAccounts
+          : bankAccounts // ignore: cast_nullable_to_non_nullable
+              as List<BankAccount>,
+      language: freezed == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as Language?,
+      availableLanguages: null == availableLanguages
+          ? _value._availableLanguages
+          : availableLanguages // ignore: cast_nullable_to_non_nullable
+              as List<Language>,
     ));
   }
 }
@@ -344,19 +636,14 @@ class _$UserProfileImpl extends _UserProfile {
       this.phoneNumber,
       this.dateOfBirth,
       this.profileImage,
-      this.bankName,
-      this.bankAccountNumber,
-      this.isDeleted = false,
-      this.deletedAt,
       this.createdAt,
       this.updatedAt,
-      this.companyName,
-      this.storeName,
-      this.roleName,
-      this.subscriptionPlan = 'Free',
-      this.subscriptionStatus = 'active',
-      this.subscriptionExpiresAt})
-      : super._();
+      final List<BankAccount> bankAccounts = const [],
+      this.language,
+      final List<Language> availableLanguages = const []})
+      : _bankAccounts = bankAccounts,
+        _availableLanguages = availableLanguages,
+        super._();
 
   @override
   final String userId;
@@ -373,38 +660,33 @@ class _$UserProfileImpl extends _UserProfile {
   @override
   final String? profileImage;
   @override
-  final String? bankName;
-  @override
-  final String? bankAccountNumber;
-  @override
-  @JsonKey()
-  final bool isDeleted;
-  @override
-  final DateTime? deletedAt;
-  @override
   final DateTime? createdAt;
   @override
   final DateTime? updatedAt;
-// Additional fields from relationships
-  @override
-  final String? companyName;
-  @override
-  final String? storeName;
-  @override
-  final String? roleName;
-// Subscription info
+  final List<BankAccount> _bankAccounts;
   @override
   @JsonKey()
-  final String subscriptionPlan;
+  List<BankAccount> get bankAccounts {
+    if (_bankAccounts is EqualUnmodifiableListView) return _bankAccounts;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_bankAccounts);
+  }
+
+  @override
+  final Language? language;
+  final List<Language> _availableLanguages;
   @override
   @JsonKey()
-  final String subscriptionStatus;
-  @override
-  final DateTime? subscriptionExpiresAt;
+  List<Language> get availableLanguages {
+    if (_availableLanguages is EqualUnmodifiableListView)
+      return _availableLanguages;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_availableLanguages);
+  }
 
   @override
   String toString() {
-    return 'UserProfile(userId: $userId, firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, dateOfBirth: $dateOfBirth, profileImage: $profileImage, bankName: $bankName, bankAccountNumber: $bankAccountNumber, isDeleted: $isDeleted, deletedAt: $deletedAt, createdAt: $createdAt, updatedAt: $updatedAt, companyName: $companyName, storeName: $storeName, roleName: $roleName, subscriptionPlan: $subscriptionPlan, subscriptionStatus: $subscriptionStatus, subscriptionExpiresAt: $subscriptionExpiresAt)';
+    return 'UserProfile(userId: $userId, firstName: $firstName, lastName: $lastName, email: $email, phoneNumber: $phoneNumber, dateOfBirth: $dateOfBirth, profileImage: $profileImage, createdAt: $createdAt, updatedAt: $updatedAt, bankAccounts: $bankAccounts, language: $language, availableLanguages: $availableLanguages)';
   }
 
   @override
@@ -424,55 +706,33 @@ class _$UserProfileImpl extends _UserProfile {
                 other.dateOfBirth == dateOfBirth) &&
             (identical(other.profileImage, profileImage) ||
                 other.profileImage == profileImage) &&
-            (identical(other.bankName, bankName) ||
-                other.bankName == bankName) &&
-            (identical(other.bankAccountNumber, bankAccountNumber) ||
-                other.bankAccountNumber == bankAccountNumber) &&
-            (identical(other.isDeleted, isDeleted) ||
-                other.isDeleted == isDeleted) &&
-            (identical(other.deletedAt, deletedAt) ||
-                other.deletedAt == deletedAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
                 other.updatedAt == updatedAt) &&
-            (identical(other.companyName, companyName) ||
-                other.companyName == companyName) &&
-            (identical(other.storeName, storeName) ||
-                other.storeName == storeName) &&
-            (identical(other.roleName, roleName) ||
-                other.roleName == roleName) &&
-            (identical(other.subscriptionPlan, subscriptionPlan) ||
-                other.subscriptionPlan == subscriptionPlan) &&
-            (identical(other.subscriptionStatus, subscriptionStatus) ||
-                other.subscriptionStatus == subscriptionStatus) &&
-            (identical(other.subscriptionExpiresAt, subscriptionExpiresAt) ||
-                other.subscriptionExpiresAt == subscriptionExpiresAt));
+            const DeepCollectionEquality()
+                .equals(other._bankAccounts, _bankAccounts) &&
+            (identical(other.language, language) ||
+                other.language == language) &&
+            const DeepCollectionEquality()
+                .equals(other._availableLanguages, _availableLanguages));
   }
 
   @override
-  int get hashCode => Object.hashAll([
-        runtimeType,
-        userId,
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        dateOfBirth,
-        profileImage,
-        bankName,
-        bankAccountNumber,
-        isDeleted,
-        deletedAt,
-        createdAt,
-        updatedAt,
-        companyName,
-        storeName,
-        roleName,
-        subscriptionPlan,
-        subscriptionStatus,
-        subscriptionExpiresAt
-      ]);
+  int get hashCode => Object.hash(
+      runtimeType,
+      userId,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      dateOfBirth,
+      profileImage,
+      createdAt,
+      updatedAt,
+      const DeepCollectionEquality().hash(_bankAccounts),
+      language,
+      const DeepCollectionEquality().hash(_availableLanguages));
 
   /// Create a copy of UserProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -492,18 +752,11 @@ abstract class _UserProfile extends UserProfile {
       final String? phoneNumber,
       final String? dateOfBirth,
       final String? profileImage,
-      final String? bankName,
-      final String? bankAccountNumber,
-      final bool isDeleted,
-      final DateTime? deletedAt,
       final DateTime? createdAt,
       final DateTime? updatedAt,
-      final String? companyName,
-      final String? storeName,
-      final String? roleName,
-      final String subscriptionPlan,
-      final String subscriptionStatus,
-      final DateTime? subscriptionExpiresAt}) = _$UserProfileImpl;
+      final List<BankAccount> bankAccounts,
+      final Language? language,
+      final List<Language> availableLanguages}) = _$UserProfileImpl;
   const _UserProfile._() : super._();
 
   @override
@@ -521,29 +774,15 @@ abstract class _UserProfile extends UserProfile {
   @override
   String? get profileImage;
   @override
-  String? get bankName;
-  @override
-  String? get bankAccountNumber;
-  @override
-  bool get isDeleted;
-  @override
-  DateTime? get deletedAt;
-  @override
   DateTime? get createdAt;
   @override
-  DateTime? get updatedAt; // Additional fields from relationships
+  DateTime? get updatedAt;
   @override
-  String? get companyName;
+  List<BankAccount> get bankAccounts;
   @override
-  String? get storeName;
+  Language? get language;
   @override
-  String? get roleName; // Subscription info
-  @override
-  String get subscriptionPlan;
-  @override
-  String get subscriptionStatus;
-  @override
-  DateTime? get subscriptionExpiresAt;
+  List<Language> get availableLanguages;
 
   /// Create a copy of UserProfile
   /// with the given fields replaced by the non-null parameter values.

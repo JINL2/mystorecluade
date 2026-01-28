@@ -85,17 +85,6 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   }
 
   @override
-  Future<Map<String, dynamic>?> getUserBankAccount({
-    required String userId,
-    required String companyId,
-  }) async {
-    return await _userProfileDataSource.getUserBankAccount(
-      userId: userId,
-      companyId: companyId,
-    );
-  }
-
-  @override
   Future<bool> saveUserBankAccount({
     required String userId,
     required String companyId,
@@ -110,21 +99,6 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       accountNumber: accountNumber,
       description: description,
     );
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> getLanguages() async {
-    return await _userProfileDataSource.getLanguages();
-  }
-
-  @override
-  Future<String?> getUserLanguageId(String userId) async {
-    return await _userProfileDataSource.getUserLanguageId(userId);
-  }
-
-  @override
-  Future<String?> getLanguageCode(String languageId) async {
-    return await _userProfileDataSource.getLanguageCode(languageId);
   }
 
   @override

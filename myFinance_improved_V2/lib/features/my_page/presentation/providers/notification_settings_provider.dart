@@ -111,7 +111,7 @@ class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
   /// 현재 사용자 ID 가져오기 (Auth Provider 통해)
   String? get _currentUserId => ref.read(currentUserIdProvider);
 
-  /// 알림 설정 로드
+  /// 알림 설정 로드 (RPC 사용)
   Future<void> loadSettings() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
@@ -144,12 +144,8 @@ class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
 
       _cachedRoleInfo = roleInfo;
 
-      // Master Push 설정 로드
-      final masterPushEnabled = await _dataSource.getMasterPushEnabled(
-        userId: userId,
-      );
-
-      final settings = await _dataSource.getNotificationSettings(
+      // RPC로 master_push_enabled와 features를 함께 가져옴
+      final result = await _dataSource.getNotificationSettings(
         userId: userId,
         companyId: companyId,
         roleId: roleInfo.roleId,
@@ -158,8 +154,8 @@ class NotificationSettingsNotifier extends _$NotificationSettingsNotifier {
 
       state = state.copyWith(
         isLoading: false,
-        settings: settings,
-        masterPushEnabled: masterPushEnabled,
+        settings: result.features,
+        masterPushEnabled: result.masterPushEnabled,
       );
     } catch (e, _) {
       state = state.copyWith(

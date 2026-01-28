@@ -11,10 +11,16 @@ import 'profile_form_section.dart';
 /// Read-only account information section
 class AccountInfoSection extends StatelessWidget {
   final UserProfile profile;
+  final String? roleName;
+  final String? companyName;
+  final String? storeName;
 
   const AccountInfoSection({
     super.key,
     required this.profile,
+    this.roleName,
+    this.companyName,
+    this.storeName,
   });
 
   @override
@@ -25,15 +31,17 @@ class AccountInfoSection extends StatelessWidget {
       child: Column(
         children: [
           _buildReadOnlyField('Email', profile.email),
-          const SizedBox(height: TossSpacing.space4),
-          _buildReadOnlyField('Role', profile.displayRole),
-          if (profile.companyName?.isNotEmpty == true) ...[
+          if (roleName?.isNotEmpty == true) ...[
             const SizedBox(height: TossSpacing.space4),
-            _buildReadOnlyField('Company', profile.companyName!),
+            _buildReadOnlyField('Role', roleName!),
           ],
-          if (profile.storeName?.isNotEmpty == true) ...[
+          if (companyName?.isNotEmpty == true) ...[
             const SizedBox(height: TossSpacing.space4),
-            _buildReadOnlyField('Store', profile.storeName!),
+            _buildReadOnlyField('Company', companyName!),
+          ],
+          if (storeName?.isNotEmpty == true) ...[
+            const SizedBox(height: TossSpacing.space4),
+            _buildReadOnlyField('Store', storeName!),
           ],
         ],
       ),

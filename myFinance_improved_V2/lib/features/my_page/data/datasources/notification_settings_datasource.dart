@@ -109,147 +109,69 @@ class StoreNotificationSettings {
 class NotificationSettingsDataSource {
   final _supabase = Supabase.instance.client;
 
-  /// 알림 설정 목록 가져오기
-  Future<List<NotificationSetting>> getNotificationSettings({
+  /// 알림 설정 목록 가져오기 (RPC 사용)
+  ///
+  /// Returns notification settings with master push enabled status and features list.
+  /// RPC: my_page_get_notification_settings
+  Future<({bool masterPushEnabled, List<NotificationSetting> features})> getNotificationSettings({
     required String userId,
     required String companyId,
     required String roleId,
     required String roleType,
   }) async {
     try {
-      // 1. Notification 카테고리 ID 가져오기
-      final categoryRes = await _supabase
-          .from('categories')
-          .select('category_id')
-          .eq('name', 'Notification')
-          .maybeSingle();
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'my_page_get_notification_settings',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_role_id': roleId,
+          'p_role_type': roleType,
+        },
+      );
 
-      // 카테고리가 없으면 빈 리스트 반환
-      if (categoryRes == null) {
-        return [];
+      if (response == null) {
+        return (masterPushEnabled: true, features: <NotificationSetting>[]);
       }
 
-      final categoryId = categoryRes['category_id'] as String;
+      final masterPushEnabled = response['master_push_enabled'] as bool? ?? true;
+      final featuresJson = response['features'] as List<dynamic>? ?? [];
 
-      // 2. features 가져오기 (notification_configs 조인 시도)
-      List<Map<String, dynamic>> featuresRes;
-      try {
-        featuresRes = await _supabase
-            .from('features')
-            .select('''
-              feature_id,
-              feature_name,
-              feature_description,
-              icon_key,
-              notification_configs(
-                scope_level,
-                display_group,
-                sort_order,
-                is_active
-              )
-            ''')
-            .eq('category_id', categoryId);
-      } catch (e) {
-        // notification_configs 테이블이 없으면 기본 features만 가져오기
-        featuresRes = await _supabase
-            .from('features')
-            .select('feature_id, feature_name, feature_description, icon_key')
-            .eq('category_id', categoryId);
-      }
+      final features = featuresJson.map((f) {
+        final featureMap = Map<String, dynamic>.from(f as Map);
 
-      // 3. 접근 가능한 feature_id Set
-      Set<String> accessibleFeatures;
+        // Parse store_preferences from JSON object
+        final storePrefsJson = featureMap['store_preferences'] as Map<String, dynamic>? ?? {};
+        final storePreferences = <String?, bool>{};
 
-      if (roleType == 'owner') {
-        // owner는 전부 접근 가능
-        accessibleFeatures =
-            featuresRes.map((f) => f['feature_id'] as String).toSet();
-      } else {
-        // owner 아니면 role_permissions 체크 (row가 있으면 권한 있음)
-        final rolePermRes = await _supabase
-            .from('role_permissions')
-            .select('feature_id')
-            .eq('role_id', roleId);
-
-        accessibleFeatures =
-            rolePermRes.map((r) => r['feature_id'] as String).toSet();
-      }
-
-      // 4. notification_preferences에서 개인 설정 가져오기
-      final prefsRes = await _supabase
-          .from('notification_preferences')
-          .select('feature_id, store_id, is_enabled')
-          .eq('user_id', userId)
-          .eq('company_id', companyId);
-
-      // preferences Map: feature_id -> { store_id -> is_enabled }
-      final prefsMap = <String, Map<String?, bool>>{};
-      for (var p in prefsRes) {
-        final fid = p['feature_id'] as String;
-        final sid = p['store_id'] as String?;
-        final enabled = p['is_enabled'] as bool;
-
-        prefsMap.putIfAbsent(fid, () => {});
-        prefsMap[fid]![sid] = enabled;
-      }
-
-      // 5. 결과 조합
-      final result = <NotificationSetting>[];
-
-      for (var f in featuresRes) {
-        final featureId = f['feature_id'] as String;
-
-        // 권한 없으면 스킵
-        if (!accessibleFeatures.contains(featureId)) continue;
-
-        // notification_configs 처리 (없을 수 있음)
-        // 1:1 관계면 Map, 1:N 관계면 List로 반환됨
-        Map<String, dynamic>? config;
-        final configData = f['notification_configs'];
-
-        if (configData != null) {
-          if (configData is List && configData.isNotEmpty) {
-            config = configData.first as Map<String, dynamic>;
-          } else if (configData is Map<String, dynamic>) {
-            config = configData;
-          }
-
-          // is_active가 false면 스킵
-          if (config != null && config['is_active'] == false) continue;
+        for (final entry in storePrefsJson.entries) {
+          // 'null' string key means store_id is NULL (All Stores)
+          final storeId = entry.key == 'null' ? null : entry.key;
+          storePreferences[storeId] = entry.value as bool;
         }
 
-        // feature의 preferences
-        final featurePrefs = prefsMap[featureId] ?? {};
-        // All Stores 설정 (store_id=NULL), default true
-        final allStoresEnabled = featurePrefs[null] ?? true;
+        return NotificationSetting(
+          featureId: featureMap['feature_id'] as String,
+          featureName: featureMap['feature_name'] as String,
+          description: featureMap['feature_description'] as String?,
+          iconKey: featureMap['icon_key'] as String?,
+          scopeLevel: featureMap['scope_level'] as String? ?? 'user',
+          displayGroup: featureMap['display_group'] as String? ?? 'general',
+          sortOrder: featureMap['sort_order'] as int? ?? 0,
+          isEnabled: featureMap['is_enabled'] as bool? ?? true,
+          storePreferences: storePreferences,
+        );
+      }).toList();
 
-        result.add(NotificationSetting(
-          featureId: featureId,
-          featureName: f['feature_name'] as String,
-          description: f['feature_description'] as String?,
-          iconKey: f['icon_key'] as String?,
-          scopeLevel: config?['scope_level'] as String? ?? 'user',
-          displayGroup: config?['display_group'] as String? ?? 'general',
-          sortOrder: config?['sort_order'] as int? ?? 0,
-          isEnabled: allStoresEnabled,
-          storePreferences: featurePrefs,
-        ),);
-      }
-
-      // 정렬: display_group → sort_order
-      result.sort((a, b) {
-        final groupCompare = a.displayGroup.compareTo(b.displayGroup);
-        if (groupCompare != 0) return groupCompare;
-        return a.sortOrder.compareTo(b.sortOrder);
-      });
-
-      return result;
+      return (masterPushEnabled: masterPushEnabled, features: features);
     } catch (e) {
       throw Exception('Failed to get notification settings: $e');
     }
   }
 
-  /// Store별 상세 설정 가져오기
+  /// Store별 상세 설정 가져오기 (RPC 사용)
+  ///
+  /// Uses my_page_get_store_settings RPC to get store-level notification settings.
   Future<StoreNotificationSettings> getStoreSettings({
     required String userId,
     required String companyId,
@@ -257,56 +179,45 @@ class NotificationSettingsDataSource {
     required String roleType,
   }) async {
     try {
-      // 1. feature 정보 가져오기
-      final featureRes = await _supabase
-          .from('features')
-          .select('feature_name, feature_description')
-          .eq('feature_id', featureId)
-          .single();
-
-      // 2. 접근 가능한 store 목록
-      final stores = await getAccessibleStores(
-        userId: userId,
-        companyId: companyId,
-        roleType: roleType,
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'my_page_get_store_settings',
+        params: {
+          'p_user_id': userId,
+          'p_company_id': companyId,
+          'p_feature_id': featureId,
+          'p_role_type': roleType,
+        },
       );
 
-      // 3. 이 feature의 preferences
-      final prefsRes = await _supabase
-          .from('notification_preferences')
-          .select('store_id, is_enabled')
-          .eq('user_id', userId)
-          .eq('feature_id', featureId)
-          .eq('company_id', companyId);
-
-      final prefsMap = <String?, bool>{};
-      for (var p in prefsRes) {
-        prefsMap[p['store_id'] as String?] = p['is_enabled'] as bool;
+      if (response == null) {
+        return StoreNotificationSettings(
+          featureId: featureId,
+          featureName: '',
+          description: null,
+          allStoresEnabled: true,
+          storeSettings: [],
+        );
       }
 
-      // 4. All Stores 설정
-      final allStoresEnabled = prefsMap[null] ?? true;
+      final allStoresEnabled = response['all_stores_enabled'] as bool? ?? true;
+      final storeSettingsJson = response['store_settings'] as List<dynamic>? ?? [];
 
-      // 5. 각 store 설정
-      final storeSettings = stores.map((store) {
-        final enabled = prefsMap.containsKey(store['store_id'])
-            ? prefsMap[store['store_id']]!
-            : allStoresEnabled;
-
+      final storeSettings = storeSettingsJson.map((store) {
+        final storeMap = store as Map<String, dynamic>;
         return StoreSettingItem(
-          storeId: store['store_id'] as String,
-          storeName: store['store_name'] as String,
-          isEnabled: enabled,
-          isOverridden: prefsMap.containsKey(store['store_id']),
-          companyId: store['company_id'] as String?,
-          companyName: store['company_name'] as String?,
+          storeId: storeMap['store_id'] as String,
+          storeName: storeMap['store_name'] as String? ?? '',
+          isEnabled: storeMap['is_enabled'] as bool? ?? allStoresEnabled,
+          isOverridden: storeMap['is_overridden'] as bool? ?? false,
+          companyId: storeMap['company_id'] as String?,
+          companyName: storeMap['company_name'] as String?,
         );
       }).toList();
 
       return StoreNotificationSettings(
-        featureId: featureId,
-        featureName: featureRes['feature_name'] as String,
-        description: featureRes['feature_description'] as String?,
+        featureId: response['feature_id'] as String? ?? featureId,
+        featureName: response['feature_name'] as String? ?? '',
+        description: response['feature_description'] as String?,
         allStoresEnabled: allStoresEnabled,
         storeSettings: storeSettings,
       );
@@ -315,106 +226,56 @@ class NotificationSettingsDataSource {
     }
   }
 
-  /// 접근 가능한 Store 목록 가져오기
+  /// 접근 가능한 Store 목록 가져오기 (RPC 사용)
+  ///
+  /// Uses get_user_companies_and_stores_v2 RPC to get stores with company info.
+  /// The RPC returns all companies and stores the user has access to.
   Future<List<Map<String, dynamic>>> getAccessibleStores({
     required String userId,
     required String companyId,
     required String roleType,
   }) async {
     try {
-      if (roleType == 'owner') {
-        // owner는 전체 store - with company info for grouping
-        final res = await _supabase
-            .from('stores')
-            .select('store_id, store_name, company_id, companies!inner(company_name)')
-            .eq('company_id', companyId)
-            .eq('is_deleted', false)
-            .order('store_name');
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'get_user_companies_and_stores_v2',
+        params: {'p_user_id': userId},
+      );
 
-        return res.map((store) {
-          return {
-            'store_id': store['store_id'],
-            'store_name': store['store_name'],
-            'company_id': store['company_id'],
-            'company_name': (store['companies'] as Map?)?['company_name'] ?? 'Unknown',
-          };
-        }).toList();
-      } else {
-        // owner 아니면 user_stores에서 가져오기 - with company info
-        final res = await _supabase
-            .from('user_stores')
-            .select('stores!inner(store_id, store_name, company_id, companies!inner(company_name))')
-            .eq('user_id', userId)
-            .eq('is_deleted', false);
+      if (response == null) return [];
 
-        return res.map((us) {
-          final s = us['stores'] as Map<String, dynamic>;
-          final companies = s['companies'] as Map?;
-          return {
-            'store_id': s['store_id'],
-            'store_name': s['store_name'],
-            'company_id': s['company_id'],
-            'company_name': companies?['company_name'] ?? 'Unknown',
-          };
-        }).toList();
-      }
+      final companies = response['companies'] as List<dynamic>? ?? [];
+
+      // Find the specific company
+      final companyData = companies.firstWhere(
+        (c) => (c as Map<String, dynamic>)['company_id'] == companyId,
+        orElse: () => null,
+      );
+
+      if (companyData == null) return [];
+
+      final companyMap = companyData as Map<String, dynamic>;
+      final companyName = companyMap['company_name'] as String? ?? 'Unknown';
+      final stores = companyMap['stores'] as List<dynamic>? ?? [];
+
+      return stores.map((store) {
+        final storeMap = store as Map<String, dynamic>;
+        return {
+          'store_id': storeMap['store_id'] as String,
+          'store_name': storeMap['store_name'] as String,
+          'company_id': companyId,
+          'company_name': companyName,
+        };
+      }).toList();
     } catch (e) {
       throw Exception('Failed to get accessible stores: $e');
     }
   }
 
-  /// 알림 끄기 (OFF) - upsert
-  Future<void> turnOff({
-    required String userId,
-    required String featureId,
-    required String companyId,
-    String? storeId,
-  }) async {
-    try {
-      await _supabase.from('notification_preferences').upsert(
-        {
-          'user_id': userId,
-          'feature_id': featureId,
-          'company_id': companyId,
-          'store_id': storeId,
-          'is_enabled': false,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
-        },
-        onConflict: 'user_id,feature_id,company_id,store_id',
-      );
-    } catch (e) {
-      throw Exception('Failed to turn off notification: $e');
-    }
-  }
-
-  /// 알림 켜기 (ON) - row 삭제
-  Future<void> turnOn({
-    required String userId,
-    required String featureId,
-    required String companyId,
-    String? storeId,
-  }) async {
-    try {
-      var query = _supabase
-          .from('notification_preferences')
-          .delete()
-          .eq('user_id', userId)
-          .eq('feature_id', featureId)
-          .eq('company_id', companyId);
-
-      if (storeId == null) {
-        query = query.isFilter('store_id', null);
-      } else {
-        query = query.eq('store_id', storeId);
-      }
-
-      await query;
-    } catch (e) {
-      throw Exception('Failed to turn on notification: $e');
-    }
-  }
-
-  /// 토글 (현재 상태 반전)
+  /// 알림 토글 (RPC 사용)
+  ///
+  /// Uses my_page_toggle_notification RPC to toggle notification settings.
+  /// - enabled = true: Delete row (no row = default ON)
+  /// - enabled = false: Upsert with is_enabled = false
   Future<void> toggle({
     required String userId,
     required String featureId,
@@ -422,22 +283,19 @@ class NotificationSettingsDataSource {
     String? storeId,
     required bool currentValue,
   }) async {
-    if (currentValue) {
-      // 현재 ON → OFF로
-      await turnOff(
-        userId: userId,
-        featureId: featureId,
-        companyId: companyId,
-        storeId: storeId,
+    try {
+      await _supabase.rpc<Map<String, dynamic>>(
+        'my_page_toggle_notification',
+        params: {
+          'p_user_id': userId,
+          'p_feature_id': featureId,
+          'p_company_id': companyId,
+          'p_store_id': storeId,
+          'p_enabled': !currentValue, // Toggle: flip the current value
+        },
       );
-    } else {
-      // 현재 OFF → ON으로
-      await turnOn(
-        userId: userId,
-        featureId: featureId,
-        companyId: companyId,
-        storeId: storeId,
-      );
+    } catch (e) {
+      throw Exception('Failed to toggle notification: $e');
     }
   }
 
@@ -445,26 +303,40 @@ class NotificationSettingsDataSource {
   // Role Info (사용자 역할 정보)
   // ===========================================================================
 
-  /// 현재 유저의 role_id, role_type 가져오기
+  /// 현재 유저의 role_id, role_type 가져오기 (RPC 사용)
+  ///
+  /// Uses get_user_companies_and_stores_v2 RPC to get role info.
   Future<({String roleId, String roleType})?> getCurrentUserRoleInfo({
     required String userId,
     required String companyId,
   }) async {
     try {
-      final result = await _supabase
-          .from('user_roles')
-          .select('role_id, roles!inner(company_id, role_type)')
-          .eq('user_id', userId)
-          .eq('roles.company_id', companyId)
-          .eq('is_deleted', false)
-          .limit(1)
-          .maybeSingle();
+      final response = await _supabase.rpc<Map<String, dynamic>?>(
+        'get_user_companies_and_stores_v2',
+        params: {'p_user_id': userId},
+      );
 
-      if (result == null) return null;
+      if (response == null) return null;
 
-      final roleId = result['role_id'] as String;
-      final roles = result['roles'] as Map<String, dynamic>;
-      final roleType = roles['role_type'] as String? ?? 'employee';
+      final companies = response['companies'] as List<dynamic>? ?? [];
+
+      // Find the specific company
+      final companyData = companies.firstWhere(
+        (c) => (c as Map<String, dynamic>)['company_id'] == companyId,
+        orElse: () => null,
+      );
+
+      if (companyData == null) return null;
+
+      final companyMap = companyData as Map<String, dynamic>;
+      final role = companyMap['role'] as Map<String, dynamic>?;
+
+      if (role == null) return null;
+
+      final roleId = role['role_id'] as String?;
+      final roleType = role['role_type'] as String? ?? 'employee';
+
+      if (roleId == null) return null;
 
       return (roleId: roleId, roleType: roleType);
     } catch (e) {
@@ -476,41 +348,21 @@ class NotificationSettingsDataSource {
   // Master Push Settings (user_notification_settings)
   // ===========================================================================
 
-  /// Master Push 설정 가져오기
-  /// row 없으면 default true (알림 활성화)
-  Future<bool> getMasterPushEnabled({
-    required String userId,
-  }) async {
-    try {
-      final result = await _supabase
-          .from('user_notification_settings')
-          .select('push_enabled')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-      // row 없으면 default true
-      if (result == null) return true;
-
-      return result['push_enabled'] as bool? ?? true;
-    } catch (e) {
-      // 테이블이 없거나 에러 시 default true
-      return true;
-    }
-  }
-
-  /// Master Push 설정 저장 (upsert)
+  /// Master Push 설정 저장 (RPC 사용)
+  ///
+  /// Uses my_page_update_user_settings RPC with master_push action.
   Future<void> setMasterPushEnabled({
     required String userId,
     required bool enabled,
   }) async {
     try {
-      await _supabase.from('user_notification_settings').upsert(
-        {
-          'user_id': userId,
-          'push_enabled': enabled,
-          'updated_at': DateTime.now().toUtc().toIso8601String(),
+      await _supabase.rpc<Map<String, dynamic>>(
+        'my_page_update_user_settings',
+        params: {
+          'p_user_id': userId,
+          'p_action': 'master_push',
+          'p_data': {'push_enabled': enabled},
         },
-        onConflict: 'user_id',
       );
     } catch (e) {
       throw Exception('Failed to update master push setting: $e');

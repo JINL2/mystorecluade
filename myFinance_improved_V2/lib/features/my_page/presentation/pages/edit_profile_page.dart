@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:myfinance_improved/app/providers/app_state.dart';
 import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:myfinance_improved/app/providers/auth_providers.dart';
 import 'package:myfinance_improved/shared/themes/toss_colors.dart';
@@ -78,18 +79,9 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
       final appState = ref.read(appStateProvider);
       final companyId = appState.companyChoosen;
 
-      // Get user profile from repository
+      // Get user profile from repository (includes bank_accounts via RPC)
       final repository = ref.read(userProfileRepositoryProvider);
       final profile = await repository.getUserProfile(userId);
-
-      // Query bank account via repository
-      Map<String, dynamic>? bankResponse;
-      if (companyId.isNotEmpty) {
-        bankResponse = await repository.getUserBankAccount(
-          userId: userId,
-          companyId: companyId,
-        );
-      }
 
       if (profile != null) {
         _profile = profile;
@@ -109,10 +101,15 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
           }
         }
 
+        // Get bank account for current company from RPC response
+        final bankAccount = companyId.isNotEmpty
+            ? _profile!.getBankAccountForCompany(companyId)
+            : null;
+
         // Store bank info
-        _originalBankName = bankResponse?['user_bank_name']?.toString() ?? '';
-        _originalBankAccount = bankResponse?['user_account_number']?.toString() ?? '';
-        _originalBankDescription = bankResponse?['description']?.toString() ?? '';
+        _originalBankName = bankAccount?.bankName ?? '';
+        _originalBankAccount = bankAccount?.accountNumber ?? '';
+        _originalBankDescription = bankAccount?.description ?? '';
 
         // Set controller values
         _firstNameController.text = _originalFirstName ?? '';
@@ -258,7 +255,17 @@ class _EditProfilePageState extends ConsumerState<EditProfilePage> {
               const GrayDividerSpace(),
 
               // Account Information (Read-only)
-              AccountInfoSection(profile: _profile!),
+              Builder(
+                builder: (context) {
+                  final appState = ref.watch(appStateProvider);
+                  return AccountInfoSection(
+                    profile: _profile!,
+                    roleName: appState.currentCompanyRoleName,
+                    companyName: appState.companyName,
+                    storeName: appState.storeName,
+                  );
+                },
+              ),
 
               const GrayDividerSpace(),
             ],

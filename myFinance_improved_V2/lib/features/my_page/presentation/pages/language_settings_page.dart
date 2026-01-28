@@ -10,6 +10,8 @@ import 'package:myfinance_improved/shared/themes/toss_dimensions.dart';
 
 import '../../../../app/providers/auth_providers.dart';
 import '../../../../app/providers/locale_provider.dart';
+import '../../domain/entities/user_profile.dart';
+import '../providers/my_page_notifier.dart';
 import '../providers/user_profile_providers.dart';
 import 'package:myfinance_improved/shared/widgets/index.dart';
 
@@ -21,20 +23,13 @@ class LanguageSettingsPage extends ConsumerStatefulWidget {
 }
 
 class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
-  String _selectedLanguage = 'English'; // Current selection in UI
-  String _savedLanguage = 'English'; // Language saved in database
-  String? _selectedLanguageId; // Language ID from database
+  String _selectedLanguageCode = 'en';
+  String _savedLanguageCode = 'en';
+  String? _selectedLanguageId;
   bool _isLoading = true;
   bool _hasUnsavedChanges = false;
 
-  final List<Map<String, String>> _languages = [
-    {'code': 'ko', 'name': 'Korean', 'native': '한국어'},
-    {'code': 'en', 'name': 'English', 'native': 'English'},
-    {'code': 'vi', 'name': 'Vietnamese', 'native': 'Tiếng Việt'},
-  ];
-
-  // Map to store language_id for each language code
-  final Map<String, String> _languageIds = {};
+  List<Language> _availableLanguages = [];
 
   @override
   void initState() {
@@ -49,47 +44,35 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       final authState = await ref.read(authStateProvider.future);
       if (authState == null) return;
 
-      final userId = authState.id;
-      final repository = ref.read(userProfileRepositoryProvider);
+      // Load user profile if not already loaded
+      final myPageState = ref.read(myPageNotifierProvider);
+      UserProfile? userProfile = myPageState.userProfile;
 
-      // Step 1: Fetch all available languages from repository
-      final languagesResponse = await repository.getLanguages();
-
-      for (var lang in languagesResponse) {
-        _languageIds[lang['language_code'] as String] = lang['language_id'] as String;
+      if (userProfile == null) {
+        await ref.read(myPageNotifierProvider.notifier).loadUserData(authState.id);
+        userProfile = ref.read(myPageNotifierProvider).userProfile;
       }
 
-      // Step 2: Fetch user's current language preference
-      final userLanguageId = await repository.getUserLanguageId(userId);
+      if (userProfile != null && mounted) {
+        setState(() {
+          _availableLanguages = userProfile!.availableLanguages;
 
-      if (userLanguageId != null) {
-        _selectedLanguageId = userLanguageId;
-
-        // Find the language name from the ID
-        final languageEntry = _languageIds.entries.firstWhere(
-          (entry) => entry.value == userLanguageId,
-          orElse: () => const MapEntry('en', ''),
-        );
-
-        final languageCode = languageEntry.key;
-        final languageData = _languages.firstWhere(
-          (lang) => lang['code'] == languageCode,
-          orElse: () => _languages[1], // Default to English
-        );
-
-        if (mounted) {
-          setState(() {
-            _selectedLanguage = languageData['name']!;
-            _savedLanguage = languageData['name']!;
-            _isLoading = false;
-          });
-        }
+          // Get current language from profile
+          if (userProfile.language != null) {
+            _selectedLanguageCode = userProfile.language!.languageCode;
+            _savedLanguageCode = userProfile.language!.languageCode;
+            _selectedLanguageId = userProfile.language!.languageId;
+          } else {
+            _selectedLanguageCode = 'en';
+            _savedLanguageCode = 'en';
+          }
+          _isLoading = false;
+        });
       } else {
-        // Default to English if no preference saved
         if (mounted) {
           setState(() {
-            _selectedLanguage = 'English';
-            _savedLanguage = 'English';
+            _selectedLanguageCode = 'en';
+            _savedLanguageCode = 'en';
             _isLoading = false;
           });
         }
@@ -98,7 +81,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       debugPrint('Error loading language: $e');
       if (mounted) {
         setState(() {
-          _selectedLanguage = 'English';
+          _selectedLanguageCode = 'en';
           _isLoading = false;
         });
       }
@@ -106,30 +89,55 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
   }
 
   // Select language in UI (doesn't save immediately)
-  void _selectLanguage(String languageCode, String languageName) {
+  void _selectLanguage(String languageCode) {
     setState(() {
-      _selectedLanguage = languageName;
-      _hasUnsavedChanges = (_selectedLanguage != _savedLanguage);
+      _selectedLanguageCode = languageCode;
+      _hasUnsavedChanges = (_selectedLanguageCode != _savedLanguageCode);
     });
+  }
+
+  // Get language name for display
+  String _getLanguageName(String code) {
+    switch (code) {
+      case 'ko':
+        return 'Korean';
+      case 'en':
+        return 'English';
+      case 'vi':
+        return 'Vietnamese';
+      default:
+        return 'English';
+    }
+  }
+
+  // Get native language name
+  String _getNativeName(String code) {
+    switch (code) {
+      case 'ko':
+        return '한국어';
+      case 'en':
+        return 'English';
+      case 'vi':
+        return 'Tiếng Việt';
+      default:
+        return 'English';
+    }
   }
 
   // Apply and save the selected language
   Future<void> _applyLanguageChange() async {
-    // Find the selected language details
-    final selectedLang = _languages.firstWhere(
-      (lang) => lang['name'] == _selectedLanguage,
-      orElse: () => _languages[1], // Default to English
-    );
-
-    final languageCode = selectedLang['code']!;
-    final languageName = selectedLang['name']!;
-
     try {
-      // Get language_id for the selected language code
-      final languageId = _languageIds[languageCode];
-      if (languageId == null) {
-        throw Exception('Language ID not found for code: $languageCode');
-      }
+      // Find language_id for selected code
+      final selectedLanguage = _availableLanguages.firstWhere(
+        (lang) => lang.languageCode == _selectedLanguageCode,
+        orElse: () => _availableLanguages.firstWhere(
+          (lang) => lang.languageCode == 'en',
+          orElse: () => _availableLanguages.first,
+        ),
+      );
+
+      final languageId = selectedLanguage.languageId;
+      final languageName = _getLanguageName(_selectedLanguageCode);
 
       // Get current user ID
       final authState = await ref.read(authStateProvider.future);
@@ -146,11 +154,14 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
       );
 
       // Update app locale immediately
-      await ref.read(localeProvider.notifier).setLocale(languageCode);
+      await ref.read(localeProvider.notifier).setLocale(_selectedLanguageCode);
+
+      // Reload user profile to get updated data
+      await ref.read(myPageNotifierProvider.notifier).loadUserData(userId);
 
       // Update saved state
       setState(() {
-        _savedLanguage = languageName;
+        _savedLanguageCode = _selectedLanguageCode;
         _selectedLanguageId = languageId;
         _hasUnsavedChanges = false;
       });
@@ -163,7 +174,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
 
       // Revert UI on error
       setState(() {
-        _selectedLanguage = _savedLanguage;
+        _selectedLanguageCode = _savedLanguageCode;
         _hasUnsavedChanges = false;
       });
 
@@ -232,9 +243,9 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
               ),
               child: Column(
                 children: [
-                  for (int i = 0; i < _languages.length; i++) ...[
-                    _buildLanguageTile(_languages[i]),
-                    if (i < _languages.length - 1)
+                  for (int i = 0; i < _availableLanguages.length; i++) ...[
+                    _buildLanguageTile(_availableLanguages[i]),
+                    if (i < _availableLanguages.length - 1)
                       Divider(
                         height: TossDimensions.dividerThickness,
                         thickness: TossDimensions.dividerThickness,
@@ -291,12 +302,12 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
     );
   }
 
-  Widget _buildLanguageTile(Map<String, String> language) {
-    final isSelected = _selectedLanguage == language['name'];
-    final languageCode = language['code']!.toUpperCase();
+  Widget _buildLanguageTile(Language language) {
+    final isSelected = _selectedLanguageCode == language.languageCode;
+    final languageCode = language.languageCode.toUpperCase();
 
     return InkWell(
-      onTap: () => _selectLanguage(language['code']!, language['name']!),
+      onTap: () => _selectLanguage(language.languageCode),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: TossSpacing.space4,
@@ -330,7 +341,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    language['name']!,
+                    _getLanguageName(language.languageCode),
                     style: TossTextStyles.body.copyWith(
                       color: isSelected ? TossColors.primary : TossColors.gray900,
                       fontWeight: isSelected ? TossFontWeight.semibold : TossFontWeight.medium,
@@ -338,7 +349,7 @@ class _LanguageSettingsPageState extends ConsumerState<LanguageSettingsPage> {
                   ),
                   const SizedBox(height: TossSpacing.space1),
                   Text(
-                    language['native']!,
+                    _getNativeName(language.languageCode),
                     style: TossTextStyles.bodySmall.copyWith(
                       color: TossColors.gray500,
                     ),

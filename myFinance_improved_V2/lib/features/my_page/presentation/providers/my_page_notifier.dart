@@ -117,19 +117,17 @@ class MyPageNotifier extends _$MyPageNotifier {
     }
   }
 
-  /// 은행 계좌 정보 조회
-  Future<Map<String, dynamic>?> getBankAccount(String companyId) async {
-    try {
-      final userId = _currentUserId;
-      if (userId == null) return null;
+  /// 은행 계좌 정보 조회 (RPC 응답의 bank_accounts에서 가져옴)
+  /// 이미 로드된 userProfile에서 해당 company의 bank account를 찾아 반환
+  Map<String, dynamic>? getBankAccount(String companyId) {
+    final bankAccount = state.userProfile?.getBankAccountForCompany(companyId);
+    if (bankAccount == null) return null;
 
-      return await _repository.getUserBankAccount(
-        userId: userId,
-        companyId: companyId,
-      );
-    } catch (e) {
-      return null;
-    }
+    return {
+      'user_bank_name': bankAccount.bankName,
+      'user_account_number': bankAccount.accountNumber,
+      'description': bankAccount.description,
+    };
   }
 
   /// 프로필 이미지 업로드 (직접 Repository 호출)

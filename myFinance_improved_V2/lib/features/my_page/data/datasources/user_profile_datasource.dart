@@ -3,32 +3,44 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class UserProfileDataSource {
   final _supabase = Supabase.instance.client;
 
-  /// Get user profile from users table
+  /// Get complete user profile via RPC
+  ///
+  /// Returns user profile with:
+  /// - Basic user info (user_id, first_name, last_name, email, etc.)
+  /// - Bank accounts array (all companies)
+  /// - Current language setting
+  /// - Available languages list (ko, en, vi)
   Future<Map<String, dynamic>?> getUserProfile(String userId) async {
     try {
-      final result = await _supabase
-          .from('users')
-          .select('user_id, first_name, last_name, email, user_phone_number, date_of_birth, profile_image, created_at, updated_at')
-          .eq('user_id', userId)
-          .maybeSingle();
+      final result = await _supabase.rpc<Map<String, dynamic>?>(
+        'my_page_get_user_profile',
+        params: {'p_user_id': userId},
+      );
 
-      return result;
+      if (result == null) return null;
+      return Map<String, dynamic>.from(result as Map);
     } catch (e) {
       throw Exception('Failed to get user profile: $e');
     }
   }
 
-  /// Update user profile in users table
+  /// Update user profile (RPC 사용)
+  ///
+  /// Uses my_page_update_user_settings RPC with profile action.
+  /// Supported fields: first_name, last_name, user_phone_number, date_of_birth, profile_image
   Future<bool> updateUserProfile({
     required String userId,
     required Map<String, dynamic> updates,
   }) async {
     try {
-      await _supabase
-          .from('users')
-          .update(updates)
-          .eq('user_id', userId)
-          .select();
+      await _supabase.rpc<Map<String, dynamic>>(
+        'my_page_update_user_settings',
+        params: {
+          'p_user_id': userId,
+          'p_action': 'profile',
+          'p_data': updates,
+        },
+      );
 
       return true;
     } catch (e) {
@@ -36,26 +48,10 @@ class UserProfileDataSource {
     }
   }
 
-  /// Get user's bank account info
-  Future<Map<String, dynamic>?> getUserBankAccount({
-    required String userId,
-    required String companyId,
-  }) async {
-    try {
-      final result = await _supabase
-          .from('users_bank_account')
-          .select('user_bank_name, user_account_number, description')
-          .eq('user_id', userId)
-          .eq('company_id', companyId)
-          .maybeSingle();
-
-      return result;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Save or update user's bank account
+  /// Save or update user's bank account (RPC 사용)
+  ///
+  /// Uses my_page_update_user_settings RPC with bank_account action.
+  /// RPC handles UPSERT logic with EXISTS check internally.
   Future<bool> saveUserBankAccount({
     required String userId,
     required String companyId,
@@ -64,33 +60,19 @@ class UserProfileDataSource {
     required String description,
   }) async {
     try {
-      final existing = await _supabase
-          .from('users_bank_account')
-          .select('id')
-          .eq('user_id', userId)
-          .eq('company_id', companyId)
-          .maybeSingle();
-
-      final now = DateTime.now().toUtc().toIso8601String();
-
-      if (existing != null) {
-        await _supabase.from('users_bank_account').update({
-          'user_bank_name': bankName,
-          'user_account_number': accountNumber,
-          'description': description,
-          'updated_at': now,
-        }).eq('user_id', userId).eq('company_id', companyId);
-      } else {
-        await _supabase.from('users_bank_account').insert({
-          'user_id': userId,
-          'company_id': companyId,
-          'user_bank_name': bankName,
-          'user_account_number': accountNumber,
-          'description': description,
-          'created_at': now,
-          'updated_at': now,
-        });
-      }
+      await _supabase.rpc<Map<String, dynamic>>(
+        'my_page_update_user_settings',
+        params: {
+          'p_user_id': userId,
+          'p_action': 'bank_account',
+          'p_data': {
+            'company_id': companyId,
+            'user_bank_name': bankName,
+            'user_account_number': accountNumber,
+            'description': description,
+          },
+        },
+      );
 
       return true;
     } catch (e) {
@@ -98,60 +80,22 @@ class UserProfileDataSource {
     }
   }
 
-  /// Get available languages
-  Future<List<Map<String, dynamic>>> getLanguages() async {
-    try {
-      final result = await _supabase
-          .from('languages')
-          .select('language_id, language_code, language_name')
-          .inFilter('language_code', ['ko', 'en', 'vi']);
-
-      return List<Map<String, dynamic>>.from(result ?? []);
-    } catch (e) {
-      return [];
-    }
-  }
-
-  /// Get user's language preference
-  Future<String?> getUserLanguageId(String userId) async {
-    try {
-      final result = await _supabase
-          .from('users')
-          .select('user_language')
-          .eq('user_id', userId)
-          .maybeSingle();
-
-      return result?['user_language'] as String?;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Get language code by language ID
-  Future<String?> getLanguageCode(String languageId) async {
-    try {
-      final result = await _supabase
-          .from('languages')
-          .select('language_code')
-          .eq('language_id', languageId)
-          .maybeSingle();
-
-      return result?['language_code'] as String?;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Update user's language preference
+  /// Update user's language preference (RPC 사용)
+  ///
+  /// Uses my_page_update_user_settings RPC with language action.
   Future<bool> updateUserLanguage({
     required String userId,
     required String languageId,
   }) async {
     try {
-      await _supabase.from('users').update({
-        'user_language': languageId,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('user_id', userId);
+      await _supabase.rpc<Map<String, dynamic>>(
+        'my_page_update_user_settings',
+        params: {
+          'p_user_id': userId,
+          'p_action': 'language',
+          'p_data': {'language_id': languageId},
+        },
+      );
 
       return true;
     } catch (e) {
