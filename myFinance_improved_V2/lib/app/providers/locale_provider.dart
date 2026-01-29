@@ -45,14 +45,12 @@ class LocaleNotifier extends StateNotifier<Locale> {
     if (_repository == null) return;
 
     try {
-      // Fetch user's language ID via repository
-      final userLanguageId = await _repository!.getUserLanguageId(userId);
+      // Fetch user profile (includes language info)
+      final userProfile = await _repository!.getUserProfile(userId);
 
-      if (userLanguageId != null) {
-        // Fetch language code via repository
-        final languageCode = await _repository!.getLanguageCode(userLanguageId);
-
-        if (languageCode != null && _locales.containsKey(languageCode)) {
+      if (userProfile != null && userProfile.languageCode != null) {
+        final languageCode = userProfile.languageCode!;
+        if (_locales.containsKey(languageCode)) {
           await setLocale(languageCode);
         }
       }

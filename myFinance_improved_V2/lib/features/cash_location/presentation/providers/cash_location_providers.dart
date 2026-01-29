@@ -4,6 +4,7 @@
 // Following Clean Architecture: Presentation depends only on Domain
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myfinance_improved/app/providers/app_state_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 // Import DI providers (centralized dependency injection)
@@ -135,9 +136,16 @@ Future<StockFlowResponse> stockFlow(
 /// Currency Types Provider - fetches available currency types from register_denomination feature
 @riverpod
 Future<List<CurrencyType>> currencyTypes(CurrencyTypesRef ref) async {
+  final appState = ref.watch(appStateProvider);
+  final companyId = appState.companyChoosen;
+
+  if (companyId.isEmpty) {
+    return [];
+  }
+
   final currencyRepository =
       ref.read(register_denomination_di.currencyRepositoryProvider);
-  return currencyRepository.getAvailableCurrencyTypes();
+  return currencyRepository.getAvailableCurrencyTypes(companyId);
 }
 
 // ============================================================================
