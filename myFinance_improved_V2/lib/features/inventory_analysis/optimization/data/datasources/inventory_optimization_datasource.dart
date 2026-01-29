@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/category_summary_dto.dart';
 import '../models/inventory_dashboard_dto.dart';
+import '../models/inventory_health_dashboard_dto.dart';
 import '../models/paginated_products_dto.dart';
 
 /// Inventory Optimization DataSource
@@ -75,5 +76,31 @@ class InventoryOptimizationDatasource {
   /// RPC: refresh_inventory_optimization_views
   Future<void> refreshViews() async {
     await _client.rpc<void>('refresh_inventory_optimization_views');
+  }
+
+  /// 재고 건강도 대시보드 조회 (V2)
+  /// RPC: inventory_analysis_get_inventory_health_dashboard
+  Future<InventoryHealthDashboardDto> getHealthDashboard({
+    required String companyId,
+    String? storeId,
+    double urgentThreshold = 1.0,
+    int limit = 10,
+  }) async {
+    final params = <String, dynamic>{
+      'p_company_id': companyId,
+      'p_urgent_threshold': urgentThreshold,
+      'p_limit': limit,
+    };
+
+    if (storeId != null) {
+      params['p_store_id'] = storeId;
+    }
+
+    final response = await _client.rpc<Map<String, dynamic>>(
+      'inventory_analysis_get_inventory_health_dashboard',
+      params: params,
+    );
+
+    return InventoryHealthDashboardDto.fromJson(response);
   }
 }

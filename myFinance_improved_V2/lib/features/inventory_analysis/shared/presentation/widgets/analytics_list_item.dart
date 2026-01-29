@@ -7,6 +7,7 @@ import 'analytics_status_badge.dart';
 /// 상세 페이지에서 제품/카테고리 목록 표시
 class AnalyticsListItem extends StatelessWidget {
   final String title;
+  final String? sku;
   final String? subtitle;
   final String? value;
   final String? subValue;
@@ -15,9 +16,13 @@ class AnalyticsListItem extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
+  /// 권장 주문 수량 (0보다 크면 표시)
+  final int? orderQty;
+
   const AnalyticsListItem({
     super.key,
     required this.title,
+    this.sku,
     this.subtitle,
     this.value,
     this.subValue,
@@ -25,6 +30,7 @@ class AnalyticsListItem extends StatelessWidget {
     this.leading,
     this.trailing,
     this.onTap,
+    this.orderQty,
   });
 
   @override
@@ -77,6 +83,19 @@ class AnalyticsListItem extends StatelessWidget {
                       ],
                     ],
                   ),
+                  // SKU (제품명 바로 아래, caption style)
+                  if (sku != null && sku!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      sku!,
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  // Subtitle (category 등)
                   if (subtitle != null) ...[
                     const SizedBox(height: 2),
                     Text(
@@ -113,6 +132,27 @@ class AnalyticsListItem extends StatelessWidget {
                       subValue!,
                       style: TossTextStyles.caption.copyWith(
                         color: TossColors.gray500,
+                      ),
+                    ),
+                  ],
+                  // 권장 주문 수량 표시
+                  if (orderQty != null && orderQty! > 0) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: TossSpacing.space2,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: TossColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Order: $orderQty',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],

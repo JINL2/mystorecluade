@@ -3,25 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../app/providers/app_state_provider.dart';
 import '../../../../../shared/index.dart';
-import '../../domain/entities/inventory_dashboard.dart';
-import '../../domain/entities/inventory_health.dart';
-import '../../domain/entities/inventory_status.dart';
+import '../../../shared/presentation/widgets/analytics_widgets.dart';
+import '../../domain/entities/inventory_health_dashboard.dart';
 import '../providers/inventory_optimization_providers.dart';
-import '../widgets/category_list_tile.dart';
-import '../widgets/inventory_summary_section.dart';
-import '../widgets/priority_action_card.dart';
-import '../widgets/status_filter_chips.dart';
-import 'category_list_page.dart';
-import 'product_list_page.dart';
 
-/// 재고 최적화 대시보드 페이지 (2026 UI/UX 트렌드 적용)
+/// Inventory Health Dashboard Page (V2)
 ///
-/// 핵심 개선:
-/// - 스토어 선택 지원
-/// - 우선순위 기반 레이아웃 (중요한 것 먼저)
-/// - 중복 정보 제거
-/// - 쉬운 용어 사용
-/// - Warning 상태 추가
+/// Sales Analytics와 동일한 디자인 패턴 사용:
+/// - StoreSelector (View: dropdown)
+/// - SummaryCards (수평 스크롤)
+/// - SectionHeader + ListItems
 class InventoryOptimizationPage extends ConsumerStatefulWidget {
   final String? companyId;
   final String? storeId;
@@ -76,11 +67,16 @@ class _InventoryOptimizationPageState
     }
   }
 
+  HealthDashboardFilter get _filter => HealthDashboardFilter(
+        companyId: _companyId,
+        storeId: _selectedStoreId,
+      );
+
   void _onStoreChanged(String? storeId) {
     setState(() {
       _selectedStoreId = storeId;
     });
-    ref.invalidate(inventoryDashboardProvider(_companyId));
+    ref.invalidate(inventoryHealthDashboardProvider(_filter));
   }
 
   @override
@@ -106,20 +102,16 @@ class _InventoryOptimizationPageState
       _initializeStores();
     }
 
-    final dashboardAsync = ref.watch(inventoryDashboardProvider(companyId));
+    final dashboardAsync = ref.watch(inventoryHealthDashboardProvider(_filter));
 
     return TossScaffold(
       backgroundColor: TossColors.gray50,
-      appBar: TossAppBar(
+      appBar: const TossAppBar(
         title: 'Inventory Health',
-        primaryActionIcon: Icons.refresh,
-        onPrimaryAction: () {
-          ref.invalidate(inventoryDashboardProvider(companyId));
-        },
       ),
       body: Column(
         children: [
-          // Store Selector
+          // Store Selector (Sales Analytics와 동일)
           _buildStoreSelector(),
           // Main Content
           Expanded(
@@ -128,10 +120,10 @@ class _InventoryOptimizationPageState
               error: (error, stack) => TossErrorView(
                 error: error,
                 onRetry: () {
-                  ref.invalidate(inventoryDashboardProvider(companyId));
+                  ref.invalidate(inventoryHealthDashboardProvider(_filter));
                 },
               ),
-              data: (dashboard) => _buildContent(dashboard, companyId),
+              data: (dashboard) => _buildContent(dashboard),
             ),
           ),
         ],
@@ -139,12 +131,12 @@ class _InventoryOptimizationPageState
     );
   }
 
-  /// Store Selector (Sales Analytics V2와 동일한 패턴)
+  /// Store Selector (Sales Analytics와 동일한 스타일)
   Widget _buildStoreSelector() {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: TossSpacing.paddingMD,
-        vertical: TossSpacing.paddingSM,
+        horizontal: TossSpacing.space4,
+        vertical: TossSpacing.space2,
       ),
       decoration: const BoxDecoration(
         color: TossColors.white,
@@ -156,15 +148,15 @@ class _InventoryOptimizationPageState
         children: [
           Icon(
             Icons.store_outlined,
-            size: TossSpacing.iconSM,
+            size: 20,
             color: TossColors.textSecondary,
           ),
-          const SizedBox(width: TossSpacing.gapSM),
+          const SizedBox(width: TossSpacing.space2),
           Expanded(
             child: Container(
               padding: const EdgeInsets.symmetric(
-                horizontal: TossSpacing.paddingSM,
-                vertical: TossSpacing.paddingXS,
+                horizontal: TossSpacing.space3,
+                vertical: TossSpacing.space2,
               ),
               decoration: BoxDecoration(
                 color: TossColors.gray50,
@@ -194,7 +186,7 @@ class _InventoryOptimizationPageState
                             size: 16,
                             color: TossColors.primary,
                           ),
-                          const SizedBox(width: TossSpacing.gapSM),
+                          const SizedBox(width: TossSpacing.space2),
                           Text(
                             'All Stores',
                             style: TossTextStyles.body.copyWith(
@@ -218,7 +210,7 @@ class _InventoryOptimizationPageState
                               size: 16,
                               color: TossColors.gray500,
                             ),
-                            const SizedBox(width: TossSpacing.gapSM),
+                            const SizedBox(width: TossSpacing.space2),
                             Expanded(
                               child: Text(
                                 storeName,
@@ -241,199 +233,578 @@ class _InventoryOptimizationPageState
     );
   }
 
-  Widget _buildContent(InventoryDashboard dashboard, String companyId) {
-    final health = dashboard.health;
-
-    // 긴급 조치가 필요한 총 수
-    final urgentCount = health.abnormalCount + health.stockoutCount;
-    final attentionCount = health.criticalCount + health.warningCount;
+  Widget _buildContent(InventoryHealthDashboard dashboard) {
+    final summary = dashboard.summary;
 
     return RefreshIndicator(
       onRefresh: () async {
-        ref.invalidate(inventoryDashboardProvider(companyId));
+        ref.invalidate(inventoryHealthDashboardProvider(_filter));
       },
       color: TossColors.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.all(TossSpacing.paddingMD),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 1. 긴급 조치 필요 (가장 중요) - 빨간색
-              if (urgentCount > 0)
-                PriorityActionCard.urgent(
-                  count: urgentCount,
-                  stockoutCount: health.stockoutCount,
-                  abnormalCount: health.abnormalCount,
-                  onTap: () => _navigateToProductList(
-                    companyId,
-                    urgentCount == health.stockoutCount
-                        ? InventoryStatus.stockout
-                        : InventoryStatus.abnormal,
-                  ),
-                ),
-              if (urgentCount > 0) const SizedBox(height: TossSpacing.gapMD),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: TossSpacing.space4),
 
-              // 2. 주의 필요 (두번째 중요) - 주황색
-              if (attentionCount > 0)
-                PriorityActionCard.attention(
-                  count: attentionCount,
-                  criticalCount: health.criticalCount,
-                  warningCount: health.warningCount,
-                  criticalDays: dashboard.thresholds.criticalDays,
-                  warningDays: dashboard.thresholds.warningDays,
-                  onTap: () => _navigateToProductList(
-                    companyId,
-                    health.criticalCount > 0
-                        ? InventoryStatus.critical
-                        : InventoryStatus.warning,
-                  ),
-                ),
-              if (attentionCount > 0)
-                const SizedBox(height: TossSpacing.gapLG),
+            // 1. Overview Section Header
+            const AnalyticsSectionHeader(title: 'Overview'),
 
-              // 3. 재고 현황 요약 (한눈에 보기)
-              InventorySummarySection(
-                totalProducts: health.totalProducts,
-                normalCount: health.normalCount,
-                reorderCount: health.reorderNeededCount,
-                overstockCount: health.overstockCount,
-                deadStockCount: health.deadStockCount,
+            // 2. Summary Cards (Sales Analytics와 동일한 수평 스크롤)
+            _buildSummaryCards(summary),
+            const SizedBox(height: TossSpacing.space4),
+
+            // 3. Status Breakdown Cards (6개 카드를 2열 그리드로)
+            _buildStatusGrid(summary),
+            const SizedBox(height: TossSpacing.space4),
+
+            // 4. Urgent Products Section
+            if (dashboard.urgentProducts.isNotEmpty) ...[
+              _buildProductsSection(
+                title: 'Urgent Reorder',
+                subtitle: 'High sales velocity, low stock',
+                products: dashboard.urgentProducts,
+                status: 'critical',
               ),
-              const SizedBox(height: TossSpacing.gapLG),
+              const SizedBox(height: TossSpacing.space4),
+            ],
 
-              // 4. 빠른 필터 (클릭하면 목록으로 이동)
-              _buildQuickFilters(companyId, health),
-              const SizedBox(height: TossSpacing.gapLG),
+            // 5. Normal Products Section
+            if (dashboard.normalProducts.isNotEmpty) ...[
+              _buildProductsSection(
+                title: 'Normal Reorder',
+                subtitle: 'Low sales velocity, plan ahead',
+                products: dashboard.normalProducts,
+                status: 'warning',
+              ),
+              const SizedBox(height: TossSpacing.space4),
+            ],
 
-              // 5. Top 카테고리
-              _buildTopCategories(dashboard, companyId),
+            // 6. Overstock Products
+            if (dashboard.overstockProducts.isNotEmpty) ...[
+              _buildOverstockSection(dashboard.overstockProducts),
+              const SizedBox(height: TossSpacing.space4),
+            ],
 
-              const SizedBox(height: TossSpacing.gapXL),
+            // 8. Recount Products (음수 재고 - 제일 하단)
+            if (dashboard.recountProducts.isNotEmpty) ...[
+              _buildRecountSection(dashboard.recountProducts),
+              const SizedBox(height: TossSpacing.space4),
+            ],
+
+            const SizedBox(height: TossSpacing.space6),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Summary Cards (3개 카드를 한 줄에 균등 배치)
+  Widget _buildSummaryCards(HealthSummary summary) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: Row(
+        children: [
+          Expanded(
+            child: _InventorySummaryCard(
+              title: 'Total Products',
+              value: summary.totalProducts,
+              icon: Icons.inventory_2_outlined,
+              color: TossColors.gray600,
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: _InventorySummaryCard(
+              title: 'Reorder Needed',
+              value: summary.totalReorderNeeded,
+              icon: Icons.shopping_cart_outlined,
+              color: TossColors.amber,
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: _InventorySummaryCard(
+              title: 'Sufficient',
+              value: summary.sufficientCount,
+              percentage: summary.sufficientPct,
+              icon: Icons.check_circle_outline,
+              color: TossColors.success,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Status Grid (6개 카드를 2열로 배치)
+  Widget _buildStatusGrid(HealthSummary summary) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _StatusCard(
+                  title: 'Urgent',
+                  count: summary.urgentCount,
+                  percentage: summary.urgentPct,
+                  icon: Icons.warning_amber_outlined,
+                  status: 'critical',
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: _StatusCard(
+                  title: 'Normal',
+                  count: summary.normalCount,
+                  percentage: summary.normalPct,
+                  icon: Icons.schedule_outlined,
+                  status: 'warning',
+                ),
+              ),
             ],
           ),
-        ),
+          const SizedBox(height: TossSpacing.space3),
+          Row(
+            children: [
+              Expanded(
+                child: _StatusCard(
+                  title: 'Sufficient',
+                  count: summary.sufficientCount,
+                  percentage: summary.sufficientPct,
+                  icon: Icons.check_circle_outline,
+                  status: 'good',
+                ),
+              ),
+              const SizedBox(width: TossSpacing.space3),
+              Expanded(
+                child: _StatusCard(
+                  title: 'Overstock',
+                  count: summary.overstockCount,
+                  percentage: summary.overstockPct,
+                  icon: Icons.inventory_outlined,
+                  status: 'info',
+                ),
+              ),
+            ],
+          ),
+          if (summary.recountCount > 0) ...[
+            const SizedBox(height: TossSpacing.space3),
+            _StatusCard(
+              title: 'Recount Needed',
+              count: summary.recountCount,
+              percentage: summary.recountPct,
+              icon: Icons.error_outline,
+              status: 'critical',
+              fullWidth: true,
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  Widget _buildQuickFilters(String companyId, InventoryHealth health) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Filters',
-          style: TossTextStyles.subtitle.copyWith(
-            fontWeight: TossFontWeight.semibold,
-          ),
-        ),
-        const SizedBox(height: TossSpacing.gapMD),
-        StatusFilterChips(
-          filters: [
-            StatusFilterItem(
-              status: InventoryStatus.reorderNeeded,
-              count: health.reorderNeededCount,
-              label: 'Reorder',
-            ),
-            StatusFilterItem(
-              status: InventoryStatus.overstock,
-              count: health.overstockCount,
-              label: 'Overstock',
-            ),
-            StatusFilterItem(
-              status: InventoryStatus.deadStock,
-              count: health.deadStockCount,
-              label: 'Dead Stock',
-            ),
-            StatusFilterItem(
-              status: InventoryStatus.warning,
-              count: health.warningCount,
-              label: 'Warning',
-            ),
-          ],
-          onTap: (status) => _navigateToProductList(companyId, status),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTopCategories(InventoryDashboard dashboard, String companyId) {
-    if (dashboard.topCategories.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  /// Recount Section (음수 재고 - 특별 강조)
+  Widget _buildRecountSection(List<RecountProduct> products) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+      child: TossCard(
+        backgroundColor: TossColors.errorLight,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Categories',
-              style: TossTextStyles.subtitle.copyWith(
-                fontWeight: TossFontWeight.semibold,
-              ),
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: TossColors.error.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(TossBorderRadius.md),
+                  ),
+                  child: const Icon(
+                    Icons.error_outline,
+                    color: TossColors.error,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: TossSpacing.space3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Inventory Recount Needed',
+                        style: TossTextStyles.body.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: TossColors.error,
+                        ),
+                      ),
+                      Text(
+                        'Negative stock detected - physical count required',
+                        style: TossTextStyles.caption.copyWith(
+                          color: TossColors.error.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            TossButton.textButton(
-              text: 'View All',
-              onPressed: () => _navigateToCategoryList(companyId),
-            ),
-          ],
-        ),
-        const SizedBox(height: TossSpacing.gapMD),
-        ...dashboard.topCategories.take(5).map(
-              (category) => Padding(
-                padding: const EdgeInsets.only(bottom: TossSpacing.gapMD),
-                child: CategoryListTile(
-                  category: category,
-                  onTap: () => _navigateToProductListByCategory(
-                    companyId,
-                    category.categoryId,
-                    category.categoryName,
+            const SizedBox(height: TossSpacing.space4),
+            const Divider(height: 1, color: TossColors.error),
+            const SizedBox(height: TossSpacing.space3),
+            ...products.take(10).map((p) => _RecountItem(product: p)),
+            if (products.length > 10)
+              Padding(
+                padding: const EdgeInsets.only(top: TossSpacing.space2),
+                child: Text(
+                  '+${products.length - 10} more items',
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.error,
                   ),
                 ),
               ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Products Section (AnalyticsListItem 사용)
+  Widget _buildProductsSection({
+    required String title,
+    required String subtitle,
+    required List<HealthProduct> products,
+    required String status,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        AnalyticsSectionHeader(
+          title: title,
+          subtitle: subtitle,
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          child: TossCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: products.take(5).map((p) {
+                final displayName = _buildProductDisplayName(
+                  p.productName,
+                  p.variantName,
+                );
+                return AnalyticsListItem(
+                  title: displayName,
+                  sku: p.sku,
+                  subtitle: p.categoryName,
+                  value: '${p.currentStock}',
+                  subValue: p.daysOfInventory > 0
+                      ? '${p.daysOfInventory.toStringAsFixed(0)}d left'
+                      : 'in stock',
+                  status: status,
+                  orderQty: p.recommendedOrderQty,
+                );
+              }).toList(),
             ),
+          ),
+        ),
       ],
     );
   }
 
-  void _navigateToProductList(String companyId, InventoryStatus status) {
-    Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => ProductListPage(
-          companyId: companyId,
-          statusFilter: status.filterValue,
-          title: status.labelEn,
+  /// Overstock Section
+  Widget _buildOverstockSection(List<OverstockProduct> products) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const AnalyticsSectionHeader(
+          title: 'Overstock',
+          subtitle: 'Excess inventory, consider promotions',
         ),
-      ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: TossSpacing.space4),
+          child: TossCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: products.take(5).map((p) {
+                final displayName = _buildProductDisplayName(
+                  p.productName,
+                  p.variantName,
+                );
+                return AnalyticsListItem(
+                  title: displayName,
+                  sku: p.sku,
+                  subtitle: p.categoryName,
+                  value: '${p.currentStock}',
+                  subValue: '${p.monthsOfInventory.toStringAsFixed(1)}mo supply',
+                  leading: Container(
+                    width: 8,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: TossColors.purple,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  void _navigateToProductListByCategory(
-    String companyId,
-    String categoryId,
-    String categoryName,
+  /// 제품명 표시 포맷: "제품명" 또는 "제품명 - variant"
+  /// SKU는 별도 행으로 표시됨
+  String _buildProductDisplayName(
+    String productName,
+    String? variantName,
   ) {
-    Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => ProductListPage(
-          companyId: companyId,
-          categoryId: categoryId,
-          title: categoryName,
-        ),
+    final buffer = StringBuffer(productName);
+    if (variantName?.isNotEmpty == true) {
+      buffer.write(' - $variantName');
+    }
+    return buffer.toString();
+  }
+}
+
+// =============================================================================
+// Helper Widgets (Sales Analytics 스타일)
+// =============================================================================
+
+/// Summary Card (Sales Analytics의 _SummaryCard와 동일)
+class _InventorySummaryCard extends StatelessWidget {
+  final String title;
+  final int value;
+  final double? percentage;
+  final IconData icon;
+  final Color color;
+
+  const _InventorySummaryCard({
+    required this.title,
+    required this.value,
+    this.percentage,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TossCard(
+      padding: const EdgeInsets.all(TossSpacing.space3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: TossTextStyles.caption.copyWith(
+              color: TossColors.gray500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: TossSpacing.space1),
+          Text(
+            _formatNumber(value),
+            style: TossTextStyles.h4.copyWith(
+              fontWeight: FontWeight.bold,
+              color: TossColors.gray900,
+            ),
+          ),
+          const SizedBox(height: TossSpacing.space1),
+          if (percentage != null)
+            TossBadge(
+              label: '${percentage!.toStringAsFixed(1)}%',
+              backgroundColor: color.withValues(alpha: 0.1),
+              textColor: color,
+            )
+          else
+            Icon(icon, size: 16, color: color),
+        ],
       ),
     );
   }
 
-  void _navigateToCategoryList(String companyId) {
-    Navigator.push<void>(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) => CategoryListPage(companyId: companyId),
+  String _formatNumber(int value) {
+    if (value >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value >= 1000) {
+      return '${(value / 1000).toStringAsFixed(1)}K';
+    }
+    return '$value';
+  }
+}
+
+/// Status Card (AnalyticsSummaryCardWidget와 유사)
+class _StatusCard extends StatelessWidget {
+  final String title;
+  final int count;
+  final double percentage;
+  final IconData icon;
+  final String status;
+  final bool fullWidth;
+
+  const _StatusCard({
+    required this.title,
+    required this.count,
+    required this.percentage,
+    required this.icon,
+    required this.status,
+    this.fullWidth = false,
+  });
+
+  Color get _statusColor {
+    return switch (status) {
+      'good' => TossColors.success,
+      'warning' => TossColors.warning,
+      'critical' => TossColors.error,
+      'info' => TossColors.purple,
+      _ => TossColors.gray500,
+    };
+  }
+
+  Color get _statusBgColor {
+    return switch (status) {
+      'good' => TossColors.successLight,
+      'warning' => TossColors.warningLight,
+      'critical' => TossColors.errorLight,
+      'info' => TossColors.purpleLight,
+      _ => TossColors.gray100,
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TossCard(
+      padding: const EdgeInsets.all(TossSpacing.space4),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: _statusBgColor,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Icon(
+              icon,
+              color: _statusColor,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: TossSpacing.space3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TossTextStyles.bodySmall.copyWith(
+                    color: TossColors.gray600,
+                  ),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(
+                      '$count',
+                      style: TossTextStyles.h4.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: _statusColor,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${percentage.toStringAsFixed(1)}%)',
+                      style: TossTextStyles.caption.copyWith(
+                        color: TossColors.gray500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Recount Item
+class _RecountItem extends StatelessWidget {
+  final RecountProduct product;
+
+  const _RecountItem({required this.product});
+
+  String _buildDisplayName() {
+    final buffer = StringBuffer(product.productName);
+    if (product.variantName?.isNotEmpty == true) {
+      buffer.write(' - ${product.variantName}');
+    }
+    return buffer.toString();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: TossSpacing.space3),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _buildDisplayName(),
+                  style: TossTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                // SKU (제품명 아래 별도 줄)
+                if (product.sku?.isNotEmpty == true)
+                  Text(
+                    product.sku!,
+                    style: TossTextStyles.caption.copyWith(
+                      color: TossColors.gray500,
+                    ),
+                  ),
+                Text(
+                  product.categoryName,
+                  style: TossTextStyles.caption.copyWith(
+                    color: TossColors.gray500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: TossSpacing.space3,
+              vertical: TossSpacing.space1,
+            ),
+            decoration: BoxDecoration(
+              color: TossColors.error,
+              borderRadius: BorderRadius.circular(TossBorderRadius.md),
+            ),
+            child: Text(
+              '${product.currentStock}',
+              style: TossTextStyles.bodySmall.copyWith(
+                color: TossColors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

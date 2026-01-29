@@ -885,7 +885,7 @@ class _StockFlowProviderElement
   StockFlowParams get params => (origin as StockFlowProvider).params;
 }
 
-String _$currencyTypesHash() => r'deff0309effee3b9727d19ef104c51014c166426';
+String _$currencyTypesHash() => r'1eeba7f4df0357e97ae8c50674bb0eab35bac114';
 
 /// Currency Types Provider - fetches available currency types from register_denomination feature
 ///

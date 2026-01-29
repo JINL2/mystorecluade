@@ -5,6 +5,7 @@ import '../../data/datasources/inventory_optimization_datasource.dart';
 import '../../data/repositories/inventory_optimization_repository_impl.dart';
 import '../../domain/entities/category_summary.dart';
 import '../../domain/entities/inventory_dashboard.dart';
+import '../../domain/entities/inventory_health_dashboard.dart';
 import '../../domain/entities/inventory_product.dart';
 import '../../domain/repositories/inventory_optimization_repository.dart';
 
@@ -271,5 +272,63 @@ Future<void> refreshInventoryViews(RefreshInventoryViewsRef ref) async {
   result.fold(
     (failure) => throw Exception(failure.message),
     (_) => null,
+  );
+}
+
+// =============================================================================
+// Health Dashboard Provider (V2)
+// =============================================================================
+
+/// Health Dashboard Filter
+class HealthDashboardFilter {
+  final String companyId;
+  final String? storeId;
+  final double urgentThreshold;
+  final int limit;
+
+  const HealthDashboardFilter({
+    required this.companyId,
+    this.storeId,
+    this.urgentThreshold = 1.0,
+    this.limit = 10,
+  });
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is HealthDashboardFilter &&
+        other.companyId == companyId &&
+        other.storeId == storeId &&
+        other.urgentThreshold == urgentThreshold &&
+        other.limit == limit;
+  }
+
+  @override
+  int get hashCode =>
+      companyId.hashCode ^
+      storeId.hashCode ^
+      urgentThreshold.hashCode ^
+      limit.hashCode;
+}
+
+/// 재고 건강도 대시보드 Provider (V2)
+/// RPC: inventory_analysis_get_inventory_health_dashboard
+@riverpod
+Future<InventoryHealthDashboard> inventoryHealthDashboard(
+  InventoryHealthDashboardRef ref,
+  HealthDashboardFilter filter,
+) async {
+  final repository = ref.watch(inventoryOptimizationRepositoryProvider);
+
+  final result = await repository.getHealthDashboard(
+    companyId: filter.companyId,
+    storeId: filter.storeId,
+    urgentThreshold: filter.urgentThreshold,
+    limit: filter.limit,
+  );
+
+  return result.fold(
+    (failure) => throw Exception(failure.message),
+    (dashboard) => dashboard,
   );
 }

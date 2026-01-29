@@ -242,7 +242,7 @@ mixin _$AnalyticsHubData {
       throw _privateConstructorUsedError;
   DiscrepancyOverview? get discrepancyOverview =>
       throw _privateConstructorUsedError;
-  InventoryDashboard? get inventoryDashboard =>
+  InventoryHealthDashboard? get inventoryHealthDashboard =>
       throw _privateConstructorUsedError;
 
   /// Create a copy of AnalyticsHubData
@@ -262,12 +262,12 @@ abstract class $AnalyticsHubDataCopyWith<$Res> {
       {SalesDashboard? salesDashboard,
       SupplyChainStatus? supplyChainStatus,
       DiscrepancyOverview? discrepancyOverview,
-      InventoryDashboard? inventoryDashboard});
+      InventoryHealthDashboard? inventoryHealthDashboard});
 
   $SalesDashboardCopyWith<$Res>? get salesDashboard;
   $SupplyChainStatusCopyWith<$Res>? get supplyChainStatus;
   $DiscrepancyOverviewCopyWith<$Res>? get discrepancyOverview;
-  $InventoryDashboardCopyWith<$Res>? get inventoryDashboard;
+  $InventoryHealthDashboardCopyWith<$Res>? get inventoryHealthDashboard;
 }
 
 /// @nodoc
@@ -288,7 +288,7 @@ class _$AnalyticsHubDataCopyWithImpl<$Res, $Val extends AnalyticsHubData>
     Object? salesDashboard = freezed,
     Object? supplyChainStatus = freezed,
     Object? discrepancyOverview = freezed,
-    Object? inventoryDashboard = freezed,
+    Object? inventoryHealthDashboard = freezed,
   }) {
     return _then(_value.copyWith(
       salesDashboard: freezed == salesDashboard
@@ -303,10 +303,10 @@ class _$AnalyticsHubDataCopyWithImpl<$Res, $Val extends AnalyticsHubData>
           ? _value.discrepancyOverview
           : discrepancyOverview // ignore: cast_nullable_to_non_nullable
               as DiscrepancyOverview?,
-      inventoryDashboard: freezed == inventoryDashboard
-          ? _value.inventoryDashboard
-          : inventoryDashboard // ignore: cast_nullable_to_non_nullable
-              as InventoryDashboard?,
+      inventoryHealthDashboard: freezed == inventoryHealthDashboard
+          ? _value.inventoryHealthDashboard
+          : inventoryHealthDashboard // ignore: cast_nullable_to_non_nullable
+              as InventoryHealthDashboard?,
     ) as $Val);
   }
 
@@ -357,14 +357,14 @@ class _$AnalyticsHubDataCopyWithImpl<$Res, $Val extends AnalyticsHubData>
   /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
-  $InventoryDashboardCopyWith<$Res>? get inventoryDashboard {
-    if (_value.inventoryDashboard == null) {
+  $InventoryHealthDashboardCopyWith<$Res>? get inventoryHealthDashboard {
+    if (_value.inventoryHealthDashboard == null) {
       return null;
     }
 
-    return $InventoryDashboardCopyWith<$Res>(_value.inventoryDashboard!,
-        (value) {
-      return _then(_value.copyWith(inventoryDashboard: value) as $Val);
+    return $InventoryHealthDashboardCopyWith<$Res>(
+        _value.inventoryHealthDashboard!, (value) {
+      return _then(_value.copyWith(inventoryHealthDashboard: value) as $Val);
     });
   }
 }
@@ -381,7 +381,7 @@ abstract class _$$AnalyticsHubDataImplCopyWith<$Res>
       {SalesDashboard? salesDashboard,
       SupplyChainStatus? supplyChainStatus,
       DiscrepancyOverview? discrepancyOverview,
-      InventoryDashboard? inventoryDashboard});
+      InventoryHealthDashboard? inventoryHealthDashboard});
 
   @override
   $SalesDashboardCopyWith<$Res>? get salesDashboard;
@@ -390,7 +390,7 @@ abstract class _$$AnalyticsHubDataImplCopyWith<$Res>
   @override
   $DiscrepancyOverviewCopyWith<$Res>? get discrepancyOverview;
   @override
-  $InventoryDashboardCopyWith<$Res>? get inventoryDashboard;
+  $InventoryHealthDashboardCopyWith<$Res>? get inventoryHealthDashboard;
 }
 
 /// @nodoc
@@ -409,7 +409,7 @@ class __$$AnalyticsHubDataImplCopyWithImpl<$Res>
     Object? salesDashboard = freezed,
     Object? supplyChainStatus = freezed,
     Object? discrepancyOverview = freezed,
-    Object? inventoryDashboard = freezed,
+    Object? inventoryHealthDashboard = freezed,
   }) {
     return _then(_$AnalyticsHubDataImpl(
       salesDashboard: freezed == salesDashboard
@@ -424,10 +424,10 @@ class __$$AnalyticsHubDataImplCopyWithImpl<$Res>
           ? _value.discrepancyOverview
           : discrepancyOverview // ignore: cast_nullable_to_non_nullable
               as DiscrepancyOverview?,
-      inventoryDashboard: freezed == inventoryDashboard
-          ? _value.inventoryDashboard
-          : inventoryDashboard // ignore: cast_nullable_to_non_nullable
-              as InventoryDashboard?,
+      inventoryHealthDashboard: freezed == inventoryHealthDashboard
+          ? _value.inventoryHealthDashboard
+          : inventoryHealthDashboard // ignore: cast_nullable_to_non_nullable
+              as InventoryHealthDashboard?,
     ));
   }
 }
@@ -439,7 +439,7 @@ class _$AnalyticsHubDataImpl extends _AnalyticsHubData {
       {required this.salesDashboard,
       required this.supplyChainStatus,
       required this.discrepancyOverview,
-      required this.inventoryDashboard})
+      required this.inventoryHealthDashboard})
       : super._();
 
   @override
@@ -449,11 +449,11 @@ class _$AnalyticsHubDataImpl extends _AnalyticsHubData {
   @override
   final DiscrepancyOverview? discrepancyOverview;
   @override
-  final InventoryDashboard? inventoryDashboard;
+  final InventoryHealthDashboard? inventoryHealthDashboard;
 
   @override
   String toString() {
-    return 'AnalyticsHubData(salesDashboard: $salesDashboard, supplyChainStatus: $supplyChainStatus, discrepancyOverview: $discrepancyOverview, inventoryDashboard: $inventoryDashboard)';
+    return 'AnalyticsHubData(salesDashboard: $salesDashboard, supplyChainStatus: $supplyChainStatus, discrepancyOverview: $discrepancyOverview, inventoryHealthDashboard: $inventoryHealthDashboard)';
   }
 
   @override
@@ -467,13 +467,14 @@ class _$AnalyticsHubDataImpl extends _AnalyticsHubData {
                 other.supplyChainStatus == supplyChainStatus) &&
             (identical(other.discrepancyOverview, discrepancyOverview) ||
                 other.discrepancyOverview == discrepancyOverview) &&
-            (identical(other.inventoryDashboard, inventoryDashboard) ||
-                other.inventoryDashboard == inventoryDashboard));
+            (identical(
+                    other.inventoryHealthDashboard, inventoryHealthDashboard) ||
+                other.inventoryHealthDashboard == inventoryHealthDashboard));
   }
 
   @override
   int get hashCode => Object.hash(runtimeType, salesDashboard,
-      supplyChainStatus, discrepancyOverview, inventoryDashboard);
+      supplyChainStatus, discrepancyOverview, inventoryHealthDashboard);
 
   /// Create a copy of AnalyticsHubData
   /// with the given fields replaced by the non-null parameter values.
@@ -490,7 +491,7 @@ abstract class _AnalyticsHubData extends AnalyticsHubData {
           {required final SalesDashboard? salesDashboard,
           required final SupplyChainStatus? supplyChainStatus,
           required final DiscrepancyOverview? discrepancyOverview,
-          required final InventoryDashboard? inventoryDashboard}) =
+          required final InventoryHealthDashboard? inventoryHealthDashboard}) =
       _$AnalyticsHubDataImpl;
   const _AnalyticsHubData._() : super._();
 
@@ -501,7 +502,7 @@ abstract class _AnalyticsHubData extends AnalyticsHubData {
   @override
   DiscrepancyOverview? get discrepancyOverview;
   @override
-  InventoryDashboard? get inventoryDashboard;
+  InventoryHealthDashboard? get inventoryHealthDashboard;
 
   /// Create a copy of AnalyticsHubData
   /// with the given fields replaced by the non-null parameter values.

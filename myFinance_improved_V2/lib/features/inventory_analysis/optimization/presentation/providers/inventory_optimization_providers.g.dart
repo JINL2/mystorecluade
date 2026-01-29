@@ -406,6 +406,162 @@ final refreshInventoryViewsProvider = AutoDisposeFutureProvider<void>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef RefreshInventoryViewsRef = AutoDisposeFutureProviderRef<void>;
+String _$inventoryHealthDashboardHash() =>
+    r'00fa1d2d37dd0f3ad2c1ff6995b4595d948264f7';
+
+/// 재고 건강도 대시보드 Provider (V2)
+/// RPC: inventory_analysis_get_inventory_health_dashboard
+///
+/// Copied from [inventoryHealthDashboard].
+@ProviderFor(inventoryHealthDashboard)
+const inventoryHealthDashboardProvider = InventoryHealthDashboardFamily();
+
+/// 재고 건강도 대시보드 Provider (V2)
+/// RPC: inventory_analysis_get_inventory_health_dashboard
+///
+/// Copied from [inventoryHealthDashboard].
+class InventoryHealthDashboardFamily
+    extends Family<AsyncValue<InventoryHealthDashboard>> {
+  /// 재고 건강도 대시보드 Provider (V2)
+  /// RPC: inventory_analysis_get_inventory_health_dashboard
+  ///
+  /// Copied from [inventoryHealthDashboard].
+  const InventoryHealthDashboardFamily();
+
+  /// 재고 건강도 대시보드 Provider (V2)
+  /// RPC: inventory_analysis_get_inventory_health_dashboard
+  ///
+  /// Copied from [inventoryHealthDashboard].
+  InventoryHealthDashboardProvider call(
+    HealthDashboardFilter filter,
+  ) {
+    return InventoryHealthDashboardProvider(
+      filter,
+    );
+  }
+
+  @override
+  InventoryHealthDashboardProvider getProviderOverride(
+    covariant InventoryHealthDashboardProvider provider,
+  ) {
+    return call(
+      provider.filter,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'inventoryHealthDashboardProvider';
+}
+
+/// 재고 건강도 대시보드 Provider (V2)
+/// RPC: inventory_analysis_get_inventory_health_dashboard
+///
+/// Copied from [inventoryHealthDashboard].
+class InventoryHealthDashboardProvider
+    extends AutoDisposeFutureProvider<InventoryHealthDashboard> {
+  /// 재고 건강도 대시보드 Provider (V2)
+  /// RPC: inventory_analysis_get_inventory_health_dashboard
+  ///
+  /// Copied from [inventoryHealthDashboard].
+  InventoryHealthDashboardProvider(
+    HealthDashboardFilter filter,
+  ) : this._internal(
+          (ref) => inventoryHealthDashboard(
+            ref as InventoryHealthDashboardRef,
+            filter,
+          ),
+          from: inventoryHealthDashboardProvider,
+          name: r'inventoryHealthDashboardProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$inventoryHealthDashboardHash,
+          dependencies: InventoryHealthDashboardFamily._dependencies,
+          allTransitiveDependencies:
+              InventoryHealthDashboardFamily._allTransitiveDependencies,
+          filter: filter,
+        );
+
+  InventoryHealthDashboardProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.filter,
+  }) : super.internal();
+
+  final HealthDashboardFilter filter;
+
+  @override
+  Override overrideWith(
+    FutureOr<InventoryHealthDashboard> Function(
+            InventoryHealthDashboardRef provider)
+        create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: InventoryHealthDashboardProvider._internal(
+        (ref) => create(ref as InventoryHealthDashboardRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        filter: filter,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<InventoryHealthDashboard> createElement() {
+    return _InventoryHealthDashboardProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is InventoryHealthDashboardProvider && other.filter == filter;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, filter.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin InventoryHealthDashboardRef
+    on AutoDisposeFutureProviderRef<InventoryHealthDashboard> {
+  /// The parameter `filter` of this provider.
+  HealthDashboardFilter get filter;
+}
+
+class _InventoryHealthDashboardProviderElement
+    extends AutoDisposeFutureProviderElement<InventoryHealthDashboard>
+    with InventoryHealthDashboardRef {
+  _InventoryHealthDashboardProviderElement(super.provider);
+
+  @override
+  HealthDashboardFilter get filter =>
+      (origin as InventoryHealthDashboardProvider).filter;
+}
+
 String _$productListNotifierHash() =>
     r'222f6f31c2b5ac01ba4152499942665b03f95289';
 

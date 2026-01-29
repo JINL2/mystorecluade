@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../discrepancy/domain/entities/discrepancy_overview.dart';
-import '../../../optimization/domain/entities/inventory_dashboard.dart';
+import '../../../optimization/domain/entities/inventory_health_dashboard.dart';
 import '../../../sales/domain/entities/sales_dashboard.dart';
 import '../../../supply_chain/domain/entities/supply_chain_status.dart';
 
@@ -29,7 +29,7 @@ class AnalyticsHubData with _$AnalyticsHubData {
     required SalesDashboard? salesDashboard,
     required SupplyChainStatus? supplyChainStatus,
     required DiscrepancyOverview? discrepancyOverview,
-    required InventoryDashboard? inventoryDashboard,
+    required InventoryHealthDashboard? inventoryHealthDashboard,
   }) = _AnalyticsHubData;
 
   /// Sales analysis card data
@@ -55,24 +55,24 @@ class AnalyticsHubData with _$AnalyticsHubData {
 
   /// Inventory optimization card data
   AnalyticsSummaryCard get optimizationCard {
-    if (inventoryDashboard == null) {
+    if (inventoryHealthDashboard == null) {
       return const AnalyticsSummaryCard(
         title: 'Inventory Health',
         status: 'insufficient',
-        statusText: 'No data',
+        statusText: 'Check inventory data',
         primaryMetric: '-',
       );
     }
 
-    final health = inventoryDashboard!.health;
-    final criticalCount = health.criticalCount;
-    final stockoutCount = health.stockoutCount;
-    final totalIssues = criticalCount + stockoutCount;
+    final summary = inventoryHealthDashboard!.summary;
+    final urgentCount = summary.urgentCount;
+    final recountCount = summary.recountCount;
+    final totalIssues = urgentCount + summary.normalCount;
 
     String status;
-    if (stockoutCount > 0) {
+    if (recountCount > 0 || urgentCount > 5) {
       status = 'critical';
-    } else if (criticalCount > 0) {
+    } else if (urgentCount > 0 || summary.normalCount > 10) {
       status = 'warning';
     } else {
       status = 'good';
@@ -81,9 +81,9 @@ class AnalyticsHubData with _$AnalyticsHubData {
     return AnalyticsSummaryCard(
       title: 'Inventory Health',
       status: status,
-      statusText: totalIssues > 0 ? '$totalIssues products need attention' : 'All products healthy',
-      primaryMetric: '${health.stockoutRate.toStringAsFixed(1)}% stockout',
-      secondaryMetric: criticalCount > 0 ? '$criticalCount critical' : null,
+      statusText: totalIssues > 0 ? '$totalIssues products need reorder' : 'All products healthy',
+      primaryMetric: '${summary.sufficientPct.toStringAsFixed(1)}% sufficient',
+      secondaryMetric: urgentCount > 0 ? '$urgentCount urgent' : null,
     );
   }
 

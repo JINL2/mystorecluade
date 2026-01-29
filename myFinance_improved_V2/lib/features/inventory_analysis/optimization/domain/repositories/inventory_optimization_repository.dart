@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../../core/errors/failures.dart';
 import '../entities/category_summary.dart';
 import '../entities/inventory_dashboard.dart';
+import '../entities/inventory_health_dashboard.dart';
 import '../entities/paginated_products.dart';
 
 /// Inventory Optimization Repository Interface
@@ -45,4 +46,18 @@ abstract class InventoryOptimizationRepository {
   /// Materialized View 새로고침
   /// RPC: refresh_inventory_optimization_views
   Future<Either<Failure, void>> refreshViews();
+
+  /// 재고 건강도 대시보드 조회 (V2)
+  /// RPC: inventory_analysis_get_inventory_health_dashboard
+  ///
+  /// [companyId] 회사 ID (필수)
+  /// [storeId] 매장 ID (선택, null이면 전체 회사)
+  /// [urgentThreshold] 긴급 기준 일 평균 판매량 (기본 1.0)
+  /// [limit] 각 섹션별 상품 조회 수 (기본 10, 최대 50)
+  Future<Either<Failure, InventoryHealthDashboard>> getHealthDashboard({
+    required String companyId,
+    String? storeId,
+    double urgentThreshold = 1.0,
+    int limit = 10,
+  });
 }

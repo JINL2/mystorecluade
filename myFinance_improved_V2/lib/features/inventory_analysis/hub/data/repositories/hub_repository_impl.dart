@@ -38,7 +38,7 @@ class HubRepositoryImpl implements HubRepository {
         companyId: companyId,
         storeId: storeId,
       );
-      final inventoryFuture = _inventoryRepository.getDashboard(
+      final inventoryFuture = _inventoryRepository.getHealthDashboard(
         companyId: companyId,
       );
       final supplyChainFuture =
@@ -55,7 +55,7 @@ class HubRepositoryImpl implements HubRepository {
       // 결과 추출 (실패해도 null로 처리)
       final hubData = AnalyticsHubData(
         salesDashboard: salesResult.fold((_) => null, (data) => data),
-        inventoryDashboard: inventoryResult.fold((_) => null, (data) => data),
+        inventoryHealthDashboard: inventoryResult.fold((_) => null, (data) => data),
         supplyChainStatus: supplyChainResult.fold((_) => null, (data) => data),
         discrepancyOverview:
             discrepancyResult.fold((_) => null, (data) => data),
